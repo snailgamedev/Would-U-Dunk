@@ -1581,6 +1581,8 @@ const SFX = (() => {
       tone(2200 + Math.random()*400, 0.05, 'sine', 0.12, 0.4);
     },
     miss(){ tone(220, 0.16, 'square', 0.18, 0.7); },
+    setMasterVolume,                      // 🆕 v2.6.4 expose for settings slider
+    getMasterVolume(){ return (typeof Settings.masterVolume === 'number') ? Settings.masterVolume : 1.0; },
   };
 })();
 
