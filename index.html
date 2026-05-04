@@ -3608,6 +3608,9 @@ function showSplash(){
   document.getElementById('btnUpdates').onclick = renderUpdatesScreen;
   document.getElementById('btnShareGame').onclick = renderShareGameScreen;
   document.getElementById('btnProfile').onclick = renderProfileScreen;
+  // 🆕 v2.6.3 — SURPRISE ME: roll random looks + random mode + start match immediately
+  const btnSurprise = document.getElementById('btnSurprise');
+  if (btnSurprise) btnSurprise.onclick = startSurpriseMatch;
   // profile badge
   const pb = document.getElementById('profileBadge');
   if (pb) pb.textContent = profileBadge();
