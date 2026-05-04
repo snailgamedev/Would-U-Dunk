@@ -1943,10 +1943,16 @@ class MatchScene extends Phaser.Scene {
       else if (this.p2 && !this.p2.isCpu) this.onStealKey(this.p2);
     });
 
-    // Camera — set bounds + initial scroll. Manual follow in update() (more reliable than startFollow).
-    this.cameras.main.setBounds(0, 0, COURT_W, COURT_H);
+    // Camera — 🆕 v2.6.3 bounds expanded for SKY-NO-LIMIT (Y up to -COURT_H*4) + OOB gutters
+    this.cameras.main.setBounds(-this.OOB_PAD, this.SKY_CEILING, COURT_W + this.OOB_PAD*2, COURT_H - this.SKY_CEILING);
     const camW = this.cameras.main.width, camH = this.cameras.main.height;
     this.cameras.main.setScroll(this.ball.x - camW/2, this.ball.y - camH/2);
+    // 🆕 OOB / sky / altitude state
+    this._oobLock = 0;            // ms timestamp until ball respawns
+    this._oobActive = false;
+    this._altitudeReadout = null; // text obj when ball is way up
+    this._camZoomTarget = 1;
+    this._camZoomCurrent = 1;
 
     // Round timer (mode-driven)
     const modeRoundLen = cfg._roundLen || 120;
