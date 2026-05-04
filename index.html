@@ -3422,6 +3422,32 @@ function renderSettingsScreen(){
   document.querySelectorAll('[data-set]').forEach(cb => {
     cb.onchange = () => { Settings[cb.dataset.set] = cb.checked; saveSettings(); };
   });
+  // 🆕 v2.6.4 master volume slider + mute toggle
+  const slider = document.getElementById('masterVolSlider');
+  const pctEl  = document.getElementById('masterVolPct');
+  const muteBtn = document.getElementById('btnMute');
+  let lastNonZero = (Settings.masterVolume && Settings.masterVolume > 0) ? Settings.masterVolume : 1;
+  if (slider){
+    slider.oninput = (e) => {
+      const v = parseInt(e.target.value, 10) / 100;
+      SFX.setMasterVolume(v);
+      if (pctEl) pctEl.textContent = `${e.target.value}%`;
+      if (muteBtn) muteBtn.textContent = (v === 0) ? '🔇 UNMUTE' : '🔊 MUTE';
+      if (v > 0) lastNonZero = v;
+      // tick sound for instant feedback (only on release-ish to avoid spam)
+      if (v > 0 && Math.random() < 0.15) SFX.bounce();
+    };
+  }
+  if (muteBtn){
+    muteBtn.onclick = () => {
+      const isMuted = (Settings.masterVolume === 0);
+      const newV = isMuted ? lastNonZero : 0;
+      SFX.setMasterVolume(newV);
+      if (slider) slider.value = Math.round(newV * 100);
+      if (pctEl) pctEl.textContent = `${Math.round(newV * 100)}%`;
+      muteBtn.textContent = isMuted ? '🔊 MUTE' : '🔇 UNMUTE';
+    };
+  }
   document.getElementById('btnReset').onclick = () => {
     if (!confirm('Wipe ALL career progress (games, achievements, level, looks)? Cannot be undone.')) return;
     try {
