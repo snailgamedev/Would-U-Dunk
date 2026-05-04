@@ -285,7 +285,9 @@
     <div class="row" style="margin-top:4px">
       <button class="btn" id="btnUpdates" style="font-size:13px;padding:10px">📋 UPDATES</button>
       <button class="btn" id="btnShareGame" style="font-size:13px;padding:10px">🔗 SHARE GAME</button>
+      <button class="btn" id="btnProfile" style="font-size:13px;padding:10px">👤 ACCOUNT</button>
     </div>
+    <div id="profileBadge" style="margin-top:10px;font-size:11px;color:var(--gold);letter-spacing:3px;font-weight:900"></div>
     <div class="small">42 modifiers · 28 CPU tiers · 12 modes · 51 achievements · zero player input on anything</div>
   </div>
 </div>
@@ -331,7 +333,7 @@
 <!-- Halftime / pre-round verse splash -->
 <div id="verseSplash"><div class="vp"><div class="vCross">✝</div><div class="vText">verse here</div><div class="vRef">REF</div></div></div>
 
-<div class="credit">v2.5 🏆 · mobile-friendly · 🎮 controls panel · steal cooldown · netlify ready</div>
+<div class="credit">v2.6 🏆 · 👤 ACCOUNT system · GH Pages live · per-profile saves · LIVE ONLINE</div>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -367,8 +369,42 @@ function safe(fn, label){
   };
 }
 
+/* ------------------- ACCOUNTS / PROFILES ------------------- */
+const SHARE_BASE = 'https://snailgamedev.github.io/Would-U-Dunk/';
+const PROFILES_KEY = 'wud:profiles:v1';
+const CURRENT_PROFILE_KEY = 'wud:currentProfile:v1';
+
+function listProfiles(){
+  try { return JSON.parse(localStorage.getItem(PROFILES_KEY)) || []; } catch(e){ return []; }
+}
+function saveProfiles(list){ try { localStorage.setItem(PROFILES_KEY, JSON.stringify(list)); } catch(e){} }
+function currentProfileName(){
+  const v = localStorage.getItem(CURRENT_PROFILE_KEY);
+  return (v && v.trim()) ? v : 'default';
+}
+function setCurrentProfile(name){ try { localStorage.setItem(CURRENT_PROFILE_KEY, name); } catch(e){} }
+function profileSlug(){ return currentProfileName().replace(/[^a-zA-Z0-9_-]/g,'_'); }
+function profileBadge(){
+  const n = currentProfileName();
+  return n === 'default' ? '👤 GUEST' : `👤 ${n.toUpperCase()}`;
+}
+function createProfile(name, pin){
+  const list = listProfiles();
+  if (!name || list.some(p => p.name === name)) return false;
+  list.push({ name, pin: pin||'', createdAt: Date.now() });
+  saveProfiles(list);
+  return true;
+}
+function deleteProfile(name){
+  const list = listProfiles().filter(p => p.name !== name);
+  saveProfiles(list);
+  ['wud:career','wud:settings','wud:look:0','wud:look:1'].forEach(b => {
+    try { localStorage.removeItem(`${b}:${name}`); } catch(e){}
+  });
+}
+
 /* ------------------- SETTINGS ------------------- */
-const SETTINGS_KEY = 'wud:settings:v1';
+const SETTINGS_KEY = `wud:settings:${currentProfileName()}`;
 function defaultSettings(){
   return {
     sound: true,
@@ -999,7 +1035,7 @@ function verseOfTheDay(){
 const randomCry   = () => HOLY_BUCKET_CRIES[(Math.random()*HOLY_BUCKET_CRIES.length)|0];
 
 /* ------------------- CAREER · XP · LEVEL ------------------- */
-const CAREER_KEY = 'wud:career:v1';
+const CAREER_KEY = `wud:career:${currentProfileName()}`;
 function defaultCareer(){
   return {
     games:0, wins:0, losses:0, ties:0,
@@ -1574,12 +1610,12 @@ function defaultLook(slot){
 }
 function loadLook(slot){
   try {
-    const raw = localStorage.getItem(`wud:look:${slot}`);
+    const raw = localStorage.getItem(`wud:look:${slot}:${currentProfileName()}`);
     if (raw) return Object.assign(defaultLook(slot), JSON.parse(raw));
   } catch(e){}
   return defaultLook(slot);
 }
-function saveLook(slot, look){ try{ localStorage.setItem(`wud:look:${slot}`, JSON.stringify(look)); }catch(e){} }
+function saveLook(slot, look){ try{ localStorage.setItem(`wud:look:${slot}:${currentProfileName()}`, JSON.stringify(look)); }catch(e){} }
 
 /* ------------------- GAME STATE ------------------- */
 const State = {
@@ -3340,6 +3376,61 @@ function renderHowToPlayScreen(){
   openModal('HOW TO PLAY', html);
 }
 
+function renderProfileScreen(){
+  const list = listProfiles();
+  const cur = currentProfileName();
+  const rows = list.length === 0
+    ? '<div style="color:#aab;font-style:italic;padding:14px;text-align:center">No profiles yet — create one below.</div>'
+    : list.map(p => `
+        <div style="display:flex;align-items:center;gap:8px;background:${p.name===cur?'#ffd76e22':'#0008'};border:1px solid ${p.name===cur?'var(--gold)':'#ffd76e44'};border-radius:8px;padding:8px 12px;margin-bottom:6px">
+          <div style="flex:1;color:#fff;font-weight:900;letter-spacing:1px">${p.name===cur?'✅ ':''}👤 ${p.name}${p.pin?' 🔒':''}</div>
+          <button class="opt txt" data-switch="${p.name}" style="background:${p.name===cur?'#444':'var(--hot)'};color:#fff;font-size:10px">${p.name===cur?'CURRENT':'SWITCH'}</button>
+          <button class="opt txt" data-del="${p.name}" style="background:#222;color:#ff8a8a;font-size:10px">DEL</button>
+        </div>`).join('');
+  const html = `
+    <div>
+      <div class="section-divider" style="margin-top:0">YOUR PROFILES</div>
+      ${rows}
+      <div class="section-divider">CREATE NEW PROFILE</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="newProfileName" placeholder="username" maxlength="16" style="flex:1;background:#0008;border:2px solid var(--gold);color:#fff;padding:8px 10px;border-radius:6px;font:inherit">
+        <input type="password" id="newProfilePin" placeholder="PIN (optional)" maxlength="4" pattern="[0-9]*" style="width:120px;background:#0008;border:2px solid #ffd76e88;color:#fff;padding:8px 10px;border-radius:6px;font:inherit">
+        <button class="btn hot" id="btnCreateProfile" style="margin:0;padding:8px 14px;font-size:13px">CREATE</button>
+      </div>
+      <div style="margin-top:14px;color:#aab;font-size:11px;text-align:center;letter-spacing:0.5px">
+        Profiles stored on this device only. Each has its own career, settings, and look.<br>Switching reloads the page to load that profile's data.
+      </div>
+    </div>`;
+  openModal(`PROFILES · ${profileBadge()}`, html);
+  // bind switch
+  document.querySelectorAll('[data-switch]').forEach(b => b.onclick = () => {
+    const name = b.dataset.switch;
+    const prof = listProfiles().find(p => p.name === name);
+    if (prof && prof.pin){
+      const entered = prompt(`Enter PIN for ${name}:`);
+      if (entered !== prof.pin) return showToast('WRONG PIN', 'allpro');
+    }
+    setCurrentProfile(name);
+    location.reload();
+  });
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const name = b.dataset.del;
+    if (!confirm(`Delete profile "${name}" and all its data? Cannot be undone.`)) return;
+    deleteProfile(name);
+    if (name === currentProfileName()) setCurrentProfile('default');
+    location.reload();
+  });
+  document.getElementById('btnCreateProfile').onclick = () => {
+    const name = document.getElementById('newProfileName').value.trim();
+    const pin  = document.getElementById('newProfilePin').value.trim();
+    if (!name) return showToast('ENTER A USERNAME', 'allpro');
+    if (pin && !/^\d{1,4}$/.test(pin)) return showToast('PIN MUST BE 1-4 DIGITS', 'allpro');
+    if (!createProfile(name, pin)) return showToast('NAME TAKEN', 'allpro');
+    setCurrentProfile(name);
+    location.reload();
+  };
+}
+
 function renderUpdatesScreen(){
   const rows = CHANGELOG.map((c, i) => `
     <div style="background:#0008;border:1px solid ${i===0?'var(--gold)':'#ffd76e44'};border-radius:8px;padding:10px 14px;margin-bottom:8px">
@@ -3354,38 +3445,38 @@ function renderUpdatesScreen(){
 }
 
 function renderShareGameScreen(){
-  const isFile = window.location.protocol === 'file:';
   const html = `
     <div style="font-size:13px;line-height:1.7;color:#fff;letter-spacing:0.5px">
-      <div class="section-divider" style="margin-top:0">📁 SHARE THE FILE DIRECTLY</div>
-      Send <code style="background:#0008;padding:2px 6px;border-radius:4px;color:var(--gold)">would-u-dunk.html</code> to a friend (AirDrop, email, Discord drop). They open it in any browser and play.
-      <br><span style="color:#aab;font-size:11px">⚠ Online MP only works if the file is at a real URL (not file://) — see below.</span>
+      <div style="background:#0008;border:3px dashed var(--gold);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px">
+        <div style="color:var(--gold);font-size:11px;letter-spacing:3px;margin-bottom:8px">🌐 LIVE GAME URL</div>
+        <div style="color:#fff;font-size:16px;font-weight:900;letter-spacing:0.5px;font-family:monospace;word-break:break-all;margin-bottom:10px">${SHARE_BASE}</div>
+        <button class="btn hot" id="shCopyURL" style="font-size:13px;padding:8px 14px;margin:4px 0;display:inline-block;width:auto">📋 COPY URL</button>
+        <a class="btn" href="${SHARE_BASE}" target="_blank" style="font-size:13px;padding:8px 14px;margin:4px 0;display:inline-block;width:auto;text-decoration:none">🚀 OPEN LIVE</a>
+      </div>
 
-      <div class="section-divider">🌐 HOST IT ONLINE — FREE</div>
-      Pick any free static host:
-      <ul style="margin:6px 0 6px 18px;padding:0;color:#fff">
-        <li><b style="color:var(--gold)">GitHub Pages</b> — push to a repo, enable Pages → live URL</li>
-        <li><b style="color:var(--gold)">Netlify</b> — drag the file into <code>netlify.com/drop</code> → instant URL</li>
-        <li><b style="color:var(--gold)">Surge.sh</b> — <code>surge .</code> from terminal → CDN URL in seconds</li>
-        <li><b style="color:var(--gold)">itch.io</b> — upload as HTML5 game, get a play page</li>
-      </ul>
-      Then share the URL with your friend.
-
-      <div class="section-divider">🎮 ONLINE MP WITH FRIENDS</div>
-      1. Both players open the SAME hosted URL<br>
+      <div class="section-divider" style="margin-top:0">🎮 PLAY ONLINE WITH FRIENDS</div>
+      1. Both players open <b style="color:var(--gold)">${SHARE_BASE}</b> in their browsers<br>
       2. Host clicks <b style="color:#4cf07a">🌐 HOST ROOM</b> → gets 6-char code → clicks <b>📋 COPY SHARE LINK</b><br>
-      3. Pastes the link to friend (Discord, text, etc.)<br>
-      4. Friend opens link → auto-joins → both see "✅ CONNECTED"<br>
-      5. Host clicks <b style="color:var(--hot)">START MATCH ▶</b> → both jump into the same chaos roll
-      <br><span style="color:#aab;font-size:11px">⚠ PeerJS uses WebRTC. Some school/work networks block it; home WiFi works fine.</span>
+      3. Friend pastes/opens the link → auto-joins → both see "✅ CONNECTED"<br>
+      4. Host clicks <b style="color:var(--hot)">START MATCH ▶</b> → same chaos roll on both screens
+      <br><span style="color:#aab;font-size:11px">⚠ Some school/work networks block WebRTC. Home WiFi works fine.</span>
 
-      <div class="section-divider">📱 PUT IT ON YOUR PHONE</div>
-      Open the URL in mobile Safari/Chrome → tap Share → "Add to Home Screen". Behaves like an app. Touch controls auto-enable.
+      <div class="section-divider">📱 ON YOUR PHONE</div>
+      Open the URL in mobile Safari/Chrome → tap Share → <b>"Add to Home Screen"</b> → behaves like an app. Touch controls (◀ ▶ JUMP STEAL) auto-enable.
 
-      <div class="section-divider">🔥 OFFLINE PLAY</div>
-      The whole game is one file with CDN scripts. To go fully offline, <a style="color:var(--gold)" href="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js" target="_blank">save phaser.min.js</a> + <a style="color:var(--gold)" href="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" target="_blank">peerjs.min.js</a> next to the HTML and edit the script src tags to point local. PeerJS won't work without internet though.
+      <div class="section-divider">📱 SOCIAL POSTS</div>
+      Drop the link in Discord, X, IG bio, group chats — it'll show as a clickable URL. The game loads instantly in any browser.
+
+      <div class="section-divider">🛠 DEV / OFFLINE</div>
+      Source repo: <code style="background:#0008;padding:2px 6px;border-radius:4px;color:var(--gold)">github.com/snailgamedev/Would-U-Dunk</code><br>
+      For fully offline: clone the repo + open <code>index.html</code> directly. PeerJS multiplayer won't work without internet.
     </div>`;
-  openModal('🔗 HOW TO SHARE THE GAME', html);
+  openModal('🔗 SHARE WOULD U DUNK', html);
+  const cb = document.getElementById('shCopyURL');
+  if (cb) cb.onclick = () => {
+    try { navigator.clipboard.writeText(SHARE_BASE); showToast('🔗 LINK COPIED!', 'level'); }
+    catch(e){ prompt('Copy this link:', SHARE_BASE); }
+  };
 }
 
 function renderAboutScreen(){
@@ -3506,6 +3597,10 @@ function showSplash(){
   document.getElementById('btnAbout').onclick = renderAboutScreen;
   document.getElementById('btnUpdates').onclick = renderUpdatesScreen;
   document.getElementById('btnShareGame').onclick = renderShareGameScreen;
+  document.getElementById('btnProfile').onclick = renderProfileScreen;
+  // profile badge
+  const pb = document.getElementById('profileBadge');
+  if (pb) pb.textContent = profileBadge();
   document.getElementById('hud').style.display = 'none';
   document.getElementById('gameSettings').classList.remove('on');
   const m = document.getElementById('moves'); if (m) m.classList.remove('on');
@@ -3615,7 +3710,8 @@ function showOnlineLobby(mode, joinCode){
   const shareBtn = document.getElementById('lobbyShare');
   if (shareBtn) shareBtn.onclick = () => {
     if (!Online.code) return showToast('CODE NOT READY YET', 'allpro');
-    const url = `${window.location.origin}${window.location.pathname}#join=${Online.code}`;
+    // Always use the live GH Pages URL so links work cross-device
+    const url = `${SHARE_BASE}#join=${Online.code}`;
     try {
       navigator.clipboard.writeText(url);
       showToast('🔗 LINK COPIED — share with friend!', 'level');
