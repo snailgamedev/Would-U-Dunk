@@ -3388,9 +3388,21 @@ function renderSettingsScreen(){
       <span class="sd">${desc}</span>
       <input type="checkbox" data-set="${key}" ${Settings[key] ? 'checked' : ''}>
     </label>`;
+  const volPct = Math.round((Settings.masterVolume != null ? Settings.masterVolume : 1) * 100);
   const html = `
     <div class="setlist">
       ${toggle('sound',         '🔊 SOUNDS',          'master audio toggle')}
+      <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="sk">🎚 MASTER VOLUME</span>
+          <span id="masterVolPct" style="color:var(--gold);font-weight:900;font-size:14px">${volPct}%</span>
+        </div>
+        <span class="sd" style="margin-top:-4px">drag to adjust all sound levels</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range" min="0" max="100" value="${volPct}" id="masterVolSlider" style="flex:1;accent-color:#ffd76e">
+          <button class="btn" id="btnMute" style="font-size:11px;padding:6px 12px;width:auto;letter-spacing:1px">${volPct === 0 ? '🔇 UNMUTE' : '🔊 MUTE'}</button>
+        </div>
+      </label>
       ${toggle('scripturePops', '📜 SCRIPTURE POPS',  'verse popup on every bucket')}
       ${toggle('coachLines',    '🗣️ COACH COMMENTARY','BUCKETS! HEAT CHECK! etc.')}
       ${toggle('cameraShake',   '📷 CAMERA SHAKE',    'screen shake on big moments')}
