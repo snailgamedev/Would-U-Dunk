@@ -1679,8 +1679,10 @@ class MatchScene extends Phaser.Scene {
     buildPlayerTexture(this, 'p2', p2Look);
     buildBallTexture(this, 'ball');
 
-    // World
-    this.physics.world.setBounds(0, 0, COURT_W, COURT_H);
+    // World — 🆕 v2.6.3 NO SKY LIMIT: ceiling extended 4× upward + 1.4× wide for OOB-behind-goal zones
+    this.SKY_CEILING = -COURT_H * 4;     // ball can fly this high
+    this.OOB_PAD = 200;                   // out-of-bounds gutter behind each goal
+    this.physics.world.setBounds(-this.OOB_PAD, this.SKY_CEILING, COURT_W + this.OOB_PAD*2, COURT_H - this.SKY_CEILING);
     this.physics.world.gravity.y = 1500 * (cfg.gravMul || 1);
 
     // === ARENA BACKDROP ===
