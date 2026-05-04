@@ -2692,8 +2692,60 @@ class MatchScene extends Phaser.Scene {
       const cam = this.cameras.main;
       const tx = this.ball.x - cam.width/2;
       const ty = this.ball.y - cam.height/2;
-      cam.scrollX = Phaser.Math.Clamp(cam.scrollX + (tx - cam.scrollX) * 0.18, 0, COURT_W - cam.width);
-      cam.scrollY = Phaser.Math.Clamp(cam.scrollY + (ty - cam.scrollY) * 0.18, 0, Math.max(0, COURT_H - cam.height));
+      // 🆕 v2.6.3 NO-SKY-LIMIT: clamp Y to expanded SKY_CEILING bound, not 0
+      const minY = (this.SKY_CEILING != null) ? this.SKY_CEILING : 0;
+      const minX = (this.OOB_PAD != null) ? -this.OOB_PAD : 0;
+      const maxX = COURT_W + (this.OOB_PAD != null ? this.OOB_PAD : 0) - cam.width;
+      cam.scrollX = Phaser.Math.Clamp(cam.scrollX + (tx - cam.scrollX) * 0.18, minX, Math.max(minX, maxX));
+      cam.scrollY = Phaser.Math.Clamp(cam.scrollY + (ty - cam.scrollY) * 0.18, minY, Math.max(minY, COURT_H - cam.height));
+      // 🆕 SLOW ZOOM-OUT when ball is high up (above court roof) — shows the arc
+      const ballAlt = Math.max(0, FLOOR_Y - this.ball.y);
+      const zoomTgt = ballAlt > 600 ? Phaser.Math.Clamp(1 - (ballAlt - 600) / 4000, 0.55, 1) : 1;
+      this._camZoomCurrent = (this._camZoomCurrent || 1) + (zoomTgt - (this._camZoomCurrent || 1)) * 0.04;
+      cam.setZoom(this._camZoomCurrent);
+      // 🆕 ALTITUDE READOUT when ball above viewport
+      if (this.ball.y < cam.scrollY + 30){
+        if (!this._altText){
+          this._altText = this.add.text(VIEW_W/2, 18, '', {fontFamily:'monospace', fontSize:14, color:'#ffd76e', stroke:'#000', strokeThickness:4, fontStyle:'bold'}).setOrigin(0.5, 0).setDepth(80).setScrollFactor(0);
+        }
+        const m = Math.round(ballAlt / 12);   // pseudo-meters
+        this._altText.setText(`🚀 ALTITUDE ${m}m  ↑`);
+        this._altText.setVisible(true);
+      } else if (this._altText){
+        this._altText.setVisible(false);
+      }
+      // 🆕 OOB BEHIND GOAL — gutter zones beyond hoops
+      if (!this._oobActive && this.canMove && !this.ball.getData('held') && this.time.now > (this.ball.getData('lockUntil') || 0)){
+        const ox = this.ball.x;
+        if (ox < -20 || ox > COURT_W + 20){
+          this._oobActive = true;
+          const side = ox < 0 ? 'LEFT' : 'RIGHT';
+          // freeze ball
+          this.ball.body.setVelocity(0, 0); this.ball.body.setAllowGravity(false); this.ball.setData('lockUntil', this.time.now + 1400);
+          // SLOW camera pan toward OOB spot + zoom in
+          const targetX = ox < 0 ? -this.OOB_PAD : COURT_W + this.OOB_PAD;
+          const targetY = FLOOR_Y - 100;
+          this.tweens.add({ targets: cam, scrollX: targetX - cam.width/2, scrollY: targetY - cam.height/2, duration: 700, ease: 'Sine.easeInOut' });
+          this._camZoomTarget = 1.4;
+          this.tweens.add({ targets: this, _camZoomCurrent: 1.4, duration: 700, ease: 'Sine.easeInOut' });
+          // OOB banner
+          const banner = this.add.text(VIEW_W/2, VIEW_H/2 - 40, `🏐 OUT OF BOUNDS · ${side} SIDE`, {fontFamily:'monospace', fontSize:30, color:'#ff8a3c', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(90).setScrollFactor(0).setAlpha(0);
+          this.tweens.add({ targets: banner, alpha: 1, scale: { from: 0.6, to: 1.1 }, duration: 250, ease: 'Back.easeOut' });
+          // ooohh sfx
+          if (typeof SFX !== 'undefined' && SFX.whistle) SFX.whistle();
+          // crowd reaction (use chime as proxy for "ooooh")
+          if (typeof SFX !== 'undefined' && SFX.chime) SFX.chime();
+          // after pause, reset + restore camera + clear flag
+          this.time.delayedCall(1300, () => {
+            banner.destroy();
+            this.resetBall();
+            this.ball.body.setAllowGravity(true);
+            this._camZoomTarget = 1;
+            this.tweens.add({ targets: this, _camZoomCurrent: 1, duration: 500, ease: 'Sine.easeOut' });
+            this._oobActive = false;
+          });
+        }
+      }
     }
     if (!this.canMove) return;
     const dt = delta / 1000;
