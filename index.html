@@ -3616,6 +3616,9 @@ function showSplash(){
     const fill = document.querySelector('#splashLvlBar .fill');
     if (fill){ const w = fill.style.width; fill.style.width = '0%'; requestAnimationFrame(()=>{ fill.style.width = w; }); }
   }, 50);
+  // 🆕 v2.6.2 — version badge populate + click → updates modal
+  const vb = document.getElementById('verBadge');
+  if (vb){ vb.textContent = VERSION; vb.onclick = renderUpdatesScreen; }
   // 🆕 v2.6.1 — auto-show "what's new" if first load on this version (per profile)
   try {
     const seenKey = `wud:lastSeenVersion:${currentProfileName()}`;
