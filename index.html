@@ -3269,6 +3269,20 @@ class MatchScene extends Phaser.Scene {
       // RIM FLEX — flashing white ring around the rim
       const flash = this.add.circle(target.x, target.y, target.rimR + 8, 0xffffff, 0.85).setStrokeStyle(4, 0xff3b3b).setDepth(5);
       this.tweens.add({ targets: flash, alpha:0, scaleX:2, scaleY:2, duration:380, onComplete:()=>flash.destroy() });
+      // 🆕 v2.13.2 — CELEB cosmetic FX (pyro / doves) on dunks
+      const equippedCeleb = (typeof loadEquipped === 'function') ? loadEquipped('CELEB') : '';
+      if (equippedCeleb === 'celeb_pyro'){
+        for (let i = 0; i < 18; i++){
+          const ang = (i / 18) * Math.PI * 2;
+          const sp = this.add.text(target.x, target.y, '🎆', {fontSize:'22px'}).setOrigin(0.5).setDepth(DEPTH.BURST);
+          this.tweens.add({ targets: sp, x: sp.x + Math.cos(ang) * 220, y: sp.y + Math.sin(ang) * 220 - 60, alpha: 0, duration: 1200, onComplete: () => sp.destroy() });
+        }
+      } else if (equippedCeleb === 'celeb_doves'){
+        for (let i = 0; i < 6; i++){
+          const sp = this.add.text(target.x + (Math.random()-0.5)*60, target.y, '🕊️', {fontSize:'30px'}).setOrigin(0.5).setDepth(DEPTH.BURST);
+          this.tweens.add({ targets: sp, x: sp.x + (Math.random()-0.5)*400, y: sp.y - 200 - Math.random()*100, alpha: 0, duration: 1500 + Math.random()*400, onComplete: () => sp.destroy() });
+        }
+      }
       const t = this.add.text(target.x, target.y - 90, '💥 DUNK!', {fontFamily:'monospace', fontSize:44, color:'#ff3b3b', stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(60);
       this.tweens.add({ targets:t, y:target.y-150, scale:{from:0.6, to:1.4}, alpha:{from:1, to:0}, duration:900, onComplete:()=>t.destroy() });
       // HANG ON RIM — player floats at rim for ~700ms before dropping
