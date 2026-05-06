@@ -1443,6 +1443,10 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.10.3';
 const CHANGELOG = [
+  { v:'v2.10.3', notes:[
+      '🪲 CRITICAL FIX — "JS ERROR: Cannot access uninitialized variable" splash banner squashed. Was caused by NPC_ROSTER IIFE referencing ARCHETYPE_TRAITS const before it was declared (TDZ). Moved trait declarations above the roster builder',
+      '✅ All 1,050 archetypes now load cleanly · NPC roster builds without throwing',
+  ]},
   { v:'v2.10.2', notes:[
       '⚙ SETTINGS OVERHAUL — sectioned into 🔊 AUDIO · 🎬 DISPLAY · 🎮 GAMEPLAY · 📈 PLAYER DEVELOPMENT',
       '📈 DEV XP PANEL in settings — see your XP + locked/unlocked rewards (rare jerseys at 100, Yeshua tier at 500, all archetypes at 1000, legend status at 2500)',
