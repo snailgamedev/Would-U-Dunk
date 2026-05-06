@@ -1924,6 +1924,15 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.18.0';
 const CHANGELOG = [
+  { v:'v2.18.0', notes:[
+      '🪲 DUNK BUG FIX — apex check was rejecting dunks (ball spawned only 4px above rim, check needed 10+). Now spawns 60px above + sets explicit apexY so EVERY clean dunk counts',
+      '🏀 DUNK MISS w/ RICOCHET — 8% miss chance (more in chaos modes). Ball clanks off the rim with horizontal kick + downward bounce. CLANK! popup + crowdOoh',
+      '📱 ORIENTATION-AWARE LAYOUT — separate CSS rules for portrait + landscape on phones. Touch buttons reposition to actual screen edges in landscape (smaller, tighter)',
+      '🎮 LIVE STATS panel repositions to bottom in portrait so it doesn\'t cover the scoreboard',
+      '📛 NAME POOLS expanded to 1,100+ raw names — biblical 84 → 145 · NBA 50 → 105 · WNBA 32 → 51 · football 48 → 89 · baseball 48 → 80 · hockey 34 → 65 · soccer 42 → 84 · tennis 31 → 51 · golf 26 → 51 · combat 37 → 62 · olympic 32 → 55 · common 60+60 → 105+118',
+      '✅ Verified: reset-after-score (already in v2.13.x) · forced-shoot on jump-with-ball-after-ground (already in v2.7.0)',
+      '✝️ "He restoreth my soul" — Ps 23:3 · Order in all things',
+  ]},
   { v:'v2.17.0', notes:[
       '📛 MASSIVE NAME LAYER — names for ALL players (random user button) AND ALL CPU NPCs now pull from a 12-pool name database',
       '⛪ POOLS — biblical (84) · NBA legends (50) · WNBA (32) · football (48) · baseball (48) · hockey (34) · soccer (42) · tennis (31) · golf (26) · combat (37) · olympic (32) · common firsts (60) · common lasts (60)',
