@@ -3360,6 +3360,8 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v2.7.0 — clamp score to MIN_SCORE so cursed mode can't bottom-out indefinitely
     State.scores[scorerIdx] = clampScore((State.scores[scorerIdx] || 0) + points);
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
+    // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
+    if (points >= 3) this.bigShotHighlight(zoneLabel || '+' + points);
     // 🆕 v2.12.0 — CASH economy + TRASH TALK
     if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
     if (scorerIdx === 1 && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers && Math.random() < 0.4){
