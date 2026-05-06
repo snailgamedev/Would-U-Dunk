@@ -7466,6 +7466,13 @@ function slotPanel(slot, isCpu){
   <div class="ccslot" id="slot${slot}">
     <h3>PLAYER ${slot+1} <button class="opt txt" data-randomize="${slot}" style="margin-left:auto;background:var(--hot);color:#fff;font-size:11px;padding:4px 9px">🎲 RANDOM</button></h3>
     <canvas class="preview" id="prev${slot}"></canvas>
+    <!-- 🆕 v2.16.9 — themed preset packages — one click fills every slot -->
+    <details style="margin:6px 0;background:#0006;border:1px solid #ffd76e44;border-radius:6px;padding:6px 8px">
+      <summary style="color:#ffd76e;font-size:10px;letter-spacing:2px;cursor:pointer;font-weight:900">🎁 RANDOMIZATION PACKAGES (${LOOK_PRESETS.length})</summary>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+        ${LOOK_PRESETS.map(p => `<button class="opt txt" data-preset="${p.id}" data-slot="${slot}" style="background:#0008;color:#ffd76e;font-size:9px;padding:4px 7px;border:1px solid #ffd76e44">${p.label}</button>`).join('')}
+      </div>
+    </details>
     <div class="field" style="margin-bottom:8px"><label style="flex:0 0 70px">USERNAME</label><input type="text" maxlength="20" value="${(look.username||'').replace(/"/g,'&quot;')}" data-key="username" style="flex:1;background:#0008;border:2px solid var(--gold);color:#fff;padding:6px 10px;border-radius:6px;font:inherit;font-weight:900;letter-spacing:1px"><button class="opt txt" data-rerollname="${slot}" style="background:var(--gold);color:#000;font-size:10px;padding:4px 7px">🎲</button></div>
 
     <div class="section-divider">BODY</div>
