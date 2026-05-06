@@ -4255,6 +4255,12 @@ class MatchScene extends Phaser.Scene {
     if (!this.canMove) return;
     const dt = delta / 1000;
     const cfg = State.cfg;
+    // 🆕 v2.13.15 — COACH AI TIPS every 14s
+    if (!this._lastCoachTip) this._lastCoachTip = time;
+    if (time - this._lastCoachTip > 14000){
+      this._lastCoachTip = time;
+      this.coachAdvice();
+    }
 
     // wind / slant constant accel applied to ball
     if (cfg.wind) this.ball.body.setAccelerationX(cfg.wind);
