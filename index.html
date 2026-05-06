@@ -2427,8 +2427,9 @@ class MatchScene extends Phaser.Scene {
     }
     // CURSED — subtract instead of add (😈)
     if (State.cfg.cursed) points = -points;
-    State.scores[scorerIdx] += points;
-    State.matchPoints[scorerIdx] += points;
+    // 🆕 v2.7.0 — clamp score to MIN_SCORE so cursed mode can't bottom-out indefinitely
+    State.scores[scorerIdx] = clampScore((State.scores[scorerIdx] || 0) + points);
+    State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
     // track current opponent lead (for comeback achievement)
     State._roundMaxOppLead = Math.max(State._roundMaxOppLead || 0, State.scores[1] - State.scores[0]);
     State.bucketsThisRound[scorerIdx] += 1;
