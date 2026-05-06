@@ -5214,6 +5214,8 @@ class MatchScene extends Phaser.Scene {
     this.ball.setData('lockUntil', this.time.now + 200);
     State.blocksThisRound[blocker.idx] = (State.blocksThisRound[blocker.idx]||0) + 1;
     if (State.matchStats?.[blocker.idx]) State.matchStats[blocker.idx].blocks += 1;
+    // 🆕 v2.16.6 — daily-objective block hook (player only)
+    if (blocker.idx === 0 && typeof trackDailyObjective === 'function') trackDailyObjective('blocks', 1);
     if (blocker.idx === 0) Career.blockedShots = (Career.blockedShots||0) + 1;
     SFX.block && SFX.block();
     SFX.crowdAhh && SFX.crowdAhh();
