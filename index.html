@@ -3274,6 +3274,9 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v2.13.1 — POWER-UP BOOST gives perfect aim while active (8s)
     const powered = player._powerBoostUntil && this.time.now < player._powerBoostUntil;
     if (powered) acc = 0.99;
+    // 🆕 v2.13.8 — LUCKY power-up: next 3 shots auto-perfect (decrements on use)
+    const lucky = (player._luckyShotsLeft || 0) > 0;
+    if (lucky){ acc = 0.99; player._luckyShotsLeft -= 1; }
     acc = Phaser.Math.Clamp(acc, 0.72, 0.99);
     const noisePx = (1 - acc) * 95;
     vx += (Math.random() - 0.5) * noisePx;
