@@ -7625,6 +7625,15 @@ function bindCharSlot(slot){
     saveLook(slot, look);
     showCharSelect();
   };
+  // 🆕 v2.16.9 — preset package buttons
+  root.querySelectorAll(`[data-preset][data-slot="${slot}"]`).forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      applyPresetLook(slot, b.dataset.preset);
+      showCharSelect();
+    };
+  });
 
   refreshSlot(slot);
 }
