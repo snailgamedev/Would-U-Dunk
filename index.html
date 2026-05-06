@@ -3083,6 +3083,16 @@ class MatchScene extends Phaser.Scene {
     // Inputs
     this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P');
     this.input.keyboard.on('keydown-E', () => this.onStealKey(this.p1));
+    // 🆕 v2.13.17 — EMOTE keys 1-5: 🔥 💀 🙏 😂 👋
+    const EMOTES = ['🔥','💀','🙏','😂','👋'];
+    EMOTES.forEach((emoji, i) => {
+      this.input.keyboard.on('keydown-' + (i+1).toString(), () => {
+        this.popEmote(this.p1, emoji);
+        if (State.mode === 'ONLINE' && Online.connected){
+          Online.send({ type:'emote', emoji });
+        }
+      });
+    });
     this.input.keyboard.on('keydown-RIGHT', () => {
       const solo = (State.mode === 'CPU' || State.mode === 'ONLINE');
       if (solo) this.onStealKey(this.p1);     // arrow-right steals for P1 in solo modes
