@@ -5964,29 +5964,59 @@ function renderChronicleScreen(){
     ['v2.6.3','🎲 SURPRISE ME · OOB BEHIND GOAL · NO SKY LIMIT · version badge','three big creative additions'],
     ['v2.6.4','🎚 MASTER VOLUME slider · MUTE · SFX rebuilt around master gain','audio infrastructure'],
   ]);
-  const era4_27 = T(['VER','SHIPPED','RATIONALE'],[
-    ['v2.7.0','CPU FAIR PLAY · solid players · NBA FINALS · 232 NPCs · 30 archetypes · arena posters','minor — bug-fix wave + new persistent layer'],
-    ['v2.7.1','OOB v2 · possession switch · sky-burnout · animated inbound','patch — extends OOB system'],
-    ['v2.7.2','NPC look in CPU sprite · series state machine · championship overlay','patch — wiring'],
-    ['v2.7.3','15 archetypes wired into AI behavior decisions','patch — completes AI hookup'],
-  ]);
-  const era4_28_29 = T(['VER','SHIPPED','RATIONALE'],[
-    ['v2.8.0','🏆 FRANCHISE — 8 leagues, 64 teams, persistent seasons · +10 archetypes','minor — Franchise = brand new persistent system'],
-    ['v2.8.1','Live league standings · custom team builder · CPU tier-scaled','patch — depth'],
-    ['v2.8.2','⚡ MASSIVE LEAGUE · PRACTICE · SUMMER (11 leagues, 88 teams) · true block','patch — content'],
-    ['v2.9.0','⚔️ TOURNAMENT MODE · 📈 Player Dev XP · 5 archetype brains','minor — two new systems'],
-  ]);
-  const era4_10 = T(['VER','SHIPPED','RATIONALE'],[
-    ['v2.10.0','🎯 1,050 ARCHETYPES (30×35) · splash overhaul · 464 NPC roster','minor — headline 1000+ ask'],
-    ['v2.10.1','🌐 ONLINE MODE FIXED — remote inputs (jump/shoot/steal/block)','patch — critical MP bugfix'],
-    ['v2.10.2','⚙ Settings overhaul (sectioned) · dev XP panel','patch — UI structure'],
-    ['v2.10.3','🪲 TDZ fix — "Cannot access uninitialized variable" splash banner','patch — emergency hotfix'],
-  ]);
-  const era4_11_12 = T(['VER','SHIPPED','RATIONALE'],[
-    ['v2.11.0','📝 FREE AGENCY · roster boost · rare jersey colors at 100 dev XP','minor — new sub-system'],
-    ['v2.11.1','🏆 SEASON MVP · 🏛 HALL OF FAME · titles counter','patch — franchise depth'],
-    ['v2.12.0','🪲 3P% bug · ⭐ OVR · 🔥 ON FIRE · 💰 cash · 😎 trash talk · ⚡ SKIRMISH','minor — cash economy = new persistent system'],
-  ]);
+  // 🆕 v2.16.5 — Era 4 tables now AUTO-BUILD from CHANGELOG. Adding a new version = appears here automatically.
+  // Each row: [version, first-note (the headline), rationale (inferred from version-bump pattern)]
+  const _bumpKind = (vNow, vPrev) => {
+    if (!vPrev) return 'first';
+    const a = vNow.replace(/^v/,'').split('.').map(n => parseInt(n,10));
+    const b = vPrev.replace(/^v/,'').split('.').map(n => parseInt(n,10));
+    if (a[0] !== b[0]) return 'major — breaking architecture';
+    if (a[1] !== b[1]) return 'minor — new system or major feature drop';
+    return 'patch — extends existing system';
+  };
+  // entries are newest-first in CHANGELOG; we want oldest-first for tables, and only v2.7+
+  const era4Entries = CHANGELOG.slice().reverse().filter(e => {
+    const m = e.v.match(/^v(\d+)\.(\d+)/);
+    return m && (parseInt(m[1],10) > 2 || (parseInt(m[1],10) === 2 && parseInt(m[2],10) >= 7));
+  });
+  const buildEraRows = (entries) => {
+    const rows = [];
+    for (let i = 0; i < entries.length; i++){
+      const e = entries[i];
+      const prev = i > 0 ? entries[i-1].v : null;
+      const headline = (e.notes && e.notes[0]) ? e.notes[0].slice(0, 110) : '';
+      rows.push([e.v, headline, _bumpKind(e.v, prev)]);
+    }
+    return rows;
+  };
+  // partition by minor band so the modal stays scannable
+  const partitionByBand = (entries, bands) => {
+    const out = {};
+    bands.forEach(b => out[b.label] = []);
+    entries.forEach(e => {
+      const m = e.v.match(/^v(\d+)\.(\d+)/);
+      if (!m) return;
+      const minor = parseInt(m[2], 10);
+      const band = bands.find(b => minor >= b.min && minor <= b.max);
+      if (band) out[band.label].push(e);
+    });
+    return out;
+  };
+  const bands = [
+    { label:'🚀 v2.7.x — FOUNDATIONS',                min:7,  max:7  },
+    { label:'🚀 v2.8.x → v2.9.x — FRANCHISE + TOURNAMENT', min:8,  max:9  },
+    { label:'🚀 v2.10.x — 1,050 ARCHETYPES + ONLINE FIX', min:10, max:10 },
+    { label:'🚀 v2.11.x → v2.12.x — DEPTH + ECONOMY',  min:11, max:12 },
+    { label:'🚀 v2.13.x — FEATURE SPRINT',              min:13, max:13 },
+    { label:'🚀 v2.14.x → v2.16.x — POLISH · IDENTITY · MOBILE · CHRONICLE', min:14, max:99 },
+  ];
+  const partitioned = partitionByBand(era4Entries, bands);
+  const era4Sections = bands.map(b => {
+    const list = partitioned[b.label];
+    if (!list.length) return '';
+    const rows = buildEraRows(list);
+    return section(b.label, T(['VER','HEADLINE','RATIONALE'], rows));
+  }).join('');
   const era4_13 = T(['VER','FEATURE','RATIONALE'],[
     ['v2.13.0','❄️ ICE COLD · ⭐ POWER-UPS · 🛒 SHOP (17 items) · 30 lore lines','"Fire & Ice" symmetry'],
     ['v2.13.1','Ball skins WORK · power-up boost real · court themes live','functional cosmetics'],
