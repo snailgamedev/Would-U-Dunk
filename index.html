@@ -5109,6 +5109,11 @@ function showEndCard(){
       f.gameNum += 1;
       if (won) f.wins += 1; else f.losses += 1;
       f.lastResult = won ? 'W' : 'L';
+      // 🆕 v2.8.1 — also update MY standings entry + sim the week's other matchups
+      const myEntry = f.standings.find(s => s.name === f.teamName);
+      if (myEntry){ if (won) myEntry.w = (myEntry.w||0)+1; else myEntry.l = (myEntry.l||0)+1; }
+      const lg = getLeague(f.leagueId);
+      f.lastWeekUpdates = simWeekMatchups(f, lg, State._franchiseOpp);
       saveFranchise(f);
     }
     State._franchiseActive = false;
