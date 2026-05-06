@@ -2143,6 +2143,36 @@ function newFranchise(leagueId, teamName){
   };
 }
 // 🆕 v2.11.0 — generate a free-agent pool to choose from after each season
+// 🆕 v2.11.1 — HALL OF FAME + SEASON MVP
+function loadHof(){
+  try { const r = localStorage.getItem(`wud:hof:${currentProfileName()}`); return r ? JSON.parse(r) : []; }
+  catch(e){ return []; }
+}
+function saveHof(arr){ try { localStorage.setItem(`wud:hof:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
+function archiveToHof(f){
+  const all = loadHof();
+  const totalWins = (f.standings || []).find(s => s.name === f.teamName);
+  all.push({
+    leagueId: f.leagueId,
+    teamName: f.teamName,
+    seasons: f.season,
+    finalRecord: { w: totalWins?.w || 0, l: totalWins?.l || 0 },
+    titles: f.titles || 0,
+    mvps: f.seasonMvps || [],
+    retired: Date.now(),
+  });
+  saveHof(all);
+}
+function pickSeasonMvp(f){
+  // candidates: you + roster signings. stats from f.wins, rosterBoost contribution, random skew
+  const candidates = [{ name: '⭐ ' + (currentProfileName() || 'YOU'), score: (f.wins||0) * 100 + Math.random()*50 }];
+  (f.roster || []).forEach(r => {
+    candidates.push({ name: r.name, archetype: r.archetypeLabel || '', score: (r.boost || 0) * 200 + Math.random()*60 });
+  });
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0];
+}
+
 function rollFreeAgentPool(){
   const pool = [];
   const seen = new Set();
