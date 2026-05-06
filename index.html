@@ -5758,6 +5758,159 @@ function renderProfileScreen(){
   };
 }
 
+// 🆕 v2.16.1 — VISUAL CHRONICLE (rich version history with semver rationale + meta thought)
+function renderChronicleScreen(){
+  const T = (head, rows) => `<table style="width:100%;border-collapse:collapse;font-size:11px;color:#fff;margin-bottom:10px">
+    <thead><tr style="color:#ffd76e;letter-spacing:2px;font-size:9px;border-bottom:1px solid #ffd76e44">${head.map(h=>`<th style="text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r => `<tr style="border-bottom:1px solid #ffd76e22">${r.map((c,i)=>`<td style="padding:5px 8px;${i===0?'color:var(--gold);font-weight:900;white-space:nowrap':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+  const section = (title, body) => `<div style="margin:14px 0;background:#0008;border:1px solid #ffd76e44;border-radius:8px;padding:10px 12px">
+    <div style="color:#ffd76e;font-size:12px;letter-spacing:3px;font-weight:900;margin-bottom:8px">${title}</div>${body}</div>`;
+  const semver = T(
+    ['CHANGE', 'BUMP', 'EXAMPLE'],
+    [
+      ['Tiny fix / 1-2 small additions', '<b>patch</b> (x.y.<b>Z</b>)', 'v2.13.5 → v2.13.6'],
+      ['New system / 3+ features bundled', '<b>minor</b> (x.<b>Y</b>.0)', 'v2.7.3 → v2.8.0 (Franchise)'],
+      ['Whole new architecture', '<b>major</b> (<b>X</b>.0.0)', 'v0 → v1 → v2'],
+    ]
+  );
+  const era1 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v0.1','42 mods · 8 CPU tiers · local 2P + CPU','first prototype'],
+    ['v0.2','unified canvas sprites · scriptures + kingdom labels','small additive'],
+    ['v0.3','height slider · tall players · more customization','char-customization seed'],
+    ['v0.4','career system · levels · achievements · XP','first persistence layer'],
+    ['v0.5','28 CPU tiers · 42 achievements · 7 modes · SFX system','breadth jump'],
+    ['v0.6','12 modes auto-roll random · 51 achievements','mode count growing'],
+    ['v0.7','BasketRandom shooting · high lobs · dunk warps · comet trail','gameplay feel locked in'],
+    ['v0.8','SETTINGS modal · PAUSE · HOW TO PLAY · ABOUT','UI scaffolding'],
+    ['v0.9','5×5 default · clock removed · random char button · aim arc','UX defaults'],
+    ['v0.10','phasing players · hold-charge shoot · 60 modifiers','last v0.x'],
+  ]);
+  const era2 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v1.0','🏆 chuck-from-anywhere · 8 mods · 4 modes · 12 achievements · 3 celebs','major bump = first "release"'],
+    ['v1.1','DREAM/NIGHTMARE · FG%/3PT% · banana ball + clones','minor additions'],
+    ['v1.2','heavy gravity floor fix · 5 score zones · online beta','first online tease'],
+    ['v1.3','ONLINE MP lobby · host/join/start · input + chaos sync','first big multiplayer drop'],
+    ['v1.4','top-to-bottom scoring · arcs · CPU lock · share link · nameplates','polish bundle'],
+    ['v1.5','USERNAMES · realistic floor + swish + net · holy nicknames','identity layer'],
+    ['v1.6','reversed gravity = ball-only · grounded players','gameplay fairness'],
+    ['v1.7','NEW BALL — pebble · seams · highlight · 5-stop gradient','art pass'],
+    ['v1.8','solo arrows = WASD or arrows · consistent input','accessibility'],
+    ['v1.9','arena overhaul · spotlights · LED ribbon · dunk whistle','visual maturity'],
+  ]);
+  const era3 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.0','stadium lights + LED · 79 mods · in-game ⚙','major = "next-gen feel"'],
+    ['v2.1','EVERYTHING-BETTER pass · sprite outline · burst score popups','broad polish'],
+    ['v2.2','variable shot targets · crowd waves · cheer bubbles','crowd hype'],
+    ['v2.3','tap-jump-with-ball · flatter shot arcs · player reset 450ms','feel tweaks'],
+    ['v2.4','UPDATE HISTORY · SHARE GAME · score-path resets · more juice','meta UX'],
+    ['v2.5','COOLDOWN HUD · in-match move list · crowd reactions','live HUD'],
+    ['v2.6','ACCOUNT/PROFILE · share rebrand · mobile-first · per-profile stats','identity + share'],
+    ['v2.6.1','🤖 AUTO-DEPLOY pipeline LIVE','infra: enables this whole session'],
+    ['v2.6.3','🎲 SURPRISE ME · OOB BEHIND GOAL · NO SKY LIMIT · version badge','three big creative additions'],
+    ['v2.6.4','🎚 MASTER VOLUME slider · MUTE · SFX rebuilt around master gain','audio infrastructure'],
+  ]);
+  const era4_27 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.7.0','CPU FAIR PLAY · solid players · NBA FINALS · 232 NPCs · 30 archetypes · arena posters','minor — bug-fix wave + new persistent layer'],
+    ['v2.7.1','OOB v2 · possession switch · sky-burnout · animated inbound','patch — extends OOB system'],
+    ['v2.7.2','NPC look in CPU sprite · series state machine · championship overlay','patch — wiring'],
+    ['v2.7.3','15 archetypes wired into AI behavior decisions','patch — completes AI hookup'],
+  ]);
+  const era4_28_29 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.8.0','🏆 FRANCHISE — 8 leagues, 64 teams, persistent seasons · +10 archetypes','minor — Franchise = brand new persistent system'],
+    ['v2.8.1','Live league standings · custom team builder · CPU tier-scaled','patch — depth'],
+    ['v2.8.2','⚡ MASSIVE LEAGUE · PRACTICE · SUMMER (11 leagues, 88 teams) · true block','patch — content'],
+    ['v2.9.0','⚔️ TOURNAMENT MODE · 📈 Player Dev XP · 5 archetype brains','minor — two new systems'],
+  ]);
+  const era4_10 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.10.0','🎯 1,050 ARCHETYPES (30×35) · splash overhaul · 464 NPC roster','minor — headline 1000+ ask'],
+    ['v2.10.1','🌐 ONLINE MODE FIXED — remote inputs (jump/shoot/steal/block)','patch — critical MP bugfix'],
+    ['v2.10.2','⚙ Settings overhaul (sectioned) · dev XP panel','patch — UI structure'],
+    ['v2.10.3','🪲 TDZ fix — "Cannot access uninitialized variable" splash banner','patch — emergency hotfix'],
+  ]);
+  const era4_11_12 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.11.0','📝 FREE AGENCY · roster boost · rare jersey colors at 100 dev XP','minor — new sub-system'],
+    ['v2.11.1','🏆 SEASON MVP · 🏛 HALL OF FAME · titles counter','patch — franchise depth'],
+    ['v2.12.0','🪲 3P% bug · ⭐ OVR · 🔥 ON FIRE · 💰 cash · 😎 trash talk · ⚡ SKIRMISH','minor — cash economy = new persistent system'],
+  ]);
+  const era4_13 = T(['VER','FEATURE','RATIONALE'],[
+    ['v2.13.0','❄️ ICE COLD · ⭐ POWER-UPS · 🛒 SHOP (17 items) · 30 lore lines','"Fire & Ice" symmetry'],
+    ['v2.13.1','Ball skins WORK · power-up boost real · court themes live','functional cosmetics'],
+    ['v2.13.2','☄️ trail tints · 🎆 pyro · 🕊️ doves · 📅 daily seed','cosmetic functionality'],
+    ['v2.13.3','Shop visual previews · loadout line · audit','confirmation pass'],
+    ['v2.13.4','🥇 profile badges · 🎬 big shot slow-mo','medal + cinematic'],
+    ['v2.13.5','📋 scouting report · 📍 shot heatmap','post-game analytics'],
+    ['v2.13.6','🔀 trade block · 🎬 replay ghost arc','franchise depth + visual'],
+    ['v2.13.7','🎤 halftime show (8 acts)','event polish'],
+    ['v2.13.8','🎴 4 power-up variants (STAR/FIRE/ICE/LUCKY)','depth'],
+    ['v2.13.9','💰 streak cash bonuses (3X/5X/7X/10X)','reward loop'],
+    ['v2.13.10','+4 streak achievements','unlock pace'],
+    ['v2.13.11','🏟 stadium tier system (5 levels)','persistent visual upgrade'],
+    ['v2.13.12','📅 daily challenge dedicated UI','retention loop'],
+    ['v2.13.13','⚙ custom rule editor','UGC'],
+    ['v2.13.14','📋 NBA 2K-style 6-attribute rating card','profile depth'],
+    ['v2.13.15','🗣 Coach AI tips (9 categories)','mid-game flavor'],
+    ['v2.13.16','🎬 top moments reel (top 3)','post-game flair'],
+    ['v2.13.17','😎 emote system (1-5 keys) + online sync','expression'],
+    ['v2.13.18','🏆 trophy room polish (rarity tiers)','UX polish'],
+    ['v2.13.19','🔥 daily streak tracker','retention'],
+    ['v2.13.20','📚 first-run tutorial','onboarding'],
+    ['v2.13.21','📺 splash news ticker (10 rotating msgs)','live data hype'],
+    ['v2.13.22','💰 daily login bonus ($200/day)','retention reward'],
+    ['v2.13.23','🎯 3-PT + LOGO drill modes','content'],
+    ['v2.13.24','📊 TAB live stats panel','mid-game UX'],
+    ['v2.13.25','📷 Z-key zoom toggle','camera'],
+    ['v2.13.26','🚨 buzzer beater 2× bonus','dramatic moment'],
+    ['v2.13.27','🎬 pre-game walk-in animation','NBA 2K intro feel'],
+    ['v2.13.28','🎯 daily 3-objective challenges','quest system'],
+    ['v2.13.29','🌟 Player of the Week','weekly retention'],
+    ['v2.13.30','🔥 shop daily flash sale (50% off)','shopping hook'],
+  ]);
+  const era4_14_16 = T(['VER','SHIPPED','RATIONALE'],[
+    ['v2.14.0','+12 achievements for new systems · centralized audit · totalSpent','minor — new persistent state field'],
+    ['v2.15.0','✝️ HOLY EDITION — opening prayer · verse of day · golden pulse badge · 30% holy NPC boost · GOLD easter egg','minor — faith-forward identity layer'],
+    ['v2.16.0','📱 MOBILE EDITION — device picker · ui-mobile/ui-desktop · responsive scaling','minor — whole new device path'],
+    ['v2.16.1','📚 VISUAL CHRONICLE — this very screen · semver legend · meta thought','patch — adds in-game history viewer'],
+  ]);
+  const totals = T(['METRIC','COUNT'],[
+    ['Versions in session', '54 (v2.7.0 → v2.16.1)'],
+    ['Lines of code added', '~3,800 (4,604 → 8,540)'],
+    ['Major systems built', 'Franchise · Tournament · Series · Daily · Custom Rules · Drills · Skirmish · Shop · Stadium · Free Agency · HoF · Dev XP · Cash · Top Moments · Heatmap · Scouting · Tutorial · Mobile · Holy Edition'],
+    ['Archetype count', '30 → <b>1,050</b>'],
+    ['NPCs', '0 → <b>232+</b>'],
+    ['Leagues × teams', '0 × 0 → <b>11 × 88</b>'],
+    ['Achievements', '97 → <b>113</b>'],
+    ['Critical bugs squashed', '4 (3P% · TDZ · Online inputs · Ball-tunneling)'],
+  ]);
+  const meta = `<div style="font-size:12px;color:#fff;line-height:1.7;letter-spacing:0.3px">
+    <p><b style="color:var(--gold)">Why so many patches vs minors?</b> Most iterations were small additions to existing systems (extending Franchise, adding more cosmetics, more archetypes). Semver says: new features that don't add a <i>system</i> = patch. Only when a brand new persistent thing arrived (Franchise, Tournament, Free Agency, Mobile) did I bump minor.</p>
+    <p><b style="color:var(--gold)">Why v3.0 didn't happen:</b> A major bump would mean breaking changes — wiping localStorage, redesigning data model, removing modes. We never broke anything, only added. So we stayed in v2.x territory.</p>
+    <p><b style="color:var(--gold)">The arc:</b> Bug fixes → foundational systems (1,050 archetypes, leagues) → polish (cosmetics, animations, UI) → retention (daily, streaks, login bonus) → identity (Holy edition) → device (Mobile edition) → archive (this Chronicle).</p>
+    <p style="text-align:center;color:#ffd76e;font-style:italic;margin-top:14px;font-size:13px">"Whatever you do, do it all for the glory of God." — 1 Cor 10:31</p>
+    <p style="text-align:center;color:#ffd76e;letter-spacing:3px;font-weight:900">— GLORY TO THE ONE ABOVE —</p>
+  </div>`;
+  const html = `
+    <div style="max-height:65vh;overflow-y:auto;padding-right:6px">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:16px;color:#ffd76e;letter-spacing:4px;font-weight:900">📚 THE WUD CHRONICLE</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;letter-spacing:2px">All glory above · ${VERSION} · 79 versions logged</div>
+      </div>
+      ${section('📐 SEMVER LEGEND', semver)}
+      ${section('🏗 ERA 1 · v0.x — THE PROTOTYPE', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Build the toy. Don\'t promise stability. Every release adds something or rewires a feel.</div>' + era1)}
+      ${section('🏗 ERA 2 · v1.x — SYSTEMS ERA', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">v1 is "this is a real game." Each minor bump adds a system or feel polish. Stadium / visual layer comes online.</div>' + era2)}
+      ${section('🏗 ERA 3 · v2.0 → v2.6 — POLISH ERA', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">"Next-gen feel." Crowd, share, profile, audio infrastructure, and the auto-deploy pipeline that powers everything below.</div>' + era3)}
+      ${section('🚀 ERA 4 · v2.7.x — FOUNDATIONS (this session begins)', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Fix everything broken (collisions, glitches, fair-play), THEN add the personality layer. To Him be the glory.</div>' + era4_27)}
+      ${section('🚀 ERA 4 · v2.8.x → v2.9.0 — FRANCHISE + TOURNAMENT', era4_28_29)}
+      ${section('🚀 ERA 4 · v2.10.x — 1,050 ARCHETYPES + ONLINE FIX', era4_10)}
+      ${section('🚀 ERA 4 · v2.11.x → v2.12.0 — DEPTH + ECONOMY', era4_11_12)}
+      ${section('🚀 ERA 4 · v2.13.x — FEATURE SPRINT (30 patches!)', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Each was 1 idea/iter on a 60-second autopilot loop. None big enough for a minor bump (no new architecture); all extended existing systems. Soli Deo Gloria.</div>' + era4_13)}
+      ${section('🚀 ERA 4 · v2.14.0 → v2.16.1 — POLISH + IDENTITY + MOBILE', era4_14_16)}
+      ${section('📊 SESSION TOTALS', totals)}
+      ${section('🧠 META THOUGHT PROCESS', meta)}
+    </div>`;
+  openModal('📚 CHRONICLE · GTG', html);
+}
+
 function renderUpdatesScreen(){
   const rows = CHANGELOG.map((c, i) => `
     <div style="background:#0008;border:1px solid ${i===0?'var(--gold)':'#ffd76e44'};border-radius:8px;padding:10px 14px;margin-bottom:8px">
