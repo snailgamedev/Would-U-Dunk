@@ -3222,8 +3222,30 @@ class MatchScene extends Phaser.Scene {
 
     // Start round (small countdown)
     this.canMove = false;
-    const txt = this.add.text(VIEW_W/2, VIEW_H/2, 'BALL UP!', {fontFamily:'monospace', fontSize:64, color:'#ff3b3b', stroke:'#000', strokeThickness:6}).setOrigin(0.5).setDepth(50).setScrollFactor(0);
-    this.tweens.add({ targets: txt, scale:{from:0, to:1}, alpha:{from:0, to:1}, duration:200, yoyo:true, hold:300, onComplete: ()=>{ txt.destroy(); this.canMove = true; }});
+    // 🆕 v2.13.27 — PRE-GAME WALK-IN — slide players from offscreen + name banners
+    if (this.p1 && this.p1Start && this.p2 && this.p2Start){
+      const targetP1 = { x: this.p1Start.x, y: this.p1Start.y };
+      const targetP2 = { x: this.p2Start.x, y: this.p2Start.y };
+      this.p1.x = -120; this.p2.x = COURT_W + 120;
+      this.p1.body.setAllowGravity(false); this.p2.body.setAllowGravity(false);
+      this.p1.body.setVelocity(0,0); this.p2.body.setVelocity(0,0);
+      this.tweens.add({ targets: this.p1, x: targetP1.x, duration: 700, ease: 'Cubic.easeOut' });
+      this.tweens.add({ targets: this.p2, x: targetP2.x, duration: 700, ease: 'Cubic.easeOut', onComplete: () => {
+        this.p1.body.setAllowGravity(true); this.p2.body.setAllowGravity(true);
+      }});
+      // Banners w/ names + OVR
+      const u1 = (State.looks[0]?.username || 'P1').toUpperCase();
+      const u2 = (State.looks[1]?.username || 'P2').toUpperCase();
+      const ovr1 = (typeof computeOvrP1 === 'function') ? computeOvrP1() : 60;
+      const ovr2 = (State.rolls && State.rolls.cpuTiers && State.rolls.cpuTiers[0] && typeof computeOvrFromTier === 'function') ? computeOvrFromTier(State.rolls.cpuTiers[0]) : 60;
+      const b1 = this.add.text(VIEW_W * 0.25, 80, `${u1} · OVR ${ovr1}`, {fontFamily:'monospace', fontSize:18, color:'#ff8a8a', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+      const b2 = this.add.text(VIEW_W * 0.75, 80, `${u2} · OVR ${ovr2}`, {fontFamily:'monospace', fontSize:18, color:'#8aafff', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+      this.tweens.add({ targets: [b1, b2], alpha: 1, scale: { from: 0.7, to: 1.1 }, duration: 350, ease: 'Back.easeOut', yoyo: true, hold: 600, onComplete: () => { b1.destroy(); b2.destroy(); }});
+    }
+    const txt = this.add.text(VIEW_W/2, VIEW_H/2, 'BALL UP!', {fontFamily:'monospace', fontSize:64, color:'#ff3b3b', stroke:'#000', strokeThickness:6}).setOrigin(0.5).setDepth(50).setScrollFactor(0).setAlpha(0);
+    this.time.delayedCall(900, () => {
+      this.tweens.add({ targets: txt, scale:{from:0, to:1}, alpha:{from:0, to:1}, duration:200, yoyo:true, hold:300, onComplete: ()=>{ txt.destroy(); this.canMove = true; }});
+    });
   }
 
   makeHoop(x, y, rimR, side){
