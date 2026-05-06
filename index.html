@@ -3008,21 +3008,40 @@ class MatchScene extends Phaser.Scene {
           const zoomTo = oobType.kind === 'sky' ? 0.85 : 1.35;
           this.tweens.add({ targets: cam, scrollX: oobType.panX - cam.width/2, scrollY: oobType.panY - cam.height/2, duration: 650, ease: 'Sine.easeInOut' });
           this.tweens.add({ targets: this, _camZoomCurrent: zoomTo, duration: 650, ease: 'Sine.easeInOut' });
-          // banner stack — type label + possession arrow showing who inherits
-          const possessionColor = inheritor === this.p1 ? '#ff8a8a' : '#8aafff';
+          // 🆕 v2.8.0 — BEAUTIFIED OOB BANNER
+          const possessionColorHex = inheritor === this.p1 ? 0xff8a8a : 0x8aafff;
+          const possessionColor = '#' + possessionColorHex.toString(16).padStart(6,'0');
           const possessionName = inheritor === this.p1 ? (State.usernames?.[0] || 'P1') : (State.usernames?.[1] || 'P2');
-          const banner = this.add.text(VIEW_W/2, VIEW_H/2 - 50, `🏐 OUT OF BOUNDS · ${oobType.label}`,
-            {fontFamily:'monospace', fontSize:24, color:'#ff8a3c', stroke:'#000', strokeThickness:6, fontStyle:'bold'})
+          // backdrop dim + gradient bar
+          const dim = this.add.rectangle(VIEW_W/2, VIEW_H/2, VIEW_W, VIEW_H, 0x000000, 0.45).setDepth(DEPTH.BANNER - 2).setScrollFactor(0).setAlpha(0);
+          const barBg = this.add.rectangle(VIEW_W/2, VIEW_H/2 - 10, VIEW_W * 1.2, 110, 0x000000, 0.7).setStrokeStyle(3, possessionColorHex).setDepth(DEPTH.BANNER - 1).setScrollFactor(0).setAlpha(0);
+          // sparkle ring at the OOB world position
+          const ring = this.add.circle(oobType.panX, oobType.panY, 12, 0xff8a3c, 0.6).setStrokeStyle(4, 0xffd76e, 1).setDepth(DEPTH.BANNER - 1);
+          this.tweens.add({ targets: ring, scale: 6, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: ()=>ring.destroy() });
+          for (let i=0;i<14;i++){
+            const a = (i/14)*Math.PI*2;
+            const sp = this.add.rectangle(oobType.panX, oobType.panY, 4, 4, 0xffd76e).setDepth(DEPTH.BANNER - 1);
+            this.tweens.add({ targets: sp, x: sp.x + Math.cos(a)*120, y: sp.y + Math.sin(a)*120, alpha: 0, duration: 800, onComplete: ()=>sp.destroy() });
+          }
+          const banner = this.add.text(VIEW_W/2, VIEW_H/2 - 48, `🏐 ${oobType.label}`,
+            {fontFamily:'monospace', fontSize:22, color:'#ffd76e', stroke:'#000', strokeThickness:6, fontStyle:'bold'})
             .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
-          const possess = this.add.text(VIEW_W/2, VIEW_H/2 + 0, `→ ${possessionName} BALL ←`,
-            {fontFamily:'monospace', fontSize:30, color:possessionColor, stroke:'#000', strokeThickness:6, fontStyle:'bold'})
+          // animated possession arrow
+          const arrowDir = inheritor === this.p1 ? '←' : '→';
+          const possess = this.add.text(VIEW_W/2, VIEW_H/2 + 4, `${arrowDir}  ${possessionName} BALL  ${arrowDir}`,
+            {fontFamily:'monospace', fontSize:34, color:possessionColor, stroke:'#000', strokeThickness:7, fontStyle:'bold'})
             .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
           const oobCount = (State.oobCounts && lastShooter) ? State.oobCounts[lastShooter.idx] : 0;
-          const counter = this.add.text(VIEW_W/2, VIEW_H/2 + 38, lastShooter ? `(OOB #${oobCount} for shooter)` : '',
-            {fontFamily:'monospace', fontSize:13, color:'#aaa', stroke:'#000', strokeThickness:3})
+          const counter = this.add.text(VIEW_W/2, VIEW_H/2 + 42, lastShooter ? `turnover #${oobCount}` : '',
+            {fontFamily:'monospace', fontSize:11, color:'#aaa', stroke:'#000', strokeThickness:3, letterSpacing:3})
             .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
-          this.tweens.add({ targets: [banner, possess, counter], alpha: 1, scale: { from: 0.6, to: 1.0 }, duration: 250, ease: 'Back.easeOut' });
-          // SFX — whistle + crowd murmur
+          this.tweens.add({ targets: [dim, barBg], alpha: { from: 0, to: 1 }, duration: 220, ease: 'Sine.easeOut' });
+          this.tweens.add({ targets: [banner, possess, counter], alpha: 1, scale: { from: 0.6, to: 1.0 }, duration: 280, ease: 'Back.easeOut' });
+          // arrow drift — possess slides in from the inheritor side
+          possess.x = (inheritor === this.p1) ? VIEW_W + 200 : -200;
+          this.tweens.add({ targets: possess, x: VIEW_W/2, duration: 380, ease: 'Cubic.easeOut' });
+          // store extra refs to destroy at cleanup
+          this._oobExtras = [dim, barBg];
           if (typeof SFX !== 'undefined'){
             SFX.whistle && SFX.whistle();
             SFX.chime && SFX.chime();
