@@ -68,6 +68,26 @@
     #scripture{max-width:240px;font-size:11px;padding:8px 10px}
     #coachLine{font-size:18px;letter-spacing:2px}
   }
+  /* 🆕 v2.18.0 — ORIENTATION-AWARE LAYOUT */
+  /* Phone in PORTRAIT — stack touch controls vertically tighter, narrower scoreboard */
+  @media (orientation: portrait) and (max-width: 900px) {
+    body.ui-mobile #scorebar{flex-direction:row;font-size:11px}
+    body.ui-mobile #tL,body.ui-mobile #tR{bottom:18vh}
+    body.ui-mobile #tJ,body.ui-mobile #tS{bottom:3vh}
+    body.ui-mobile #tJ{bottom:18vh}
+    body.ui-mobile #liveStats{top:auto;bottom:50vh;right:8px}
+  }
+  /* Phone in LANDSCAPE — push touch controls to actual screen edges */
+  @media (orientation: landscape) and (max-height: 600px) {
+    body.ui-mobile #tL{left:1vw;bottom:5vh;width:64px;height:64px}
+    body.ui-mobile #tR{left:calc(1vw + 70px);bottom:5vh;width:64px;height:64px}
+    body.ui-mobile #tJ{right:1vw;bottom:calc(5vh + 70px);width:64px;height:64px}
+    body.ui-mobile #tS{right:1vw;bottom:5vh;width:60px;height:60px}
+    body.ui-mobile #verBadge{font-size:9px;padding:4px 8px}
+    body.ui-mobile #moves,body.ui-mobile #movesHelp{display:none !important}
+    body.ui-mobile #liveStats{font-size:8px;padding:4px 6px;max-width:50vw}
+    body.ui-mobile .panel{max-height:85vh;overflow-y:auto}
+  }
   /* 🆕 v2.16.7 — UNIVERSAL SCROLL — any overlay can scroll if its content overflows, on any device */
   #menu{overflow-y:auto;align-items:start;padding:24px 0;scroll-behavior:smooth}
   #endcard{overflow-y:auto;align-items:start;padding:24px 0;scroll-behavior:smooth}
