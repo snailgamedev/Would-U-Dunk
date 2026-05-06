@@ -3043,8 +3043,10 @@ class MatchScene extends Phaser.Scene {
       State.matchStats[scorerIdx].buckets += 1;
       // long-range MADE — if last shot was a long-range attempt, count it
       const stats = State.matchStats[scorerIdx];
-      if (stats.longRange > (stats.longMade||0) && Math.hypot(this.ball.x - hoop.x, this.ball.y - hoop.y) < 80){
-        stats.longMade = stats.longRange;  // approximate — most recent long-range counted
+      // 🆕 v2.12.0 — fixed 3P% calc. Was setting longMade = longRange (always 100%). Now: increment by 1 if last shot was long.
+      const shotDist = this.ball.getData('shotDist') || 0;
+      if (shotDist > 600){
+        stats.longMade = (stats.longMade || 0) + 1;
       }
     }
     // record bucket timestamp for HOT HAND check
