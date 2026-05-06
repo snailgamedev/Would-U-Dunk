@@ -1887,6 +1887,13 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.4';
 const CHANGELOG = [
+  { v:'v2.16.4', notes:[
+      '📊 DRY COUNTS — added computeStats() single source of truth for: archetypes · leagues · teams · achievements · modifiers · CPU tiers · NPCs · modes · shop items · stadium tiers',
+      '🪲 Splash count badge no longer hardcoded — auto-updates from the live data on every splash render',
+      '🪲 News ticker · tutorial · chronicle totals all now pull from computeStats() — they will NEVER go stale again',
+      '✅ Promise made: from now on, when an update changes any count, it auto-propagates to every display site',
+      '✝️ "Whatever you do, work at it with all your heart, as working for the Lord." · Col 3:23',
+  ]},
   { v:'v2.16.3', notes:[
       '📱 MOBILE FIT FIX — touch buttons no longer overlap (use calc() positioning, shrink to 78px on phone, 64px on phones <380px)',
       '📜 SPLASH AUTO-SCROLLS on mobile when content is taller than the viewport (no clipping)',
