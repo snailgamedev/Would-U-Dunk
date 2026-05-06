@@ -4831,6 +4831,44 @@ function awardDevXp(amount, reason){
   return next;
 }
 
+// 🆕 v2.11.0 — FREE AGENCY screen
+function renderFreeAgencyScreen(f){
+  if (!f._faPool) f._faPool = rollFreeAgentPool();
+  const cards = f._faPool.map((npc, i) => {
+    const tier = CPU_TIERS.find(t => t.id === npc.tierId) || CPU_TIERS[10];
+    const tierName = tier.name;
+    const boostPct = Math.round(((tier.accuracy + tier.moveMul + tier.stealRate) / 12) * 100);
+    const signed = (f.roster||[]).find(r => r.id === npc.id);
+    return `<div data-npc="${npc.id}" class="facard" style="background:${signed?'#4cf07a22':'#0008'};border:2px solid ${signed?'#4cf07a':'#ffd76e44'};border-radius:10px;padding:8px 10px;margin-bottom:6px;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:900;font-size:13px">${signed?'✅ ':''}${npc.name}</div>
+          <div style="color:#aaa;font-size:10px">${npc.archetypeLabel} · ${tierName}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--gold);font-weight:900;font-size:14px">+${boostPct}%</div>
+          <div style="color:#aaa;font-size:9px;letter-spacing:1px">SIM BOOST</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('📝 FREE AGENCY · POST-SEASON',
+    `<div style="font-size:13px;color:#fff;margin-bottom:8px">Sign up to <b>5 NPCs</b> to your roster. Each adds a sim-win-odds boost. Roster carries across seasons.</div>
+     <div style="font-size:11px;color:#aaa;margin-bottom:10px">Currently signed: <b style="color:#4cf07a">${(f.roster||[]).length} / 5</b> · Total boost: <b style="color:var(--gold)">+${((f.rosterBoost||0)*100).toFixed(0)}%</b></div>
+     <div style="max-height:50vh;overflow-y:auto">${cards}</div>
+     <button class="btn hot" id="faDone" style="margin-top:10px;width:100%;font-size:13px;padding:11px">✅ DONE — RETURN TO FRANCHISE</button>`);
+  document.querySelectorAll('.facard').forEach(el => {
+    el.onclick = () => {
+      const npc = f._faPool.find(n => n.id === el.dataset.npc);
+      const ok = signFreeAgent(f, npc);
+      if (!ok && f.roster.length >= 5) showToast('Roster full · max 5 signings', 'level');
+      saveFranchise(f);
+      renderFreeAgencyScreen(f);
+    };
+  });
+  document.getElementById('faDone').onclick = () => { delete f._faPool; saveFranchise(f); renderFranchiseScreen(); };
+}
+
 function playFranchiseGame(){
   const f = loadFranchise();
   if (!f) return;
