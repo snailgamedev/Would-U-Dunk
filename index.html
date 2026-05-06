@@ -2718,11 +2718,13 @@ class MatchScene extends Phaser.Scene {
     this.add.rectangle(COURT_W/2, 165, COURT_W, 130, 0x0a0c1a).setDepth(-10);
 
     // Crowd: 5 rows of 64 mini-people, color-varied, gentle bob
+    // 🆕 v2.13.11 — STADIUM TIER 2+: denser crowd (smaller spacing → more people)
     this.crowd = this.add.group();
+    const crowdSpacing = (this._stadiumTier >= 2) ? 13 : 16;
     for (let r=0; r<5; r++){
       const y = 110 + r*22;
       const stagger = (r%2)*8;
-      for (let i=0; i<COURT_W/16; i++){
+      for (let i=0; i<COURT_W/crowdSpacing; i++){
         const x = i*16 + stagger + (Math.random()*4|0);
         const hue = Math.random();
         const top = Phaser.Display.Color.HSVToRGB(hue, 0.55, 0.7).color;
