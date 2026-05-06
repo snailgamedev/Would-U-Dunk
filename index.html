@@ -6677,6 +6677,43 @@ function showSplash(){
   if (btnRules) btnRules.onclick = renderCustomRuleEditor;
   // 🆕 v2.14.0 — centralized achievement audit
   if (typeof auditRecentAchievements === 'function') auditRecentAchievements();
+  // 🆕 v2.16.0 — DEVICE MODE picker (first visit) + body class application
+  try {
+    const applyDeviceClass = () => {
+      const pref = localStorage.getItem(`wud:deviceMode:${currentProfileName()}`) || 'auto';
+      const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+      const isSmall = window.innerWidth < 900;
+      const useMobile = (pref === 'mobile') || (pref === 'auto' && (isTouch || isSmall));
+      document.body.classList.toggle('ui-mobile', useMobile);
+      document.body.classList.toggle('ui-desktop', pref === 'desktop' || (!useMobile && pref !== 'auto'));
+    };
+    applyDeviceClass();
+    window.addEventListener('resize', applyDeviceClass);
+    // First-visit prompt
+    const seenPrompt = localStorage.getItem(`wud:devicePrompted:${currentProfileName()}`);
+    if (!seenPrompt){
+      setTimeout(() => {
+        if (typeof openModal !== 'function') return;
+        openModal('📱 OR 💻?', `<div style="font-size:13px;color:#fff;margin-bottom:14px;line-height:1.6">
+          Pick your device for the best experience. You can change this anytime in 👤 ACCOUNT → device.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <button class="btn hot" data-device="mobile" style="font-size:14px;padding:12px;background:linear-gradient(135deg,#4f9eff,#a040ff)">📱 MOBILE</button>
+            <button class="btn hot" data-device="desktop" style="font-size:14px;padding:12px;background:linear-gradient(135deg,#4cf07a,#ffd76e)">💻 DESKTOP</button>
+            <button class="btn" data-device="auto" style="font-size:14px;padding:12px">🤖 AUTO</button>
+          </div>`);
+        document.querySelectorAll('[data-device]').forEach(b => b.onclick = () => {
+          const choice = b.dataset.device;
+          try {
+            localStorage.setItem(`wud:deviceMode:${currentProfileName()}`, choice);
+            localStorage.setItem(`wud:devicePrompted:${currentProfileName()}`, '1');
+          } catch(e){}
+          applyDeviceClass();
+          showToast(`📱 Mode set: ${choice.toUpperCase()}`, 'level');
+          closeModal();
+        });
+      }, 800);
+    }
+  } catch(e){}
   // 🆕 v2.15.0 — STAY GOLDEN PONYBOY easter egg — type "GOLD" on splash to bank +$1000
   try {
     if (!window._goldBuf) window._goldBuf = '';
