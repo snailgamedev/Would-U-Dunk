@@ -1372,6 +1372,9 @@ const GAME_MODES = [
   { id:'ascension',name:'ASCENSION 🪜',    desc:'5 rounds · target rises 3→5→7→9→11', rounds:5, target:3, ascending:true, roundLen:240 },
   { id:'gauntlet', name:'GAUNTLET ⚔️',     desc:'best of 9 · 2 min rounds',           rounds:9, roundLen:120 },
   { id:'lightning',name:'LIGHTNING ⚡',    desc:'2 rounds · race to 7',                target:7, rounds:2, roundLen:90 },
+  // 🆕 v2.7.0 — NBA FINALS-style series mode
+  { id:'series',   name:'🏆 NBA FINALS',   desc:'Best-of-7 SERIES · win 4 games to take the trophy', rounds:7, roundLen:180, target:11, extraCfg:{ isSeries:true } },
+  { id:'showtime', name:'🎬 SHOWTIME',     desc:'5 rounds · 60s · style points · highlight reel',     rounds:5, roundLen:60, target:8, extraCfg:{ showtime:true } },
 ];
 const MODE_BY_ID = Object.fromEntries(GAME_MODES.map(m => [m.id, m]));
 
