@@ -4219,6 +4219,26 @@ function renderFranchiseScreen(){
         </tr></thead>
         <tbody>${recordHtml}</tbody>
       </table>
+      <details style="background:#0008;border:1px solid #4cf07a44;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px">
+        <summary style="color:#4cf07a;letter-spacing:2px;cursor:pointer;font-weight:900">📋 LEAGUE STANDINGS</summary>
+        <table style="width:100%;font-size:11px;color:#fff;border-collapse:collapse;margin-top:6px">
+          <thead><tr style="color:#4cf07a;font-size:9px;letter-spacing:2px">
+            <th style="text-align:left;padding:3px 6px">#</th><th style="text-align:left;padding:3px 6px">TEAM</th><th style="padding:3px 6px">W</th><th style="padding:3px 6px">L</th>
+          </tr></thead>
+          <tbody>
+            ${[...f.standings].sort((a,b)=>(b.w||0)-(a.w||0) || (a.l||0)-(b.l||0)).map((s, i) => {
+              const isMe = s.name === f.teamName;
+              return `<tr style="${isMe?'background:#ffd76e22':''}">
+                <td style="padding:3px 6px;color:#aaa">${i+1}</td>
+                <td style="padding:3px 6px;color:${isMe?'#ffd76e':'#fff'};font-weight:${isMe?900:400}">${isMe?'⭐ ':''}${s.name}</td>
+                <td style="padding:3px 6px;text-align:center;color:#4cf07a">${s.w||0}</td>
+                <td style="padding:3px 6px;text-align:center;color:#ff8a8a">${s.l||0}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${f.lastWeekUpdates && f.lastWeekUpdates.length ? `<div style="margin-top:8px;color:#aaa;font-size:10px;letter-spacing:1px">LAST WEEK · ${f.lastWeekUpdates.join(' · ')}</div>` : ''}
+      </details>
       ${champ ? `<div style="text-align:center;color:var(--gold);letter-spacing:3px;font-size:13px;margin-bottom:10px;font-weight:900">${champ}</div>` : ''}
       ${champBig}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
