@@ -1546,6 +1546,9 @@ const GAME_MODES = [
   { id:'lightning',name:'LIGHTNING ⚡',    desc:'2 rounds · race to 7',                target:7, rounds:2, roundLen:90 },
   // 🆕 v2.12.0 — SKIRMISH MODE — 60-second free-for-all
   { id:'skirmish', name:'⚡ SKIRMISH',     desc:'60 second sprint · most pts wins · forces SUPER CHAOS', rounds:1, roundLen:60, target:99, forceSuper:true },
+  // 🆕 v2.13.23 — DRILL MODES (practice + auto-respawn)
+  { id:'drill_3pt',  name:'🎯 3-PT DRILL',  desc:'90s · ball respawns at 3pt range · count your makes', rounds:1, roundLen:90, target:99, extraCfg:{ practice:true, drillMode:true, drillRange:600 } },
+  { id:'drill_logo', name:'🌍 LOGO DRILL',  desc:'90s · ball respawns at HALF-COURT · go nuts',         rounds:1, roundLen:90, target:99, extraCfg:{ practice:true, drillMode:true, drillRange:1200 } },
   // 🆕 v2.7.0 — NBA FINALS-style series mode
   { id:'series',   name:'🏆 NBA FINALS',   desc:'Best-of-7 SERIES · win 4 games to take the trophy', rounds:7, roundLen:180, target:11, extraCfg:{ isSeries:true } },
   { id:'showtime', name:'🎬 SHOWTIME',     desc:'5 rounds · 60s · style points · highlight reel',     rounds:5, roundLen:60, target:8, extraCfg:{ showtime:true } },
