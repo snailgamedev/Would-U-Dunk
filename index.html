@@ -3066,6 +3066,21 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v2.7.0 — clamp score to MIN_SCORE so cursed mode can't bottom-out indefinitely
     State.scores[scorerIdx] = clampScore((State.scores[scorerIdx] || 0) + points);
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
+    // 🆕 v2.12.0 — CASH economy + TRASH TALK
+    if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
+    if (scorerIdx === 1 && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers && Math.random() < 0.4){
+      const npc = State.rolls.cpuTiers[0]?._npc;
+      const line = pickTrashTalk(npc);
+      const scorer = scorerIdx === 0 ? this.p1 : this.p2;
+      const tt = this.add.text(scorer.x, scorer.y - 100, `"${line}"`, {fontFamily:'monospace', fontSize:14, color:'#ff8a3c', stroke:'#000', strokeThickness:5, fontStyle:'italic'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets: tt, y: tt.y - 50, alpha:{from:1, to:0}, duration: 1700, onComplete:()=>tt.destroy() });
+    }
+    // 🆕 v2.12.0 — ON FIRE overlay when scorer reaches 3+ streak
+    if (State.bucketStreak[scorerIdx] >= 3){
+      const scorer = scorerIdx === 0 ? this.p1 : this.p2;
+      const fire = this.add.text(scorer.x, scorer.y - 130, `🔥 ON FIRE 🔥`, {fontFamily:'monospace', fontSize:18, color:'#ff3b3b', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets: fire, y: fire.y - 40, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:1300, onComplete:()=>fire.destroy() });
+    }
     // track current opponent lead (for comeback achievement)
     State._roundMaxOppLead = Math.max(State._roundMaxOppLead || 0, State.scores[1] - State.scores[0]);
     State.bucketsThisRound[scorerIdx] += 1;
