@@ -2923,34 +2923,75 @@ class MatchScene extends Phaser.Scene {
       } else if (this._altText){
         this._altText.setVisible(false);
       }
-      // 🆕 OOB BEHIND GOAL — gutter zones beyond hoops
-      if (!this._oobActive && this.canMove && !this.ball.getData('held') && this.time.now > (this.ball.getData('lockUntil') || 0)){
-        const ox = this.ball.x;
-        if (ox < -20 || ox > COURT_W + 20){
+      // 🆕 v2.7.1 OOB v2 — gutter (L/R), sky-burnout, with possession switch + animated inbound
+      // Skips noOOB modifier (chaos modes that disable boundaries)
+      if (!this._oobActive && this.canMove && !this.ball.getData('held') &&
+          !State.cfg.noOOB && this.time.now > (this.ball.getData('lockUntil') || 0)){
+        const ox = this.ball.x, oy = this.ball.y;
+        const skyLine = (this.SKY_CEILING != null) ? this.SKY_CEILING + 80 : -COURT_H * 3;
+        let oobType = null;
+        if (ox < -20)             oobType = { kind:'gutter', side:'LEFT',  label:'BEHIND BACKBOARD · LEFT',  panX:-this.OOB_PAD, panY: FLOOR_Y - 100 };
+        else if (ox > COURT_W+20) oobType = { kind:'gutter', side:'RIGHT', label:'BEHIND BACKBOARD · RIGHT', panX: COURT_W + this.OOB_PAD, panY: FLOOR_Y - 100 };
+        else if (oy < skyLine)    oobType = { kind:'sky',    side:'TOP',   label:'☄️ BURNED THROUGH ATMOSPHERE',  panX: ox, panY: skyLine + 40 };
+        if (oobType){
           this._oobActive = true;
-          const side = ox < 0 ? 'LEFT' : 'RIGHT';
-          // freeze ball
-          this.ball.body.setVelocity(0, 0); this.ball.body.setAllowGravity(false); this.ball.setData('lockUntil', this.time.now + 1400);
-          // SLOW camera pan toward OOB spot + zoom in
-          const targetX = ox < 0 ? -this.OOB_PAD : COURT_W + this.OOB_PAD;
-          const targetY = FLOOR_Y - 100;
-          this.tweens.add({ targets: cam, scrollX: targetX - cam.width/2, scrollY: targetY - cam.height/2, duration: 700, ease: 'Sine.easeInOut' });
-          this._camZoomTarget = 1.4;
-          this.tweens.add({ targets: this, _camZoomCurrent: 1.4, duration: 700, ease: 'Sine.easeInOut' });
-          // OOB banner
-          const banner = this.add.text(VIEW_W/2, VIEW_H/2 - 40, `🏐 OUT OF BOUNDS · ${side} SIDE`, {fontFamily:'monospace', fontSize:30, color:'#ff8a3c', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(90).setScrollFactor(0).setAlpha(0);
-          this.tweens.add({ targets: banner, alpha: 1, scale: { from: 0.6, to: 1.1 }, duration: 250, ease: 'Back.easeOut' });
-          // ooohh sfx
-          if (typeof SFX !== 'undefined' && SFX.whistle) SFX.whistle();
-          // crowd reaction (use chime as proxy for "ooooh")
-          if (typeof SFX !== 'undefined' && SFX.chime) SFX.chime();
-          // after pause, reset + restore camera + clear flag
-          this.time.delayedCall(1300, () => {
-            banner.destroy();
-            this.resetBall();
+          // possession decision: opponent of last shooter inherits; else nearest player to inbound spot
+          const lastShooter = this.ball.getData('lastShooter');
+          let inheritor = null;
+          if (lastShooter && (lastShooter === this.p1 || lastShooter === this.p2)){
+            inheritor = (lastShooter === this.p1) ? this.p2 : this.p1;
+          } else {
+            const d1 = Math.hypot(this.p1.x - oobType.panX, this.p1.y - oobType.panY);
+            const d2 = Math.hypot(this.p2.x - oobType.panX, this.p2.y - oobType.panY);
+            inheritor = d1 < d2 ? this.p1 : this.p2;
+          }
+          // OOB stat tracking — credit goes to last shooter (or null)
+          if (!State.oobCounts) State.oobCounts = [0,0];
+          if (lastShooter) State.oobCounts[lastShooter.idx] = (State.oobCounts[lastShooter.idx]||0) + 1;
+          // freeze ball during the cinematic
+          this.ball.body.setVelocity(0, 0); this.ball.body.setAllowGravity(false);
+          this.ball.setData('lockUntil', this.time.now + 1500);
+          // SLOW camera pan + zoom in (slightly less zoom for sky so the arc stays readable)
+          const zoomTo = oobType.kind === 'sky' ? 0.85 : 1.35;
+          this.tweens.add({ targets: cam, scrollX: oobType.panX - cam.width/2, scrollY: oobType.panY - cam.height/2, duration: 650, ease: 'Sine.easeInOut' });
+          this.tweens.add({ targets: this, _camZoomCurrent: zoomTo, duration: 650, ease: 'Sine.easeInOut' });
+          // banner stack — type label + possession arrow showing who inherits
+          const possessionColor = inheritor === this.p1 ? '#ff8a8a' : '#8aafff';
+          const possessionName = inheritor === this.p1 ? (State.usernames?.[0] || 'P1') : (State.usernames?.[1] || 'P2');
+          const banner = this.add.text(VIEW_W/2, VIEW_H/2 - 50, `🏐 OUT OF BOUNDS · ${oobType.label}`,
+            {fontFamily:'monospace', fontSize:24, color:'#ff8a3c', stroke:'#000', strokeThickness:6, fontStyle:'bold'})
+            .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+          const possess = this.add.text(VIEW_W/2, VIEW_H/2 + 0, `→ ${possessionName} BALL ←`,
+            {fontFamily:'monospace', fontSize:30, color:possessionColor, stroke:'#000', strokeThickness:6, fontStyle:'bold'})
+            .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+          const oobCount = (State.oobCounts && lastShooter) ? State.oobCounts[lastShooter.idx] : 0;
+          const counter = this.add.text(VIEW_W/2, VIEW_H/2 + 38, lastShooter ? `(OOB #${oobCount} for shooter)` : '',
+            {fontFamily:'monospace', fontSize:13, color:'#aaa', stroke:'#000', strokeThickness:3})
+            .setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+          this.tweens.add({ targets: [banner, possess, counter], alpha: 1, scale: { from: 0.6, to: 1.0 }, duration: 250, ease: 'Back.easeOut' });
+          // SFX — whistle + crowd murmur
+          if (typeof SFX !== 'undefined'){
+            SFX.whistle && SFX.whistle();
+            SFX.chime && SFX.chime();
+          }
+          // INBOUND ANIMATION — after pan, drop the ball next to inheritor with countdown
+          this.time.delayedCall(900, () => {
+            // pan camera back toward inheritor + reset zoom
+            const inX = Phaser.Math.Clamp(inheritor.x, 200, COURT_W - 200);
+            this.tweens.add({ targets: cam, scrollX: inX - cam.width/2, scrollY: FLOOR_Y - cam.height/2 - 100, duration: 500, ease: 'Sine.easeInOut' });
+            this.tweens.add({ targets: this, _camZoomCurrent: 1, duration: 500, ease: 'Sine.easeInOut' });
+            // place ball above inheritor and let physics drop it in
+            this.ball.setPosition(inX + (inheritor.facing||1) * 30, FLOOR_Y - 280);
+            this.ball.body.setVelocity(0, 0);
             this.ball.body.setAllowGravity(true);
-            this._camZoomTarget = 1;
-            this.tweens.add({ targets: this, _camZoomCurrent: 1, duration: 500, ease: 'Sine.easeOut' });
+            this.ball.setData('lockUntil', this.time.now + 200);
+            this.ball.setData('lastShooter', null);
+            // tiny inbound countdown — "1" flash
+            const cd = this.add.text(VIEW_W/2, VIEW_H/2, 'INBOUND!', {fontFamily:'monospace', fontSize:36, color:'#ffd76e', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+            this.tweens.add({ targets: cd, alpha: { from: 1, to: 0 }, scale: { from: 0.8, to: 1.4 }, duration: 600, onComplete:()=>cd.destroy() });
+          });
+          this.time.delayedCall(1500, () => {
+            banner.destroy(); possess.destroy(); counter.destroy();
             this._oobActive = false;
           });
         }
