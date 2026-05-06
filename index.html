@@ -2656,6 +2656,8 @@ function genNpcLook(slot){
   };
 }
 function genNpcName(){
+  // 🆕 v2.17.0 — defer to massive name layer when available; legacy NPC pools as fallback
+  if (typeof generateMassiveName === 'function') return generateMassiveName();
   const r = Math.random();
   if (r < 0.34) return `${rngPick(NPC_FIRST)} ${rngPick(NPC_LAST)}`;
   if (r < 0.67) return `${rngPick(NPC_FIRST)} ${rngPick(NPC_LASTNAMES)}`;
