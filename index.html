@@ -5482,6 +5482,49 @@ function renderCustomTeamBuilder(leagueId){
   };
 }
 /* ================================================================================================
+   🆕 v2.13.12 — DAILY CHALLENGE — same chaos for everyone today, leaderboard your own best
+================================================================================================ */
+function dailyKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function loadDailyBest(){ try { return JSON.parse(localStorage.getItem(`wud:daily:${currentProfileName()}`) || '{}'); } catch(e){ return {}; } }
+function saveDailyBest(obj){ try { localStorage.setItem(`wud:daily:${currentProfileName()}`, JSON.stringify(obj)); } catch(e){} }
+function previewDailyChaos(){
+  const today = new Date(); const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+  let s = seed;
+  const orig = Math.random;
+  Math.random = () => { s = (s * 1664525 + 1013904223) | 0; return ((s >>> 0) / 0x100000000); };
+  let rolls;
+  try { rolls = ChaosEngine.rollChaos(); } finally { Math.random = orig; }
+  return rolls;
+}
+function renderDailyChallengeScreen(){
+  const key = dailyKey();
+  const best = loadDailyBest();
+  const todayBest = best[key] || null;
+  const preview = previewDailyChaos();
+  const modList = preview.mods.map(({mod}) => `<li style="color:#fff;font-size:11px;padding:1px 0">${mod.name} <span style="color:#aaa;font-size:9px">— ${mod.desc}</span></li>`).join('');
+  const cpuName = preview.cpuTiers.map(t => t._npc ? `${t._npc.name} (${t._npc.archetypeLabel})` : t.name).join(' + ');
+  openModal('📅 DAILY CHALLENGE — ' + key,
+    `<div style="font-size:13px;color:#fff;margin-bottom:10px">Same chaos roll for everyone today. Race to FIRST TO 7. Your best score today is recorded per profile.</div>
+     <div style="background:#0008;border:2px solid #4f9eff44;border-radius:10px;padding:10px;margin-bottom:10px">
+       <div style="color:#4f9eff;font-size:10px;letter-spacing:3px;font-weight:900;margin-bottom:6px">🎲 TODAY'S CHAOS · ${preview.count} mod${preview.count>1?'s':''}${preview.superChaos?' · 💀 SUPER CHAOS':''}</div>
+       <ul style="margin:0;padding-left:18px">${modList}</ul>
+       <div style="color:#ffd76e;font-size:11px;margin-top:8px">🤖 CPU · ${cpuName}</div>
+     </div>
+     ${todayBest ? `<div style="background:#0008;border:2px solid #ffd76e;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center"><div style="color:var(--gold);font-size:10px;letter-spacing:3px">🏆 YOUR BEST TODAY</div><div style="color:#fff;font-size:24px;font-weight:900;margin-top:4px">${todayBest.myPts} — ${todayBest.oppPts}</div><div style="color:#aaa;font-size:10px;margin-top:2px">${todayBest.won ? '✅ WON' : '❌ LOST'}</div></div>` : '<div style="text-align:center;color:#aab;font-style:italic;padding:14px">No attempts today yet — be the first.</div>'}
+     <button class="btn hot" id="dailyPlay" style="width:100%;font-size:14px;padding:11px">🎮 PLAY DAILY CHALLENGE</button>`);
+  document.getElementById('dailyPlay').onclick = () => {
+    closeModal();
+    State._dailyActive = true;
+    State.modeId = 'daily';
+    State.mode = 'CPU';
+    startMatch();
+  };
+}
+
+/* ================================================================================================
    🆕 v2.13.0 — COSMETICS SHOP SCREEN
 ================================================================================================ */
 function renderShopScreen(){
