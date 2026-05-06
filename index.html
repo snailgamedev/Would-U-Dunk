@@ -3508,9 +3508,9 @@ class MatchScene extends Phaser.Scene {
     if (isArch('point_god')){        shootProbMul *= 0.85; shootRangeMul *= 1.05; }
     if (isArch('microwave')){        microwaveSnap = true; shootProbMul *= 1.5; }
     if (isArch('glue_guy')){         chaseStealMul *= 1.3; chaseRadiusMul *= 1.15; }
-    // CLOSER 🥶 — clutch buff in final 30s of round
-    if (isArch('closer') && State._roundEndAt){
-      const remaining = (State._roundEndAt - Date.now()) / 1000;
+    // CLOSER 🥶 — clutch buff in final 30s of the round timer
+    if (isArch('closer')){
+      const remaining = (this.roundSecs || 120) - (this.elapsed || 0);
       if (remaining < 30){ shootProbMul *= 1.5; tier.accuracy = Math.min(1, tier.accuracy * 1.3); }
     }
 
