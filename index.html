@@ -3064,6 +3064,8 @@ class MatchScene extends Phaser.Scene {
           });
           this.time.delayedCall(1500, () => {
             banner.destroy(); possess.destroy(); counter.destroy();
+            (this._oobExtras || []).forEach(o => o.destroy && o.destroy());
+            this._oobExtras = [];
             this._oobActive = false;
           });
         }
