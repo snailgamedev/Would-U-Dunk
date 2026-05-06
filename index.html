@@ -1671,6 +1671,25 @@ function rollRandomMode(){
   return Object.assign({ id:'random', name:'🎲 RANDOM RULES', desc:'rolled this match', extraCfg:{} }, pick);
 }
 
+// 🆕 v2.16.4 — single source of truth for all displayed system counts
+function computeStats(){
+  return {
+    version:      VERSION,
+    archetypes:   (typeof NPC_ARCHETYPES !== 'undefined' && typeof ARCHETYPE_TRAITS !== 'undefined') ? NPC_ARCHETYPES.length * ARCHETYPE_TRAITS.length : 0,
+    baseArch:     (typeof NPC_ARCHETYPES !== 'undefined') ? NPC_ARCHETYPES.length : 0,
+    traits:       (typeof ARCHETYPE_TRAITS !== 'undefined') ? ARCHETYPE_TRAITS.length : 0,
+    leagues:      (typeof LEAGUES !== 'undefined') ? LEAGUES.length : 0,
+    teams:        (typeof LEAGUES !== 'undefined') ? LEAGUES.reduce((s,l)=>s+l.teams.length,0) : 0,
+    achievements: (typeof ACH_LIST !== 'undefined') ? ACH_LIST.length : 0,
+    modifiers:    (typeof MODS !== 'undefined') ? Object.values(MODS).reduce((s,a)=>s+a.length,0) : 0,
+    cpuTiers:     (typeof CPU_TIERS !== 'undefined') ? CPU_TIERS.length : 0,
+    npcs:         (typeof NPC_ROSTER !== 'undefined') ? NPC_ROSTER.length : 0,
+    modes:        (typeof GAME_MODES !== 'undefined') ? GAME_MODES.length : 0,
+    shopItems:    (typeof SHOP_ITEMS !== 'undefined') ? SHOP_ITEMS.length : 0,
+    stadiumTiers: (typeof STADIUM_TIERS !== 'undefined') ? STADIUM_TIERS.length : 5,
+  };
+}
+
 /* ------------------- v2.12.0 ECONOMY + OVR + TRASH TALK ------------------- */
 // 🆕 v2.13.11 — STADIUM TIER (1-5) — persistent upgrade with visual effects
 function loadStadiumTier(){ try { return parseInt(localStorage.getItem(`wud:stadium:${currentProfileName()}`)||'1', 10); } catch(e){ return 1; } }
