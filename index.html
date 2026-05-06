@@ -2396,6 +2396,25 @@ const NPC_ROSTER = (() => {
   return list;
 })();
 function pickRandomNpc(){ return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0]; }
+// 🆕 v2.13.29 — PLAYER OF THE WEEK — date-seeded NPC pick, persists per ISO week
+function getWeekKey(){
+  const d = new Date();
+  // simple year-week — Monday-anchored ISO-ish
+  const start = new Date(d.getFullYear(), 0, 1);
+  const diff = (d - start) / 86400000;
+  const week = Math.floor((diff + start.getDay()) / 7);
+  return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function getPlayerOfTheWeek(){
+  const wk = getWeekKey();
+  const seedStr = wk.replace(/[^0-9]/g, '');
+  let s = parseInt(seedStr, 10) || 1;
+  s = (s * 1664525 + 1013904223) | 0;
+  const idx = (((s >>> 0) / 0x100000000) * NPC_ROSTER.length) | 0;
+  return { week: wk, npc: NPC_ROSTER[idx] };
+}
+function loadPotwBeaten(){ try { return localStorage.getItem(`wud:potw:${currentProfileName()}`); } catch(e){ return null; } }
+function savePotwBeaten(wk){ try { localStorage.setItem(`wud:potw:${currentProfileName()}`, wk); } catch(e){} }
 
 // 🆕 v2.13.0 — COSMETICS SHOP catalog
 const SHOP_ITEMS = [
