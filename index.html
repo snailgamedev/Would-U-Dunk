@@ -2354,6 +2354,9 @@ class MatchScene extends Phaser.Scene {
     this.ball.setData('held', null);
     this.ball.setData('holdSince', 0);
     this.ball.body.setAllowGravity(true);
+    // 🆕 v2.8.0 — clamp ball Y to above-floor on detach so steals can't spawn it inside the floor
+    if (this.ball.y > FLOOR_Y - 20) this.ball.y = FLOOR_Y - 24;
+    if (this.ball.y < (this.SKY_CEILING != null ? this.SKY_CEILING + 10 : 10)) this.ball.y = (this.SKY_CEILING != null ? this.SKY_CEILING + 10 : 10);
   }
   onShootKey(player){
     if (!player || !this.canMove) return;
