@@ -6699,6 +6699,7 @@ async function startMatch(){
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
   ];
+  State.matchMoments = [];   // 🆕 v2.13.16
   State.dunksThisRound = [0, 0];
   State.bucketTimestamps = [[], []];
   State._airRaidThisMatch = false;
