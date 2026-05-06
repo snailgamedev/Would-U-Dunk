@@ -6316,6 +6316,17 @@ function showSplash(){
     const seen = localStorage.getItem(`wud:tutDone:${currentProfileName()}`);
     if (!seen) setTimeout(() => renderTutorialFlow(), 600);
   } catch(e){}
+  // 🆕 v2.13.22 — DAILY LOGIN BONUS — first splash visit each day grants $200
+  try {
+    const today = (typeof dailyKey === 'function') ? dailyKey() : new Date().toISOString().slice(0,10);
+    const lastClaimed = localStorage.getItem(`wud:loginBonus:${currentProfileName()}`);
+    if (lastClaimed !== today){
+      localStorage.setItem(`wud:loginBonus:${currentProfileName()}`, today);
+      const bonus = 200;
+      if (typeof awardCash === 'function') awardCash(bonus);
+      setTimeout(() => showToast(`💰 DAILY LOGIN +$${bonus}`, 'level'), 1200);
+    }
+  } catch(e){}
   // 🆕 v2.13.21 — SPLASH NEWS TICKER — rotates messages
   const tickerEl = document.getElementById('tickerText');
   if (tickerEl){
