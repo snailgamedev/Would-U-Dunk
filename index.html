@@ -1477,6 +1477,14 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.12.0';
 const CHANGELOG = [
+  { v:'v2.12.0', notes:[
+      '🪲 BOX SCORE BUG — 3P% was always 100% if you made any long shot (longMade was being SET to longRange instead of incremented). Now accurately tracks made/attempt long-range %',
+      '⭐ OVR RATING — both player and CPU show their 1-99 OVERALL rating in scoreboard top corners',
+      '🔥 ON FIRE OVERLAY — visible 🔥 ON FIRE 🔥 burst animation when a player hits 3+ bucket streak',
+      '💰 CURRENCY ECONOMY — earn $5 per point scored, persistent per profile. Live $cash counter in scoreboard',
+      '😎 CPU TRASH TALK — 21 base lines + 6 holy variants. CPU pops one ~40% of the time after they score (archetype-filtered: holy NPCs preach, others trash talk)',
+      '⚡ SKIRMISH MODE — 60-second free-for-all with FORCED SUPER CHAOS. Fastest mode in the game',
+  ]},
   { v:'v2.11.1', notes:[
       '🏆 SEASON MVP — auto-named at end of every season (you or your top free-agent signing). Toast announcement + permanent record',
       '🏛 HALL OF FAME — completed franchises archive permanently (per profile). Sortable by titles, season counts, MVP history',
