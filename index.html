@@ -3779,8 +3779,11 @@ class MatchScene extends Phaser.Scene {
       points *= 2;
       this.bigShotHighlight && this.bigShotHighlight(`🚨 BUZZER BEATER · ${points}PT`);
       this.cameras.main.flash(180, 255, 80, 80);
-      if (scorerIdx === 0) awardCash(100);   // bonus
-      if (scorerIdx === 0) State._buzzerThisMatch = true;
+      if (scorerIdx === 0) {
+        awardCash(100);
+        State._buzzerThisMatch = true;
+        unlockAchievement('buzzer_beater_v2');   // 🆕 v2.14.0
+      }
       SFX.crowdAhh && SFX.crowdAhh();
     }
     // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
