@@ -1443,6 +1443,12 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.10.1';
 const CHANGELOG = [
+  { v:'v2.10.1', notes:[
+      '🌐 ONLINE MODE FIXED — remote opponent can now JUMP, SHOOT (charge/release), STEAL, BLOCK. Was movement-only since v2.0 — silent regression now squashed',
+      '⚡ Edge-detected jump press / release on remote inputs · forced-shoot rule applies online too · steal rising-edge debounce',
+      '🛡 Mid-air blocks work in online mode · facing direction tracks remote movement',
+      '🔇 Defensive guards for SFX hooks in remote handler (no crash if SFX module deferred)',
+  ]},
   { v:'v2.10.0', notes:[
       '🎯 1,050 UNIQUE ARCHETYPES — 30 base × 35 traits (ROOKIE · VETERAN · MVP · ON FIRE · INJURED · GLITCHED · MUTANT · HOLY · CURSED · AI-ENHANCED · 25 more)',
       '🎨 SPLASH SCREEN OVERHAUL — gradient title text w/ glow, hyped buttons w/ shadows, motto baked in, stats badge with live counts',
