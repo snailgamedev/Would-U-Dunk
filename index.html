@@ -1828,6 +1828,61 @@ function genNpcName(){
   if (r < 0.67) return `${rngPick(NPC_FIRST)} ${rngPick(NPC_LASTNAMES)}`;
   return `${rngPick(NAME_PREFIXES)} ${rngPick(NAME_CORES)}${Math.random()<0.4?' '+rngPick(NAME_SUFFIXES):''}`.trim();
 }
+
+/* ================================================================================================
+   🆕 v2.10.0 — ARCHETYPE TRAITS (35 modifiers) × 30 base archetypes = 1050 UNIQUE archetypes
+   🆕 v2.10.3 — MOVED ABOVE NPC_ROSTER to fix TDZ ("Cannot access uninitialized variable")
+================================================================================================ */
+const ARCHETYPE_TRAITS = [
+  { id:'rookie',    name:'ROOKIE',     biasMul:{ accuracy:0.85, react:1.1, moveMul:1.05 } },
+  { id:'veteran',   name:'VETERAN',    biasMul:{ accuracy:1.15, react:0.85, moveMul:0.95 } },
+  { id:'allstar',   name:'ALL-STAR',   biasMul:{ accuracy:1.18, shootRange:1.1 } },
+  { id:'hof',       name:'HALL-OF-FAMER', biasMul:{ accuracy:1.3, react:0.7, shootRange:1.05 } },
+  { id:'mvp',       name:'MVP',        biasMul:{ accuracy:1.2, react:0.8, shootRange:1.1 } },
+  { id:'fire',      name:'ON FIRE',    biasMul:{ accuracy:1.3, shootRange:1.15 } },
+  { id:'tired',     name:'TIRED',      biasMul:{ accuracy:0.85, moveMul:0.85 } },
+  { id:'injured',   name:'INJURED',    biasMul:{ moveMul:0.7, accuracy:0.9 } },
+  { id:'redeemed',  name:'REDEEMED',   biasMul:{ accuracy:1.2, react:0.9 } },
+  { id:'glitched',  name:'GLITCHED',   biasMul:{ accuracy:0.7, moveMul:1.2, stealRate:0.7 } },
+  { id:'mutant',    name:'MUTANT',     biasMul:{ moveMul:1.15, stealRate:1.2 } },
+  { id:'holy',      name:'HOLY',       biasMul:{ accuracy:1.25, react:0.85 } },
+  { id:'cursed',    name:'CURSED',     biasMul:{ accuracy:0.7, stealRate:1.3 } },
+  { id:'father',    name:'FATHER',     biasMul:{ accuracy:1.1, react:0.85 } },
+  { id:'rookie_szn',name:'ROOKIE SZN', biasMul:{ moveMul:1.2, react:1.1 } },
+  { id:'gen_z',     name:'GEN-Z',      biasMul:{ moveMul:1.1, shootRange:1.15 } },
+  { id:'old_head',  name:'OLD HEAD',   biasMul:{ accuracy:1.15, moveMul:0.9 } },
+  { id:'foreign',   name:'IMPORT',     biasMul:{ accuracy:1.05, react:0.9 } },
+  { id:'undrafted', name:'UNDRAFTED',  biasMul:{ accuracy:0.95, moveMul:1.1 } },
+  { id:'prototype', name:'PROTOTYPE',  biasMul:{ accuracy:0.9, moveMul:1.15 } },
+  { id:'ai',        name:'AI-ENHANCED',biasMul:{ accuracy:1.4, react:0.6 } },
+  { id:'mvp_run',   name:'MVP RUN',    biasMul:{ accuracy:1.25, shootRange:1.15 } },
+  { id:'rebound',   name:'REBOUNDER',  biasMul:{ stealRate:1.4, react:0.85 } },
+  { id:'wildcard',  name:'WILDCARD',   biasMul:{ accuracy:0.85 } },
+  { id:'monk',      name:'MONK',       biasMul:{ accuracy:1.2, react:0.85 } },
+  { id:'titan',     name:'TITAN',      biasMul:{ moveMul:0.9, stealRate:1.2 } },
+  { id:'wizard',    name:'WIZARD',     biasMul:{ accuracy:1.2, shootRange:1.2 } },
+  { id:'beast',     name:'BEAST',      biasMul:{ moveMul:1.1, stealRate:1.3 } },
+  { id:'phantom',   name:'PHANTOM',    biasMul:{ react:0.7, stealRate:1.25 } },
+  { id:'champion',  name:'CHAMPION',   biasMul:{ accuracy:1.2, react:0.85, shootRange:1.05 } },
+  { id:'underdog',  name:'UNDERDOG',   biasMul:{ accuracy:1.0, react:0.9, moveMul:1.05 } },
+  { id:'sleeper',   name:'SLEEPER',    biasMul:{ accuracy:1.1, react:0.95 } },
+  { id:'angelic',   name:'ANGELIC',    biasMul:{ accuracy:1.3, react:0.7 } },
+  { id:'saint',     name:'SAINT',      biasMul:{ accuracy:1.25, react:0.8 } },
+  { id:'reborn',    name:'REBORN',     biasMul:{ accuracy:1.1, react:0.85, moveMul:1.05 } },
+];
+function combineArchetype(base, trait){
+  const merged = Object.assign({}, base.bias);
+  Object.entries(trait.biasMul || {}).forEach(([k,v]) => { merged[k] = (merged[k] || 1) * v; });
+  return {
+    id: `${trait.id}_${base.id}`,
+    label: `${trait.name} ${base.label}`,
+    desc: `${trait.name} variant — ${base.desc}`,
+    bias: merged,
+    bodyMul: base.bodyMul || 1,
+  };
+}
+const TOTAL_ARCHETYPE_COUNT = NPC_ARCHETYPES.length * ARCHETYPE_TRAITS.length;
+
 const NPC_ROSTER = (() => {
   const list = [];
   // 🆕 v2.10.0 — 16 NPCs per CPU tier × 29 tiers = 464 NPCs. Each pairs a base archetype + a trait
