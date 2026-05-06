@@ -3201,17 +3201,18 @@ class MatchScene extends Phaser.Scene {
         SFX.bounce();
         this.tweens.add({ targets:p, scaleY: p.scaleY*0.85, scaleX: p.scaleX*1.12, duration:80, yoyo:true });
       } else {
-        // mid-air block jump if near opp w/ ball
+        // 🆕 v2.7.0 — BLOCK BUFFED. Radius 80 → 130, less precise required to block
         const opp = (p===this.p1)?this.p2:this.p1;
         if (this.ball.getData('held') === opp){
           const d = Phaser.Math.Distance.Between(p.x,p.y,opp.x,opp.y);
-          if (d < 80){
+          if (d < 130){
             this.detachBall();
             this.ball.body.setVelocity((p.x<opp.x?-1:1)*220, -350);
             State.blocksThisRound[p.idx] = (State.blocksThisRound[p.idx]||0) + 1;
             if (State.matchStats?.[p.idx]) State.matchStats[p.idx].blocks += 1;
             Career.blockedShots = (Career.blockedShots||0) + 1;
             SFX.block();
+            this.popCoach && this.popCoach('🛡 BLOCKED!');
           }
         }
       }
