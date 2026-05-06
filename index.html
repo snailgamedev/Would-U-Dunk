@@ -68,10 +68,19 @@
     #scripture{max-width:240px;font-size:11px;padding:8px 10px}
     #coachLine{font-size:18px;letter-spacing:2px}
   }
+  /* 🆕 v2.16.7 — UNIVERSAL SCROLL — any overlay can scroll if its content overflows, on any device */
+  #menu{overflow-y:auto;align-items:start;padding:24px 0;scroll-behavior:smooth}
+  #endcard{overflow-y:auto;align-items:start;padding:24px 0;scroll-behavior:smooth}
+  #reveal{overflow-y:auto;align-items:start;padding:24px 0;scroll-behavior:smooth}
+  #modalRoot{overflow-y:auto;align-items:start;padding:24px 12px}
+  /* Custom thin scrollbar in dark theme */
+  #menu::-webkit-scrollbar,#endcard::-webkit-scrollbar,#reveal::-webkit-scrollbar,#modalRoot::-webkit-scrollbar,.modalCard .body::-webkit-scrollbar{width:8px;height:8px}
+  #menu::-webkit-scrollbar-thumb,#endcard::-webkit-scrollbar-thumb,#reveal::-webkit-scrollbar-thumb,#modalRoot::-webkit-scrollbar-thumb,.modalCard .body::-webkit-scrollbar-thumb{background:#ffd76e88;border-radius:4px}
+  #menu::-webkit-scrollbar-track,#endcard::-webkit-scrollbar-track,#reveal::-webkit-scrollbar-track,#modalRoot::-webkit-scrollbar-track,.modalCard .body::-webkit-scrollbar-track{background:#0006}
   /* 🆕 v2.16.0 — JS-toggled body class that forces mobile UI even on bigger touchscreens */
   /* 🆕 v2.16.3 — comprehensive mobile fit: scroll panels, no overlap, auto-shrink, viewport-safe */
   body.ui-mobile{overflow-x:hidden}
-  body.ui-mobile #menu{align-items:flex-start;padding:8px 0;overflow-y:auto;height:100vh}
+  body.ui-mobile #menu{padding:8px 0;height:100vh}
   body.ui-mobile .panel{padding:12px;max-width:96vw;width:96vw;max-height:none}
   body.ui-mobile .title{font-size:30px;line-height:1.05;margin-bottom:2px}
   body.ui-mobile .subtitle{font-size:11px;letter-spacing:3px;margin-bottom:8px}
