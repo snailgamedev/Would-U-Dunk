@@ -5153,14 +5153,58 @@ function renderStatsScreen(){
   `;
   openModal('CAREER · STATS', html);
 }
+// 🆕 v2.13.18 — TROPHY ROOM polish: rarity tiers + grouped layout
+function rarityOf(a){
+  // heuristic — keywords + IDs map to BRONZE/SILVER/GOLD/PLATINUM
+  const id = (a.id || '').toLowerCase();
+  const desc = (a.desc || '').toLowerCase();
+  if (/yeshua|goat|wildfire|tier_28|legend|holy_hundred|heavenly_200|next_wilt|kingdom_come|burning_bush|elijah/i.test(id + ' ' + desc)) return 'PLATINUM';
+  if (/legendary|10|streak_10|combo_10|all_pro|untouchable|cent|champion|finals|allchaos|super/i.test(id + ' ' + desc)) return 'GOLD';
+  if (/streak|hot_hand|fire|comeback|iron|air_raid|goliath|david|wins|first|7|5/i.test(id + ' ' + desc)) return 'SILVER';
+  return 'BRONZE';
+}
+const RARITY_INFO = {
+  BRONZE:   { color:'#b87333', bg:'#3a1f0e22', label:'BRONZE' },
+  SILVER:   { color:'#c0c0c0', bg:'#88888822', label:'SILVER' },
+  GOLD:     { color:'#ffd76e', bg:'#ffd76e22', label:'GOLD' },
+  PLATINUM: { color:'#a4f4ff', bg:'#a4f4ff22', label:'PLATINUM' },
+};
 function renderAchievementsScreen(){
   const got = Object.keys(Career.achievements || {}).length;
   const total = ACH_LIST.length;
-  const cards = ACH_LIST.map(a => {
-    const on = !!Career.achievements[a.id];
-    return `<div class="achcard ${on?'on':''}"><div class="icon">${a.icon}</div><div><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div></div>`;
+  const pct = Math.round((got / total) * 100);
+  // group by rarity
+  const groups = { PLATINUM:[], GOLD:[], SILVER:[], BRONZE:[] };
+  ACH_LIST.forEach(a => groups[rarityOf(a)].push(a));
+  const sections = ['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'].map(r => {
+    const list = groups[r];
+    if (!list.length) return '';
+    const info = RARITY_INFO[r];
+    const haveInGroup = list.filter(a => Career.achievements[a.id]).length;
+    const cards = list.map(a => {
+      const on = !!Career.achievements[a.id];
+      return `<div class="achcard ${on?'on':''}" style="${on?'border-color:'+info.color+';background:'+info.bg:''}">
+        <div class="icon">${on ? a.icon : '🔒'}</div>
+        <div><div class="name" style="${on?'color:'+info.color:''}">${a.name}</div><div class="desc">${a.desc}</div></div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <div style="color:${info.color};font-size:11px;letter-spacing:3px;font-weight:900">🏆 ${info.label}</div>
+        <div style="color:#aaa;font-size:10px;letter-spacing:1px">${haveInGroup} / ${list.length}</div>
+      </div>
+      <div class="achgrid">${cards}</div>
+    </div>`;
   }).join('');
-  openModal(`ACHIEVEMENTS · ${got}/${total}`, `<div class="achgrid">${cards}</div>`);
+  openModal(`🏆 TROPHY ROOM · ${got}/${total} · ${pct}%`,
+    `<div style="background:#0008;border:2px solid #ffd76e44;border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;letter-spacing:1px;margin-bottom:4px">
+        <span>OVERALL COMPLETION</span><span style="color:var(--gold);font-weight:900">${pct}%</span>
+      </div>
+      <div style="background:#222;border-radius:4px;height:8px;overflow:hidden">
+        <div style="background:linear-gradient(90deg,#b87333,#c0c0c0,#ffd76e,#a4f4ff);width:${pct}%;height:100%"></div>
+      </div>
+    </div>${sections}`);
 }
 function renderSettingsScreen(){
   const toggle = (key, label, desc) => `
