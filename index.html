@@ -4477,6 +4477,151 @@ function renderCustomTeamBuilder(leagueId){
     renderFranchiseScreen();
   };
 }
+/* ================================================================================================
+   🆕 v2.9.0 — TOURNAMENT BRACKET MODE — 8-team single elim · QF → SF → F
+================================================================================================ */
+function loadTourney(){ try{ const r = localStorage.getItem(`wud:tourney:${currentProfileName()}`); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function saveTourney(t){ try{ localStorage.setItem(`wud:tourney:${currentProfileName()}`, JSON.stringify(t)); }catch(e){} }
+function newTourney(leagueId, myTeam){
+  const lg = getLeague(leagueId);
+  // pick 7 random other teams + my team = 8
+  const others = lg.teams.filter(t => t.name !== myTeam).slice();
+  for (let i=others.length-1; i>0; i--){ const j=(Math.random()*(i+1))|0; [others[i],others[j]]=[others[j],others[i]]; }
+  const seeded = [myTeam, ...others.slice(0, 7).map(t => t.name)];
+  // Bracket: 4 QF games (pairs 0v7, 3v4, 1v6, 2v5). I'm seed 0 so my QF opp is seeded[7]
+  const qf = [
+    { a: seeded[0], b: seeded[7], winner:null },
+    { a: seeded[3], b: seeded[4], winner:null },
+    { a: seeded[1], b: seeded[6], winner:null },
+    { a: seeded[2], b: seeded[5], winner:null },
+  ];
+  return { leagueId, myTeam, round:'QF', gameNum:0, qf, sf:[null,null], final:null, champion:null };
+}
+function tourneyMyOpp(t){
+  if (t.round === 'QF') return t.qf[0].b;
+  if (t.round === 'SF') return t.sf[0].b;
+  if (t.round === 'F') return t.final.b;
+  return null;
+}
+function simNonMyTourneyGames(t){
+  if (t.round === 'QF'){
+    // sim games 1, 2, 3 (game 0 is mine)
+    [1,2,3].forEach(i => { if (!t.qf[i].winner) t.qf[i].winner = Math.random() < 0.5 ? t.qf[i].a : t.qf[i].b; });
+  } else if (t.round === 'SF'){
+    if (!t.sf[1].winner) t.sf[1].winner = Math.random() < 0.5 ? t.sf[1].a : t.sf[1].b;
+  }
+}
+function advanceTourney(t, myWon){
+  const myWinner = myWon ? t.myTeam : tourneyMyOpp(t);
+  if (t.round === 'QF'){
+    t.qf[0].winner = myWinner;
+    simNonMyTourneyGames(t);
+    t.sf = [
+      { a: t.qf[0].winner, b: t.qf[1].winner, winner:null },
+      { a: t.qf[2].winner, b: t.qf[3].winner, winner:null },
+    ];
+    if (myWon) t.round = 'SF';
+    else { t.round = 'DONE'; t.champion = null; }
+  } else if (t.round === 'SF'){
+    t.sf[0].winner = myWinner;
+    simNonMyTourneyGames(t);
+    t.final = { a: t.sf[0].winner, b: t.sf[1].winner, winner:null };
+    if (myWon) t.round = 'F';
+    else { t.round = 'DONE'; t.champion = null; }
+  } else if (t.round === 'F'){
+    t.final.winner = myWinner;
+    t.champion = myWon ? t.myTeam : t.final.b;
+    t.round = 'DONE';
+  }
+}
+function renderTournamentScreen(){
+  const t = loadTourney();
+  if (!t){
+    const leagueRows = LEAGUES.map(lg => `
+      <div data-league="${lg.id}" class="lgcard" style="background:#0008;border:2px solid #ffd76e44;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer">
+        <div style="color:var(--gold);font-size:14px;font-weight:900;letter-spacing:2px">${lg.name}</div>
+        <div style="color:#aaa;font-size:10px;margin-top:4px">${lg.teams.length} teams</div>
+      </div>`).join('');
+    openModal('⚔️ TOURNAMENT · CHOOSE LEAGUE',
+      `<div style="font-size:13px;color:#fff;margin-bottom:12px">Pick a league for the bracket. 8 teams · single elim · QF → SF → F.</div>
+       <div style="max-height:55vh;overflow-y:auto">${leagueRows}</div>`);
+    document.querySelectorAll('.lgcard').forEach(el => {
+      el.onclick = () => {
+        const lg = getLeague(el.dataset.league);
+        const teams = lg.teams.map(tm => `<div data-team="${tm.name}" class="tmcard" style="background:#0008;border:2px solid #${tm.primary.toString(16).padStart(6,'0')}aa;border-radius:8px;padding:8px;margin:4px 0;cursor:pointer;display:flex;align-items:center;gap:8px"><span style="font-size:22px">${tm.mascot}</span><span style="color:#fff;font-weight:900">${tm.name}</span></div>`).join('');
+        openModal('⚔️ PICK YOUR TEAM',
+          `<div style="font-size:13px;color:#fff;margin-bottom:12px">8 teams will be auto-seeded. You're seed #1.</div>
+           <div style="max-height:55vh;overflow-y:auto">${teams}</div>`);
+        document.querySelectorAll('.tmcard').forEach(t2 => {
+          t2.onclick = () => {
+            const nt = newTourney(lg.id, t2.dataset.team);
+            saveTourney(nt);
+            renderTournamentScreen();
+          };
+        });
+      };
+    });
+    return;
+  }
+  // Existing tourney — show bracket
+  const lg = getLeague(t.leagueId);
+  const matchHtml = (m, label, isMine) => {
+    if (!m) return `<div style="color:#555;font-size:11px;padding:8px">${label} · TBD</div>`;
+    const aWin = m.winner === m.a, bWin = m.winner === m.b;
+    return `<div style="background:${isMine?'#ffd76e22':'#0006'};border:1px solid ${isMine?'#ffd76e':'#ffd76e44'};border-radius:6px;padding:6px 10px;margin:4px 0;font-size:11px">
+      <div style="color:#aaa;font-size:9px;letter-spacing:2px">${label}${isMine?' · YOU':''}</div>
+      <div style="color:${aWin?'#4cf07a':bWin?'#ff8a8a':'#fff'};font-weight:${aWin?900:400}">${aWin?'✅ ':''}${m.a}</div>
+      <div style="color:${bWin?'#4cf07a':aWin?'#ff8a8a':'#fff'};font-weight:${bWin?900:400}">${bWin?'✅ ':''}${m.b}</div>
+    </div>`;
+  };
+  const champBig = t.champion === t.myTeam ? `<div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,#ffd76e44,#ff8a3c44);border:3px solid #ffd76e;border-radius:10px;text-align:center"><div style="font-size:48px">🏆 👑 🏆</div><div style="color:#ffd76e;font-size:22px;font-weight:900;letter-spacing:3px;margin-top:6px">TOURNAMENT CHAMPION!</div></div>` : '';
+  openModal(`⚔️ ${lg.name} TOURNAMENT — ${t.myTeam}`,
+    `<div style="font-size:12px;color:#fff;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">QUARTERFINALS</div>${t.qf.map((m,i)=>matchHtml(m,'QF'+(i+1), i===0)).join('')}</div>
+      <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">SEMIFINALS</div>${t.sf.map((m,i)=>matchHtml(m,'SF'+(i+1), i===0)).join('')}</div>
+      <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">FINAL</div>${matchHtml(t.final,'CHAMPIONSHIP', true)}</div>
+    </div>${champBig}
+    <div style="margin-top:14px;display:flex;gap:8px">
+      ${t.round !== 'DONE' ? `<button class="btn hot" id="trPlay" style="flex:1;font-size:14px;padding:11px">⚔️ PLAY ${t.round} GAME (vs ${tourneyMyOpp(t)})</button>` : `<button class="btn hot" id="trNew" style="flex:1;font-size:13px;padding:10px">⏭ NEW TOURNAMENT</button>`}
+      <button class="btn" id="trReset" style="font-size:11px;padding:9px">🗑 RESET</button>
+    </div>`);
+  if (t.round !== 'DONE'){
+    document.getElementById('trPlay').onclick = () => {
+      closeModal();
+      State._tourneyActive = true;
+      State._tourneyOpp = tourneyMyOpp(t);
+      State._franchiseLeagueId = t.leagueId;        // reuse franchise CPU pick logic
+      State._franchiseOpp = State._tourneyOpp;
+      State.modeId = 'first_10';
+      State.mode = 'CPU';
+      startMatch();
+    };
+  } else {
+    document.getElementById('trNew').onclick = () => { try{localStorage.removeItem(`wud:tourney:${currentProfileName()}`);}catch(e){} renderTournamentScreen(); };
+  }
+  document.getElementById('trReset').onclick = () => { if (confirm('Reset tournament?')){ try{localStorage.removeItem(`wud:tourney:${currentProfileName()}`);}catch(e){} renderTournamentScreen(); } };
+}
+
+/* ================================================================================================
+   🆕 v2.9.0 — PLAYER DEVELOPMENT XP — earned per franchise/tourney game, persisted
+================================================================================================ */
+function loadDevXp(){ try{ return parseInt(localStorage.getItem(`wud:devxp:${currentProfileName()}`)||'0', 10); }catch(e){ return 0; } }
+function saveDevXp(n){ try{ localStorage.setItem(`wud:devxp:${currentProfileName()}`, String(n)); }catch(e){} }
+function awardDevXp(amount, reason){
+  const cur = loadDevXp();
+  const next = cur + amount;
+  saveDevXp(next);
+  // unlock toasts
+  const milestones = [
+    { at: 100,  msg: '🌟 DEV XP 100 — RARE JERSEY UNLOCKED' },
+    { at: 500,  msg: '🌟 DEV XP 500 — YESHUA TIER ROLLS UNLOCKED' },
+    { at: 1000, msg: '🌟 DEV XP 1000 — ALL ARCHETYPES UNLOCKED' },
+    { at: 2500, msg: '🌟 DEV XP 2500 — LEGEND STATUS' },
+  ];
+  milestones.forEach(m => { if (cur < m.at && next >= m.at) showToast(m.msg, 'level'); });
+  return next;
+}
+
 function playFranchiseGame(){
   const f = loadFranchise();
   if (!f) return;
