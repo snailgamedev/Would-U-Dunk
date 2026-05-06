@@ -3471,34 +3471,83 @@ class MatchScene extends Phaser.Scene {
     tier.react /= tiers.length; tier.stealRate /= tiers.length;
     tier.shootRange /= tiers.length;
 
+    // 🆕 v2.7.3 — collect NPC archetypes powering this CPU. Drives DECISION-style behavior modulation.
+    const archIds = tiers.map(t => t._npc?.archetypeId).filter(Boolean);
+    const isArch = (id) => archIds.includes(id);
+    // ENIGMA reroll — once per ~3s, swap archetype to random
+    if (isArch('enigma') && (!p._enigmaUntil || this.time.now > p._enigmaUntil)){
+      const pool = ['sniper','slasher','lockdown','clown','prophet','streetballer','showtime','steady','chaotic','closer','paint_beast','point_god','microwave','glue_guy'];
+      p._enigmaArch = pool[(Math.random()*pool.length)|0];
+      p._enigmaUntil = this.time.now + 3000;
+    }
+    if (p._enigmaArch && !archIds.includes(p._enigmaArch)) archIds.push(p._enigmaArch);
+
     const ball = this.ball;
     const opp = this.p1;
     const target = p.scoringHoop;
+    const distToHoop = Math.abs(target.x - p.x);
+
+    // 🆕 v2.7.3 — archetype DECISION modulators
+    let shootProbMul = 1.0;          // multiplier on shoot probability per tick
+    let shootRangeMul = 1.0;          // multiplier on shoot range threshold
+    let chaseStealMul = 1.0;          // boost steal probability
+    let chaseRadiusMul = 1.0;         // wider/narrower steal hit radius
+    let driveBias = 0;                // -1 to +1, negative = stay perimeter, positive = drive
+    let wanderNoise = 0;              // random direction jitter
+    let microwaveSnap = false;        // fire instantly on pickup
+
+    if (isArch('sniper')){           shootRangeMul *= 1.6; driveBias -= 0.6; if (distToHoop < 300) shootProbMul *= 0.3; }
+    if (isArch('slasher')){          shootRangeMul *= 0.5; driveBias += 0.8; if (distToHoop < 230) shootProbMul *= 1.6; }
+    if (isArch('lockdown')){         chaseStealMul *= 1.7; chaseRadiusMul *= 1.3; }
+    if (isArch('clown')){            wanderNoise += 0.7; shootProbMul *= 1.2; }
+    if (isArch('streetballer')){     shootProbMul *= 1.4; shootRangeMul *= 1.2; }
+    if (isArch('showtime')){         driveBias += 0.6; shootRangeMul *= 0.6; }
+    if (isArch('steady')){           shootRangeMul *= 0.95; shootProbMul *= 1.1; }
+    if (isArch('chaotic')){          shootProbMul *= (0.4 + Math.random()*1.6); wanderNoise += 0.4; }
+    if (isArch('paint_beast')){      driveBias += 1.0; shootRangeMul *= 0.4; chaseRadiusMul *= 1.2; }
+    if (isArch('point_god')){        shootProbMul *= 0.85; shootRangeMul *= 1.05; }
+    if (isArch('microwave')){        microwaveSnap = true; shootProbMul *= 1.5; }
+    if (isArch('glue_guy')){         chaseStealMul *= 1.3; chaseRadiusMul *= 1.15; }
+    // CLOSER 🥶 — clutch buff in final 30s of round
+    if (isArch('closer') && State._roundEndAt){
+      const remaining = (State._roundEndAt - Date.now()) / 1000;
+      if (remaining < 30){ shootProbMul *= 1.5; tier.accuracy = Math.min(1, tier.accuracy * 1.3); }
+    }
 
     let dirX = 0;
     if (ball.getData('held') === p){
-      // move toward hoop
-      dirX = Math.sign(target.x - p.x);
-      const dist = Math.abs(target.x - p.x);
-      // shoot when close enough
-      if (dist < tier.shootRange + Math.random()*60){
-        if (Math.random() < tier.accuracy * 0.06) this.shoot(p);
+      // 🆕 v2.7.3 — MICROWAVE fires instantly on first pickup
+      if (microwaveSnap && p._mwLastPickupAt !== ball.getData('pickupAt')){
+        p._mwLastPickupAt = ball.getData('pickupAt');
+        if (this.time.now - (ball.getData('pickupAt')||0) < 250) this.shoot(p);
+      }
+      // movement bias: SLASHER/SHOWTIME/PAINT drive toward hoop; SNIPER/STEADY hold range
+      const targetX = (driveBias > 0)
+        ? target.x
+        : (target.x - Math.sign(target.x - p.x) * 200 * Math.abs(driveBias));
+      dirX = Math.sign(targetX - p.x);
+      const effectiveRange = tier.shootRange * shootRangeMul + Math.random()*60;
+      if (distToHoop < effectiveRange){
+        if (Math.random() < tier.accuracy * 0.06 * shootProbMul) this.shoot(p);
       }
     } else if (ball.getData('held') === opp){
-      // chase opp, attempt steal
+      // chase opp, attempt steal — LOCKDOWN/PAINT/GLUE swarm harder
       dirX = Math.sign(opp.x - p.x);
       const d = Phaser.Math.Distance.Between(p.x,p.y,opp.x,opp.y);
-      if (d < 90 && Math.random() < tier.stealRate * 0.04){
+      const stealR = 90 * chaseRadiusMul;
+      if (d < stealR && Math.random() < tier.stealRate * 0.04 * chaseStealMul){
         this.onStealKey(p);
       }
     } else {
-      // chase ball, predict
-      const predict = tier.behaviors.includes('predict');
-      const tx = ball.x + (predict ? ball.body.velocity.x * 0.5 : 0);
+      // chase ball, predict — PROPHET predicts harder, CLOWN wanders
+      const predict = tier.behaviors.includes('predict') || isArch('prophet');
+      const predictMul = isArch('prophet') ? 0.85 : 0.5;
+      const tx = ball.x + (predict ? ball.body.velocity.x * predictMul : 0);
       dirX = Math.sign(tx - p.x);
-      // wander tier
-      if (tier.behaviors.includes('wander')) dirX += (Math.random()-0.5)*0.6;
+      if (tier.behaviors.includes('wander') || isArch('clown')) dirX += (Math.random()-0.5)*0.6;
     }
+    // archetype noise overlay (CLOWN/CHAOTIC)
+    if (wanderNoise > 0) dirX += (Math.random()-0.5) * wanderNoise;
 
     // swap LR for chaos
     if (State.cfg.swapLR) dirX = -dirX;
