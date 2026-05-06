@@ -6325,7 +6325,7 @@ function renderTutorialFlow(step){
     { title:'🎮 CONTROLS',
       body:'<b>A / D</b> · move<br><b>W</b> · tap=jump · hold=shoot<br><b>E</b> · steal lunge<br><b>1-5</b> · emote bubbles<br><br>In solo mode, arrow keys also work for P1.' },
     { title:'⚙ CHAOS · FRANCHISE · TOURNAMENT · DAILY',
-      body:'Pick a mode from splash. Earn 💰 cash for every bucket — spend it in the 🛒 SHOP on ball skins, court themes, trail FX, and stadium upgrades.<br><br>Build a 1050-archetype CPU career across 11 leagues + 88 teams.' },
+      body:(() => { const s = computeStats(); return 'Pick a mode from splash. Earn 💰 cash for every bucket — spend it in the 🛒 SHOP on ball skins, court themes, trail FX, and stadium upgrades.<br><br>Build a ' + s.archetypes.toLocaleString() + '-archetype CPU career across ' + s.leagues + ' leagues + ' + s.teams + ' teams.'; })() },
     { title:'🎯 GO COOK',
       body:'Glory to God · go ball.<br><br>"Run in such a way as to take the prize" — 1 Cor 9:24' },
   ];
