@@ -407,7 +407,14 @@ function setCurrentProfile(name){ try { localStorage.setItem(CURRENT_PROFILE_KEY
 function profileSlug(){ return currentProfileName().replace(/[^a-zA-Z0-9_-]/g,'_'); }
 function profileBadge(){
   const n = currentProfileName();
-  return n === 'default' ? '👤 GUEST' : `👤 ${n.toUpperCase()}`;
+  // 🆕 v2.13.4 — append equipped BADGE medal icon if any
+  let medal = '';
+  if (typeof loadEquipped === 'function'){
+    const id = loadEquipped('BADGE');
+    if (id === 'badge_streak') medal = ' 🥇';
+    else if (id === 'badge_holy') medal = ' ✝️';
+  }
+  return (n === 'default' ? '👤 GUEST' : `👤 ${n.toUpperCase()}`) + medal;
 }
 function createProfile(name, pin){
   const list = listProfiles();
