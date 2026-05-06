@@ -2032,6 +2032,11 @@ const Online = {
       if (this._onStart) this._onStart();
     }
     else if (msg.type === 'score'){ State.scores = msg.scores; State.matchPoints = msg.matchPoints; refreshHUD(); }
+    // 🆕 v2.13.17 — EMOTE from peer
+    else if (msg.type === 'emote'){
+      const scene = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+      if (scene && scene.popEmote && scene.p2){ scene.popEmote(scene.p2, msg.emoji); }
+    }
   },
   closeAll(){
     try { if (this.conn) this.conn.close(); if (this.peer) this.peer.destroy(); } catch(e){}
