@@ -7424,6 +7424,30 @@ function randomLook(slot){
   };
 }
 
+// 🆕 v2.16.9 — RANDOMIZATION PACKAGES — themed bundles that fill all customization slots in one click
+const LOOK_PRESETS = [
+  { id:'streetballer', label:'🏙 STREETBALL',  override:{ jersey:0xff3b3b, shorts:0x111111, shoes:0xffffff, sockColor:0xffffff, hair:'fade', beard:'goatee', tattoo:'sleeve', pattern:'solid', wristband:true, headband:true, sockHigh:true, build:'normal', celebration:'flex' } },
+  { id:'angel',        label:'👼 ANGEL',       override:{ jersey:0xffffff, shorts:0xffd76e, shoes:0xffffff, sockColor:0xffffff, hairColor:0xffd76e, hair:'pony', beard:'none', glasses:'none', tattoo:'cross', pattern:'solid', wristband:false, headband:false, sockHigh:false, build:'slim', celebration:'prayer' } },
+  { id:'old_head',     label:'👴 OLD HEAD',    override:{ jersey:0x4f9eff, shorts:0xffffff, shoes:0x4f9eff, sockColor:0xffffff, hair:'bald', beard:'full', glasses:'regular', pattern:'stripes_h', wristband:false, headband:false, sockHigh:true, build:'normal', celebration:'nod' } },
+  { id:'rookie',       label:'🐣 ROOKIE',      override:{ jersey:0x4cf07a, shorts:0x111111, shoes:0xffd76e, sockColor:0xffffff, hair:'afro', beard:'none', glasses:'none', tattoo:'none', pattern:'solid', wristband:true, headband:false, sockHigh:false, build:'slim', celebration:'griddy' } },
+  { id:'cyborg',       label:'🤖 CYBORG',      override:{ jersey:0x111111, shorts:0xc0c0c0, shoes:0x00cfff, sockColor:0x111111, hairColor:0xc0c0c0, hair:'mohawk', beard:'none', glasses:'shades', pattern:'diagonal', wristband:true, headband:true, sockHigh:false, build:'beefy', celebration:'crown', skin:0xc0c0c0 } },
+  { id:'showtime',     label:'🎬 SHOWTIME',    override:{ jersey:0xa040ff, shorts:0xffd76e, shoes:0xffffff, sockColor:0xa040ff, hair:'hat', beard:'none', glasses:'shades', pattern:'diagonal', wristband:true, headband:false, sockHigh:false, build:'normal', celebration:'dab' } },
+  { id:'beast',        label:'🦏 BEAST',       override:{ jersey:0xff8a3c, shorts:0x111111, shoes:0xff3b3b, sockColor:0x111111, hair:'fade', beard:'full', glasses:'none', tattoo:'sleeve', pattern:'solid', wristband:true, headband:true, sockHigh:true, build:'beefy', celebration:'thump' } },
+  { id:'prophet',      label:'🕊️ PROPHET',    override:{ jersey:0xffffff, shorts:0x4f9eff, shoes:0xffd76e, sockColor:0xffffff, hairColor:0xffffff, hair:'band', beard:'full', glasses:'none', tattoo:'cross', pattern:'solid', wristband:false, headband:true, sockHigh:false, build:'normal', celebration:'airplane' } },
+  { id:'ninja',        label:'🥷 NINJA',       override:{ jersey:0x111111, shorts:0x111111, shoes:0x111111, sockColor:0x111111, hairColor:0x111111, hair:'band', beard:'none', glasses:'shades', tattoo:'none', pattern:'solid', wristband:true, headband:true, sockHigh:false, build:'slim', celebration:'stand' } },
+  { id:'rainbow',      label:'🌈 RAINBOW',     override:{ jersey:0xff3b3b, shorts:0x4cf07a, shoes:0x4f9eff, sockColor:0xffd76e, hairColor:0xa040ff, hair:'afro', beard:'stubble', glasses:'shades', pattern:'stripes_v', wristband:true, headband:true, sockHigh:true, build:'normal', celebration:'griddy' } },
+  { id:'monk',         label:'⛪ MONK',         override:{ jersey:0xb87333, shorts:0xb87333, shoes:0x111111, sockColor:0xb87333, hair:'bald', beard:'full', glasses:'none', tattoo:'cross', pattern:'solid', wristband:false, headband:false, sockHigh:false, build:'normal', celebration:'prayer' } },
+  { id:'firebrand',    label:'🔥 FIREBRAND',   override:{ jersey:0xff3b3b, shorts:0xff8a3c, shoes:0xffd76e, sockColor:0xff3b3b, hairColor:0xff3b3b, hair:'mohawk', beard:'goatee', tattoo:'sleeve', pattern:'diagonal', wristband:true, headband:true, sockHigh:true, build:'normal', celebration:'flex' } },
+];
+function applyPresetLook(slot, presetId){
+  const preset = LOOK_PRESETS.find(p => p.id === presetId);
+  if (!preset) return;
+  const base = randomLook(slot);     // start random
+  const merged = Object.assign(base, preset.override);
+  State.looks[slot] = merged;
+  saveLook(slot, merged);
+}
+
 function slotPanel(slot, isCpu){
   const look = State.looks[slot];
   const isOnlineRemote = (State.mode === 'ONLINE' && slot === 1);
