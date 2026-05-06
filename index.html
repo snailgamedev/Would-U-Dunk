@@ -3556,6 +3556,18 @@ class MatchScene extends Phaser.Scene {
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
     // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
     if (points >= 3) this.bigShotHighlight(zoneLabel || '+' + points);
+    // 🆕 v2.13.16 — TRACK MATCH MOMENTS (for top-3 highlight reel on end card)
+    if (!State.matchMoments) State.matchMoments = [];
+    if (points >= 3 || State.bucketStreak[scorerIdx] >= 5){
+      State.matchMoments.push({
+        idx: scorerIdx,
+        type: points >= 5 ? 'logo' : points >= 4 ? 'halfcourt' : (points >= 3 ? 'three' : 'streak'),
+        label: zoneLabel || `+${points}`,
+        weight: points * 10 + (State.bucketStreak[scorerIdx] || 0) * 3,
+        round: State.roundIdx + 1,
+        time: this.elapsed | 0,
+      });
+    }
     // 🆕 v2.13.6 — REPLAY GHOST TRAJECTORY arc on 3+ pt shots (parabolic dotted line from origin to hoop)
     if (points >= 3){
       const sx = ball.getData('shotFromX'), sy = ball.getData('shotFromY');
