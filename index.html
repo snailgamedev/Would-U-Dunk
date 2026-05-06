@@ -2008,6 +2008,41 @@ const NPC_ROSTER = (() => {
 })();
 function pickRandomNpc(){ return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0]; }
 
+// 🆕 v2.13.0 — COSMETICS SHOP catalog
+const SHOP_ITEMS = [
+  { id:'ball_classic',  name:'CLASSIC BASKETBALL', cat:'BALL',   price:0,    icon:'🏀', desc:'the OG · default' },
+  { id:'ball_beach',    name:'BEACH BALL',         cat:'BALL',   price:300,  icon:'🏐', desc:'rainbow stripes · summer vibes' },
+  { id:'ball_watermelon',name:'WATERMELON',        cat:'BALL',   price:500,  icon:'🍉', desc:'juicy · disrespectful · fun' },
+  { id:'ball_soccer',   name:'SOCCER BALL',        cat:'BALL',   price:400,  icon:'⚽', desc:'wrong sport · right energy' },
+  { id:'ball_eight',    name:'8-BALL',             cat:'BALL',   price:600,  icon:'🎱', desc:'lucky · and chaotic' },
+  { id:'ball_globe',    name:'WORLD GLOBE',        cat:'BALL',   price:1000, icon:'🌍', desc:'whole world in your hands' },
+  { id:'court_classic', name:'CLASSIC COURT',      cat:'COURT',  price:0,    icon:'🏟', desc:'hardwood + crowd' },
+  { id:'court_street',  name:'STREETBALL CAGE',    cat:'COURT',  price:600,  icon:'🏙', desc:'chain net + asphalt' },
+  { id:'court_space',   name:'SPACE STADIUM',      cat:'COURT',  price:1500, icon:'🚀', desc:'zero-g · stars overhead' },
+  { id:'court_holy',    name:'TEMPLE COURT',       cat:'COURT',  price:2000, icon:'⛪', desc:'gold leaf · stained glass' },
+  { id:'trail_fire',    name:'FIRE TRAIL',         cat:'TRAIL',  price:400,  icon:'🔥', desc:'orange flame ball trail' },
+  { id:'trail_ice',     name:'ICE TRAIL',          cat:'TRAIL',  price:400,  icon:'❄️', desc:'frosty blue trail' },
+  { id:'trail_rainbow', name:'RAINBOW TRAIL',      cat:'TRAIL',  price:800,  icon:'🌈', desc:'pride flag energy' },
+  { id:'celeb_pyro',    name:'PYRO CELEBRATION',   cat:'CELEB',  price:500,  icon:'🎆', desc:'fireworks on every dunk' },
+  { id:'celeb_doves',   name:'DOVE RELEASE',       cat:'CELEB',  price:600,  icon:'🕊️', desc:'doves fly on every made shot' },
+  { id:'badge_streak',  name:'STREAK MEDAL',       cat:'BADGE',  price:300,  icon:'🥇', desc:'profile badge' },
+  { id:'badge_holy',    name:'CROSS MEDAL',        cat:'BADGE',  price:400,  icon:'✝️', desc:'profile badge · faith' },
+];
+function loadOwned(){ try { return JSON.parse(localStorage.getItem(`wud:owned:${currentProfileName()}`)||'["ball_classic","court_classic"]'); } catch(e){ return ['ball_classic','court_classic']; } }
+function saveOwned(arr){ try { localStorage.setItem(`wud:owned:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
+function loadEquipped(cat){ try { return localStorage.getItem(`wud:equipped:${cat}:${currentProfileName()}`) || (cat === 'BALL' ? 'ball_classic' : (cat === 'COURT' ? 'court_classic' : '')); } catch(e){ return ''; } }
+function saveEquipped(cat, id){ try { localStorage.setItem(`wud:equipped:${cat}:${currentProfileName()}`, id); } catch(e){} }
+function buyItem(item){
+  const cash = loadCash();
+  if (cash < item.price) return { ok:false, msg:'NOT ENOUGH CASH' };
+  const owned = loadOwned();
+  if (owned.includes(item.id)) return { ok:false, msg:'ALREADY OWNED' };
+  if (item.price > 0) spendCash(item.price);
+  owned.push(item.id);
+  saveOwned(owned);
+  return { ok:true };
+}
+
 /* ================================================================================================
    🆕 v2.8.0 — LEAGUES + TEAMS — 8 leagues × 8 teams = 64 franchises
 ================================================================================================ */
