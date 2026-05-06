@@ -5768,9 +5768,11 @@ function showReveal(rolls){
     list.appendChild(c);
   });
   // 🆕 v2.7.1 — Show NPC archetype + description if any cpuTier was sourced from the roster
+  // 🆕 v2.13.0 — also show archetype LORE backstory line
   const npcLine = (State.mode === 'CPU') ? rolls.cpuTiers.map(t => {
     if (t._npc){
-      return `<div style="margin-top:6px;font-size:13px;color:#ffd76e;font-weight:bold">🎭 ${t._npc.name} · #${t._npc.look.number}</div><div style="font-size:11px;color:#aaa">${t._npc.archetypeLabel} — ${t._npc.archetypeDesc}</div>`;
+      const lore = ARCHETYPE_LORE[t._npc.archetypeBaseId] || '';
+      return `<div style="margin-top:6px;font-size:13px;color:#ffd76e;font-weight:bold">🎭 ${t._npc.name} · #${t._npc.look.number}</div><div style="font-size:11px;color:#aaa">${t._npc.archetypeLabel} — ${t._npc.archetypeDesc}</div>${lore ? `<div style="font-size:10px;color:#8aafff;font-style:italic;margin-top:4px">"${lore}"</div>` : ''}`;
     }
     return `<div style="margin-top:6px;font-size:13px;color:#ffd76e">CPU TIER · ${t.name}</div>`;
   }).join('') : '';
