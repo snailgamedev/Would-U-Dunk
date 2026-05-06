@@ -1591,6 +1591,68 @@ function computeOvrFromTier(tierObj){
   const idx = CPU_TIERS.findIndex(t => t.id === (tierObj.id || '').replace(/^[★😈] /,''));
   return Math.min(99, Math.round(40 + idx * 2 + (tierObj.accuracy || 0.5) * 20));
 }
+// 🆕 v2.13.14 — full NBA 2K-style attribute card for the player
+function computePlayerCard(){
+  const c = Career || {};
+  const lv = c.level || 1;
+  const games = c.games || 0;
+  const wins = c.wins || 0;
+  const winRate = games ? wins / games : 0.5;
+  const buckets = c.totalBuckets || 0;
+  const dunks = c.totalDunks || 0;
+  const blocks = c.blockedShots || 0;
+  const steals = c.stealsThisCareer || 0;
+  const longestStreak = c.longestStreak || 0;
+  const high = c.highScoreGame || 0;
+  // each attribute returns a 1-99 value
+  const clamp = n => Math.max(40, Math.min(99, Math.round(n)));
+  const shooting  = clamp(50 + (lv * 0.4) + (winRate * 25) + (buckets * 0.05));
+  const speed     = clamp(50 + (lv * 0.3) + (winRate * 20));
+  const defense   = clamp(50 + (lv * 0.2) + (blocks * 0.4) + (steals * 0.3));
+  const finishing = clamp(55 + (lv * 0.4) + (dunks * 0.3));
+  const clutch    = clamp(45 + (longestStreak * 2) + (winRate * 20));
+  const iq        = clamp(48 + (lv * 0.5) + (high * 0.2));
+  const ovr       = clamp((shooting + speed + defense + finishing + clutch + iq) / 6);
+  return { ovr, shooting, speed, defense, finishing, clutch, iq };
+}
+function computeNpcCard(t){
+  if (!t) return null;
+  const acc = t.accuracy || 0.5;
+  const spd = (t.moveMul || 1) / 1.6;
+  const stl = t.stealRate || 0.5;
+  const range = (t.shootRange || 400) / 700;
+  const clamp = n => Math.max(40, Math.min(99, Math.round(n * 99)));
+  const shooting  = clamp(acc * 0.95);
+  const speed     = clamp(spd * 0.95);
+  const defense   = clamp(stl * 0.90);
+  const finishing = clamp((acc + spd) / 2);
+  const clutch    = clamp(acc * 0.92);
+  const iq        = clamp((1 - (t.react || 0.5)) * 0.95);
+  const ovr       = clamp((shooting + speed + defense + finishing + clutch + iq) / 6 / 99);
+  return { ovr, shooting, speed, defense, finishing, clutch, iq };
+}
+function ratingCardHtml(name, card, accentHex){
+  if (!card) return '';
+  const attr = (label, val) => `
+    <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa;letter-spacing:1px;margin:2px 0">
+      <span style="width:60px">${label}</span>
+      <span style="width:24px;color:${val>=85?'#ffd76e':val>=70?'#4cf07a':val>=55?'#fff':'#ff8a8a'};font-weight:900">${val}</span>
+      <span style="flex:1;background:#222;border-radius:3px;height:5px;overflow:hidden"><span style="display:block;background:${accentHex};height:100%;width:${val}%"></span></span>
+    </div>`;
+  return `<div style="background:#0008;border:2px solid ${accentHex};border-radius:10px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+      <div style="color:#fff;font-weight:900;font-size:13px;letter-spacing:1px">${name}</div>
+      <div style="color:${accentHex};font-weight:900;font-size:32px;line-height:1">${card.ovr}</div>
+    </div>
+    <div style="font-size:9px;color:${accentHex};letter-spacing:3px;margin-bottom:6px">OVERALL · /99</div>
+    ${attr('SHOOTING',  card.shooting)}
+    ${attr('SPEED',     card.speed)}
+    ${attr('DEFENSE',   card.defense)}
+    ${attr('FINISHING', card.finishing)}
+    ${attr('CLUTCH',    card.clutch)}
+    ${attr('BBALL IQ',  card.iq)}
+  </div>`;
+}
 const TRASH_TALK = [
   'TOO EASY 😎','GET IN THE PAINT KID','BUCKETS!','DAY OFF','NIGHT-NIGHT 🌙','CASH 💸','MAILED IT IN',
   'CALL ME','POSTERIZED','CAN\'T GUARD ME','MARK YA CALENDAR','WIDE OPEN','BARTER FOR IT','SPLASH 💧',
