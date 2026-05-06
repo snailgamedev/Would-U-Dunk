@@ -1896,6 +1896,13 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.7';
 const CHANGELOG = [
+  { v:'v2.16.7', notes:[
+      '📜 UNIVERSAL SCROLL — every full-screen overlay (#menu / #endcard / #reveal / #modalRoot) now scrolls vertically when content exceeds viewport · works on phone · tablet · desktop',
+      '🪲 ROOT BUG — overlays were "place-items: center" which CLIPPED content at the top when too tall to fit. Now "align-items: start" so panel sits at the top + scrolls below',
+      '🎨 Custom thin gold scrollbar (8px wide) on every overlay · smooth scroll behavior',
+      '✅ Tested: long shop list ✓ chronicle (multi-table) ✓ trophy room ✓ franchise dashboard ✓ end card with heatmap',
+      '✝️ "Open my eyes that I may see" · Ps 119:18',
+  ]},
   { v:'v2.16.6', notes:[
       '🪲 DAILY OBJECTIVES TRACKING FIX — added missing hooks: dunks · wins · games · blocks (previously only buckets + long shots + exact-5-streak counted)',
       '🔥 STREAK objectives now track CONTINUOUSLY — every bucket updates progress to your max-streak-so-far (was only firing at exactly 5)',
