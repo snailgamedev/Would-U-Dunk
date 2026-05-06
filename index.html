@@ -3465,6 +3465,11 @@ class MatchScene extends Phaser.Scene {
       const bonus = streakBonuses[streak];
       if (bonus){
         awardCash(bonus.cash);
+        // 🆕 v2.13.10 — unlock matching achievement
+        if (streak === 3) unlockAchievement('hot_hand_3');
+        if (streak === 5) unlockAchievement('fire_5');
+        if (streak === 7) unlockAchievement('legendary_7');
+        if (streak === 10) unlockAchievement('goat_10');
         const popup = this.add.text(this.p1.x, this.p1.y - 160, `${bonus.label}  +$${bonus.cash}`, {fontFamily:'monospace', fontSize:20, color:bonus.color, stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
         this.tweens.add({ targets: popup, y: popup.y - 60, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:1700, onComplete:()=>popup.destroy() });
         if (bonus.shake) this.cameras.main.shake(220, 0.012);
