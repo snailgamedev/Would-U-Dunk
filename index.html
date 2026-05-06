@@ -3170,11 +3170,14 @@ class MatchScene extends Phaser.Scene {
         p._jumpedThisHold = false;
         // Quick reactive jump on press if grounded — feels responsive (BasketBros style)
         if (grounded){
-          const power = 720 * (State.cfg.jumpMul || 1);
+          const power = PLAYER_BASE_JUMP * (State.cfg.jumpMul || 1);
           p.body.setVelocityY(-power);
           SFX.bounce();
           this.tweens.add({ targets:p, scaleY: p.scaleY*0.85, scaleX: p.scaleX*1.12, duration:80, yoyo:true });
           p._jumpedThisHold = true;
+          // 🆕 v2.7.0 — track grounded-jumps WHILE holding ball.
+          // After landing once (i.e. 2nd grounded jump), release = FORCED SHOOT.
+          p._ballGroundJumps = (p._ballGroundJumps || 0) + 1;
         }
       }
       if (p._charging){
@@ -3184,14 +3187,17 @@ class MatchScene extends Phaser.Scene {
       if (p._charging && (jumpReleased || (this.time.now - p._chargeStart) > 1100)){
         const heldFor = this.time.now - p._chargeStart;
         const charge = p._chargeAmount || 0;
+        const forcedShoot = (p._ballGroundJumps || 0) >= 2;   // 🆕 v2.7.0
         p._charging = false; p._chargeAmount = 0; p._chargeStart = 0;
-        // SHORT TAP (<200ms) = jump only, no shot fires (ball stays)
-        if (heldFor < 200){
+        // SHORT TAP (<200ms) on FIRST jump = jump only, ball stays.
+        // On 2nd-or-later grounded jump WITH BALL = FORCED SHOOT regardless of hold time.
+        if (heldFor < 200 && !forcedShoot){
           // No shoot — player already jumped above
         } else {
-          // HOLD = SHOOT
+          // HOLD = SHOOT, OR forced shoot from chained jump
           SFX.chargeRelease(charge);
           this.shoot(p, charge);
+          p._ballGroundJumps = 0;     // reset after firing
         }
       }
     } else if (jumpPressed){
