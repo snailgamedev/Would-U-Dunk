@@ -1563,6 +1563,16 @@ function rollRandomMode(){
 }
 
 /* ------------------- v2.12.0 ECONOMY + OVR + TRASH TALK ------------------- */
+// 🆕 v2.13.11 — STADIUM TIER (1-5) — persistent upgrade with visual effects
+function loadStadiumTier(){ try { return parseInt(localStorage.getItem(`wud:stadium:${currentProfileName()}`)||'1', 10); } catch(e){ return 1; } }
+function saveStadiumTier(n){ try { localStorage.setItem(`wud:stadium:${currentProfileName()}`, String(n)); } catch(e){} }
+const STADIUM_TIERS = [
+  { tier:1, name:'COMMUNITY GYM',  cost:0,     desc:'Where every legend starts' },
+  { tier:2, name:'JUNIOR ARENA',   cost:1500,  desc:'+20% crowd density' },
+  { tier:3, name:'PRO STADIUM',    cost:4000,  desc:'Brighter LED ribbon · saturated colors' },
+  { tier:4, name:'CHAMPIONS HALL', cost:8000,  desc:'+4 wall posters · upgraded banners' },
+  { tier:5, name:'TEMPLE OF HOOPS',cost:20000, desc:'Golden spotlight beam from rafters' },
+];
 function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
 function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
