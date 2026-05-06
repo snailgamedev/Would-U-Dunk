@@ -7366,19 +7366,20 @@ function showOnlineLobby(mode, joinCode){
   };
 }
 function showCharSelect(){
+  // 🆕 v2.16.8 — sticky preview + sticky action bar so customize, preview, and START are all reachable on every device
   menuEl.innerHTML = `
-    <div class="panel" style="max-width:760px">
+    <div class="panel" style="max-width:760px;position:relative">
       <div class="title" style="font-size:30px">SUIT UP</div>
       <div class="subtitle">ONLY THING U CONTROL</div>
       <div class="ccgrid">
         ${slotPanel(0)}
         ${slotPanel(1, State.mode==='CPU')}
       </div>
-      <div class="row" style="margin-top:14px">
+      <div class="stickyActions">
         <button class="btn" id="btnBack">← BACK</button>
-        <button class="btn hot" id="btnTip">ROLL CHAOS &amp; TIP</button>
+        <button class="btn hot" id="btnTip" style="flex:2">🏀 ROLL CHAOS &amp; TIP 🏀</button>
       </div>
-      <div class="small">P1: WASD · E (steal) · W (jump/shoot/block) — P2: ←→ · ↑ (jump/shoot/block) · → (steal)</div>
+      <div class="small" style="margin-top:8px">P1: WASD · E (steal) · W (jump/shoot/block) — P2: ←→ · ↑ (jump/shoot/block) · → (steal)</div>
     </div>`;
   bindCharSlot(0); bindCharSlot(1);
   document.getElementById('btnBack').onclick = showModeSelect;
