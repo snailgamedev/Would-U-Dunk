@@ -7100,7 +7100,7 @@ function showSplash(){
   if (tickerEl){
     const msgs = [
       `🚨 LIVE · ${VERSION}`,
-      `🎯 1,050 ARCHETYPES IN ROTATION · 30 BASE × 35 TRAITS`,
+      `🎯 ${computeStats().archetypes.toLocaleString()} ARCHETYPES IN ROTATION · ${computeStats().baseArch} BASE × ${computeStats().traits} TRAITS`,
       `🏆 ${(Career.wins||0)} WINS · ${(Career.games||0)} GAMES PLAYED`,
       `💰 CASH: $${(typeof loadCash === 'function') ? loadCash() : 0} · SHOP HAS 17 ITEMS`,
       `🔥 LONGEST STREAK: ${Career.longestStreak||0} BUCKETS`,
