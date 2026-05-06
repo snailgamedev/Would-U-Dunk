@@ -2135,7 +2135,32 @@ function newFranchise(leagueId, teamName){
     schedule,
     standings: lg.teams.map(t => ({ name:t.name, w:0, l:0 })),
     champion:null, lastResult:null,
+    roster: [],          // 🆕 v2.11.0 — signed NPCs (free agents)
+    rosterBoost: 0,       // sim win-odds bonus from signed roster
   };
+}
+// 🆕 v2.11.0 — generate a free-agent pool to choose from after each season
+function rollFreeAgentPool(){
+  const pool = [];
+  const seen = new Set();
+  while (pool.length < 16){
+    const npc = pickRandomNpc();
+    if (seen.has(npc.id)) continue;
+    seen.add(npc.id);
+    pool.push(npc);
+  }
+  return pool;
+}
+function signFreeAgent(f, npc){
+  if (!f.roster) f.roster = [];
+  if (f.roster.length >= 5) return false;
+  if (f.roster.find(r => r.id === npc.id)) return false;
+  // archetype + tier based boost — better stats = bigger boost
+  const tier = CPU_TIERS.find(t => t.id === npc.tierId) || CPU_TIERS[10];
+  const boost = (tier.accuracy + tier.moveMul + tier.stealRate) / 12;   // ~0.05-0.30 per signing
+  f.roster.push({ id:npc.id, name:npc.name, tierId:npc.tierId, archetypeLabel:npc.archetypeLabel, boost });
+  f.rosterBoost = (f.rosterBoost || 0) + boost;
+  return true;
 }
 function npcToTier(npc){
   // Inherit base tier + apply archetype bias to derive an effective CPU tier object
