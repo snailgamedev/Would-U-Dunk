@@ -3152,6 +3152,11 @@ class MatchScene extends Phaser.Scene {
     if (State.matchStats?.[player.idx]){
       State.matchStats[player.idx].attempts += 1;
       if (dist > 600) State.matchStats[player.idx].longRange += 1;
+      // 🆕 v2.13.5 — track shot origin for HEATMAP (cap at 60 to avoid memory bloat)
+      if (!State.matchStats[player.idx].shots) State.matchStats[player.idx].shots = [];
+      if (State.matchStats[player.idx].shots.length < 60){
+        State.matchStats[player.idx].shots.push({ x: player.x, y: player.y, made: false });
+      }
     }
     // 🆕 v2.13.0 — track miss streak for ICE COLD overlay (gets reset to 0 in tryScore)
     if (!State.missStreak) State.missStreak = [0, 0];
