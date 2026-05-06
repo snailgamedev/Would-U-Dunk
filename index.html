@@ -6563,6 +6563,16 @@ function showSplash(){
       setTimeout(() => showToast(`💰 DAILY LOGIN +$${bonus}`, 'level'), 1200);
     }
   } catch(e){}
+  // 🆕 v2.13.29 — populate PLAYER OF THE WEEK card
+  try {
+    const potw = getPlayerOfTheWeek();
+    const beaten = loadPotwBeaten() === potw.week;
+    const nameEl = document.getElementById('potwName');
+    const archEl = document.getElementById('potwArch');
+    if (nameEl) nameEl.textContent = `${beaten?'✅ ':''}${potw.npc.name}`;
+    if (archEl) archEl.textContent = `${potw.npc.archetypeLabel} · ${potw.week} · ${beaten?'BEATEN — bonus claimed':'BEAT THEM IN A MATCH FOR +$500 BONUS'}`;
+  } catch(e){}
+
   // 🆕 v2.13.21 — SPLASH NEWS TICKER — rotates messages
   const tickerEl = document.getElementById('tickerText');
   if (tickerEl){
