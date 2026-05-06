@@ -4479,6 +4479,42 @@ class MatchScene extends Phaser.Scene {
     clearTimeout(this._coachT);
     this._coachT = setTimeout(() => el.classList.remove('on'), 1100);
   }
+  // 🆕 v2.19.0 — BASKETBALL MOVES — keyboard-driven flair
+  crossoverMove(p){
+    if (!p || (p._moveCdUntil || 0) > this.time.now) return;
+    p._moveCdUntil = this.time.now + 900;
+    const dir = p.facing || 1;
+    p.body.setVelocityX(dir * 540);     // burst
+    // small zig animation
+    this.tweens.add({ targets: p, scaleX: p.scaleX * 0.8, duration: 90, yoyo: true });
+    const t = this.add.text(p.x, p.y - 80, '⚡ CROSSOVER', {fontFamily:'monospace', fontSize:14, color:'#4f9eff', stroke:'#000', strokeThickness:4, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+    this.tweens.add({ targets:t, y:t.y-30, alpha:{from:1, to:0}, duration:700, onComplete:()=>t.destroy() });
+    SFX.sneakerSqueak && SFX.sneakerSqueak();
+    // tiny camera nudge
+    this.cameras.main.shake(80, 0.004);
+    // ankle-break: if opp close, briefly stun them
+    const opp = (p === this.p1) ? this.p2 : this.p1;
+    if (opp && Phaser.Math.Distance.Between(p.x, p.y, opp.x, opp.y) < 120){
+      opp.body.setVelocityX(0);
+      opp._slowedUntil = this.time.now + 400;
+      const ank = this.add.text(opp.x, opp.y - 80, '💀 BROKEN!', {fontFamily:'monospace', fontSize:16, color:'#ff3b3b', stroke:'#000', strokeThickness:4, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets:ank, y:ank.y-40, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:900, onComplete:()=>ank.destroy() });
+      SFX.crowdAhh && SFX.crowdAhh();
+    }
+  }
+  spinMove(p){
+    if (!p || (p._moveCdUntil || 0) > this.time.now) return;
+    p._moveCdUntil = this.time.now + 1200;
+    p._spinImmuneUntil = this.time.now + 600;
+    // 360 spin
+    this.tweens.add({ targets: p, angle: { from: 0, to: 360 }, duration: 480, onComplete: () => { p.angle = 0; }});
+    const t = this.add.text(p.x, p.y - 80, '🌀 SPIN MOVE', {fontFamily:'monospace', fontSize:14, color:'#a040ff', stroke:'#000', strokeThickness:4, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+    this.tweens.add({ targets:t, y:t.y-30, alpha:{from:1, to:0}, duration:700, onComplete:()=>t.destroy() });
+    SFX.woosh && SFX.woosh();
+    // brief speed boost
+    p.body.setVelocityX(p.body.velocity.x * 1.4);
+  }
+
   // 🆕 v2.13.17 — EMOTE bubble over player
   popEmote(player, emoji){
     if (!player) return;
