@@ -1420,6 +1420,21 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.7.0';
 const CHANGELOG = [
+  { v:'v2.7.0', notes:[
+      '⚖️ FAIR PLAY — CPU now follows the same physics rules as you. No more cheat-speed (was up to 1.8× player). tier.moveMul now drives smartness, not raw velocity',
+      '🤝 SOLID PLAYERS — players no longer phase through each other. Soft body-check collision wired',
+      '🏐 BALL DOESN\'T PHASE — ball↔player overlap upgraded to bounce-collide when neither is holding',
+      '⛹️ FORCED-SHOOT MECHANIC — if you (or CPU) jump w/ ball after landing, releasing JUMP fires the shot. No more infinite jump-spam holding the rock',
+      '🛡️ BLOCK + STEAL EASIER — block radius 80 → 130, steal radius 90 → 130, block window forgives 50ms more',
+      '📉 NEGATIVE SCORE FLOOR — cursed/inverted modes can\'t drop below -50',
+      '🏆 NBA FINALS / SERIES MODE — best-of-7 series with championship celebration on game-7 win',
+      '🎭 100+ PROCEDURAL CPU PERSONALITIES — each w/ name, jersey, look, archetype (sniper/slasher/lock/clown/prophet/streetballer/showtime/etc)',
+      '🪧 ARENA POSTERS — 8 wall posters added to background art for crowd-of-stars vibe',
+      '🎯 CPU TIER PERSISTENT BADGE — top-left HUD shows current CPU tier ALL GAME, not just splash',
+      '📐 DEPTH LAYER CONSTANTS — z-index unified across renders. No more "thing in front of HUD" bugs',
+      '🎚 CHARGE BAR ALWAYS-ON polish — meter shows for the whole carry, not just while charging',
+      '🩹 GUI/UI overlap audit — splash/HUD/version-badge layered cleanly',
+  ]},
   { v:'v2.6.4', notes:['🎚 MASTER VOLUME slider in settings — drag to adjust all sounds 0–100%','🔇 MUTE / UNMUTE button next to slider (preserves last volume on unmute)','🔊 SFX module rebuilt around a single master gain node — instant volume changes apply to every voice'] },
   { v:'v2.6.3', notes:['🎲 SURPRISE ME button on splash — random looks + random mode + max chaos in one click','🏐 OUT-OF-BOUNDS BEHIND GOAL — slow camera pan, zoom-in, banner, ball respawn','☄️ NO SKY LIMIT — ball can fly 4× higher; camera tracks + altitude readout + slow zoom-out shows the arc','📲 top-right version badge + auto-show "what\'s new" first time per version'] },
   { v:'v2.6.1', notes:['🤖 AUTO-DEPLOY pipeline LIVE — every code change ships to GH Pages in seconds','dashboard-style live progress while building'] },
