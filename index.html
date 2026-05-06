@@ -5201,8 +5201,12 @@ function renderShopScreen(){
     const rows = items.map(item => {
       const isOwned = owned.includes(item.id);
       const isEquipped = equipped === item.id;
+      // 🆕 v2.13.3 — render a CANVAS preview for ball skins; emoji for everything else
+      const visual = (cat === 'BALL')
+        ? `<canvas data-ballpreview="${item.id}" width="48" height="48" style="border-radius:50%"></canvas>`
+        : `<div style="font-size:32px;width:48px;height:48px;display:flex;align-items:center;justify-content:center">${item.icon}</div>`;
       return `<div data-shop="${item.id}" class="shopcard" style="background:${isEquipped?'#4cf07a22':isOwned?'#0008':'#0006'};border:2px solid ${isEquipped?'#4cf07a':isOwned?'#ffd76e88':'#ffd76e44'};border-radius:8px;padding:8px 10px;margin:4px 0;cursor:pointer;display:flex;align-items:center;gap:10px">
-        <div style="font-size:32px">${item.icon}</div>
+        ${visual}
         <div style="flex:1">
           <div style="color:#fff;font-weight:900;font-size:13px">${isEquipped?'✅ ':''}${isOwned&&!isEquipped?'🔓 ':''}${item.name}</div>
           <div style="color:#aaa;font-size:10px">${item.desc}</div>
@@ -5217,8 +5221,21 @@ function renderShopScreen(){
     return `<div style="margin-top:12px"><div style="color:var(--gold);font-size:11px;letter-spacing:3px;font-weight:900;margin-bottom:4px">${cat === 'BALL'?'🏀':cat==='COURT'?'🏟':cat==='TRAIL'?'☄️':cat==='CELEB'?'🎉':'🏅'} ${cat}</div>${rows}</div>`;
   }).join('');
   openModal(`🛒 COSMETICS SHOP · 💰 $${cash}`,
-    `<div style="font-size:13px;color:#fff;margin-bottom:8px">Earn cash by scoring buckets ($5/pt). Purchases persist per profile.</div>
-     <div style="max-height:60vh;overflow-y:auto">${sections}</div>`);
+    `<div style="font-size:13px;color:#fff;margin-bottom:6px">Earn cash by scoring buckets ($5/pt). Purchases persist per profile.</div>
+     <div style="font-size:11px;color:#ffd76e;background:#0008;border:1px solid #ffd76e44;border-radius:6px;padding:6px 10px;margin-bottom:10px">💡 Equipped cosmetics apply on the next match start.</div>
+     <div style="max-height:55vh;overflow-y:auto">${sections}</div>`);
+  // 🆕 v2.13.3 — paint each ball preview canvas with its actual skin draw fn
+  document.querySelectorAll('[data-ballpreview]').forEach(cv => {
+    const id = cv.dataset.ballpreview;
+    const ctx = cv.getContext('2d');
+    // route through draw functions WITHOUT calling loadEquipped (which would all show same)
+    if (id === 'ball_beach')           drawBeachBall(ctx, 48, 48, 0);
+    else if (id === 'ball_watermelon') drawWatermelonBall(ctx, 48, 48, 0);
+    else if (id === 'ball_soccer')     drawSoccerBall(ctx, 48, 48, 0);
+    else if (id === 'ball_eight')      drawEightBall(ctx, 48, 48, 0);
+    else if (id === 'ball_globe')      drawGlobeBall(ctx, 48, 48, 0);
+    else                                drawClassicBall(ctx, 48, 48, 0);
+  });
   // bind buy + equip
   document.querySelectorAll('[data-buy]').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
