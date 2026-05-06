@@ -1887,6 +1887,32 @@ const LEAGUES = [
       { name:'GANYMEDE GUARDS',    city:'GANYMEDE',   abbr:'GAN', primary:0xffd76e, secondary:0x4f9eff, mascot:'🛸' },
     ]},
 ];
+// 🆕 v2.8.1 — CUSTOM TEAMS (persisted across sessions, joined into league pool)
+function loadCustomTeams(){
+  try {
+    const raw = localStorage.getItem('wud:customTeams');
+    if (!raw) return [];
+    const teams = JSON.parse(raw);
+    teams.forEach(ct => {
+      const lg = LEAGUES.find(l => l.id === ct.leagueId);
+      if (lg && !lg.teams.find(t => t.name === ct.name)){
+        lg.teams.push({ name:ct.name, city:ct.city||'CUSTOM', abbr:ct.abbr||ct.name.slice(0,3).toUpperCase(),
+                        primary:ct.primary, secondary:ct.secondary, mascot:ct.mascot, _custom:true });
+      }
+    });
+    return teams;
+  } catch(e){ return []; }
+}
+function saveCustomTeam(leagueId, team){
+  const all = (() => { try { return JSON.parse(localStorage.getItem('wud:customTeams')||'[]'); } catch(e){ return []; } })();
+  all.push(Object.assign({ leagueId }, team));
+  try { localStorage.setItem('wud:customTeams', JSON.stringify(all)); } catch(e){}
+  // inject into in-memory league pool
+  const lg = LEAGUES.find(l => l.id === leagueId);
+  if (lg) lg.teams.push(Object.assign({ _custom:true }, team));
+}
+loadCustomTeams();   // run immediately so pickers see them
+
 // flat lookup
 function getLeague(id){ return LEAGUES.find(l => l.id === id) || LEAGUES[0]; }
 function getTeam(leagueId, teamName){ const lg = getLeague(leagueId); return lg.teams.find(t => t.name === teamName) || lg.teams[0]; }
