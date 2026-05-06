@@ -89,7 +89,11 @@
   body.ui-mobile .row{gap:6px;flex-wrap:wrap}
   body.ui-mobile .row .btn{flex:1 1 calc(50% - 6px);min-width:0;font-size:11px;padding:10px 8px;letter-spacing:0.5px}
   body.ui-mobile .ccgrid{grid-template-columns:1fr;gap:10px}
-  body.ui-mobile .ccslot{max-height:none;overflow:visible}
+  /* 🆕 v2.16.8 — mobile char select: each slot caps at ~50vh so both fit in scroll, preview stays sticky */
+  body.ui-mobile .ccslot{max-height:55vh;overflow-y:auto}
+  body.ui-mobile .preview{width:100px;height:130px;top:30px}
+  body.ui-mobile .ccslot h3{font-size:12px}
+  body.ui-mobile .stickyActions{bottom:0}
   /* Touch controls ONLY during a match (when #hud is visible) — never on splash */
   body.ui-mobile #hud{display:flex !important}
   body.ui-mobile #touch{display:none}
