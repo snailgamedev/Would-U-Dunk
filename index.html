@@ -1924,6 +1924,15 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.19.0';
 const CHANGELOG = [
+  { v:'v2.19.0', notes:[
+      '🎯 SHOOTING ZONES REVAMP — colored gradient bands on the floor (green=2pt · blue=3pt · orange=4pt · gold=5pt) · bolder thicker arcs · huge 24px labels with 🚀 + 🌍 emoji',
+      '🛡 BLOCK SYSTEM RANDOMIZED — distance-graded probability (0-60px = ~95%, 140+px = ~25%, slight Y-advantage bonus). No more binary blocks · "💨 missed" toast on failure',
+      '🏀 BASKETBALL MOVES — ⚡ Q = CROSSOVER (540 burst dash · ankle-breaks any opp within 120px → 💀 BROKEN!) · 🌀 R = SPIN (360 spin · 600ms steal-immune · 1.4× speed boost)',
+      '🔊 SOUND REVAMP — pitch variance on bounce/rim · richer 4-layer swoosh on every made shot · NEW clank() for missed dunks',
+      '🪲 player floor safety verified intact — no more under-zone phasing',
+      '🎲 Crossover and Spin moves cooldown 900ms / 1200ms · use them sparingly',
+      '✝️ "Be strong and very courageous · Joshua 1:7"',
+  ]},
   { v:'v2.18.0', notes:[
       '🪲 DUNK BUG FIX — apex check was rejecting dunks (ball spawned only 4px above rim, check needed 10+). Now spawns 60px above + sets explicit apexY so EVERY clean dunk counts',
       '🏀 DUNK MISS w/ RICOCHET — 8% miss chance (more in chaos modes). Ball clanks off the rim with horizontal kick + downward bounce. CLANK! popup + crowdOoh',
