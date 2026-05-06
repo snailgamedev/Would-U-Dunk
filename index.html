@@ -4025,7 +4025,22 @@ class MatchScene extends Phaser.Scene {
       trackDailyObjective('buckets', 1);
       const shotDist = ball.getData('shotDist') || 0;
       if (shotDist > 600) trackDailyObjective('long', 1);
-      if (State.bucketStreak[0] === 5) trackDailyObjective('streak', 5);
+      // 🆕 v2.16.6 — set streak progress to MAX-so-far so partial streaks count too (was only firing at exactly 5)
+      const bs = State.bucketStreak[0] || 0;
+      if (bs > 0){
+        const o = loadDailyObjectives();
+        o.objectives.forEach(obj => {
+          if (obj.stat === 'streak' && !obj.claimed && bs > (obj.progress || 0)){
+            obj.progress = Math.min(obj.goal, bs);
+            if (obj.progress >= obj.goal && !obj.claimed){
+              obj.claimed = true;
+              if (typeof awardCash === 'function') awardCash(obj.reward);
+              showToast && showToast(`🎯 OBJECTIVE +$${obj.reward} · ${obj.label}`, 'level');
+            }
+          }
+        });
+        saveDailyObjectives(o);
+      }
     }
     if (scorerIdx === 1 && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers && Math.random() < 0.4){
       const npc = State.rolls.cpuTiers[0]?._npc;
