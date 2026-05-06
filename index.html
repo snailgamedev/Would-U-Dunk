@@ -2699,7 +2699,7 @@ class MatchScene extends Phaser.Scene {
 
     // REALISTIC HARDWOOD floor — lighter, varnished, with finer planks + reflection sheen
     const floorH = COURT_H - FLOOR_Y;
-    this.floor = this.add.rectangle(COURT_W/2, FLOOR_Y + floorH/2, COURT_W, floorH, 0xc8924a).setDepth(-6);
+    this.floor = this.add.rectangle(COURT_W/2, FLOOR_Y + floorH/2, COURT_W, floorH, this._themeFloor || 0xc8924a).setDepth(-6);
     const planks = this.add.graphics().setDepth(-5);
     // Plank seams
     for (let x=0; x<COURT_W; x+=64){
