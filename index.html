@@ -6046,18 +6046,14 @@ function renderChronicleScreen(){
     <div style="max-height:65vh;overflow-y:auto;padding-right:6px">
       <div style="text-align:center;margin-bottom:14px">
         <div style="font-size:16px;color:#ffd76e;letter-spacing:4px;font-weight:900">📚 THE WUD CHRONICLE</div>
-        <div style="font-size:10px;color:#aaa;margin-top:2px;letter-spacing:2px">All glory above · ${VERSION} · 79 versions logged</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;letter-spacing:2px">All glory above · ${VERSION} · ${30 + CHANGELOG.length} versions logged · LIVE</div>
       </div>
       ${section('📐 SEMVER LEGEND', semver)}
       ${section('🏗 ERA 1 · v0.x — THE PROTOTYPE', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Build the toy. Don\'t promise stability. Every release adds something or rewires a feel.</div>' + era1)}
       ${section('🏗 ERA 2 · v1.x — SYSTEMS ERA', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">v1 is "this is a real game." Each minor bump adds a system or feel polish. Stadium / visual layer comes online.</div>' + era2)}
       ${section('🏗 ERA 3 · v2.0 → v2.6 — POLISH ERA', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">"Next-gen feel." Crowd, share, profile, audio infrastructure, and the auto-deploy pipeline that powers everything below.</div>' + era3)}
-      ${section('🚀 ERA 4 · v2.7.x — FOUNDATIONS (this session begins)', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Fix everything broken (collisions, glitches, fair-play), THEN add the personality layer. To Him be the glory.</div>' + era4_27)}
-      ${section('🚀 ERA 4 · v2.8.x → v2.9.0 — FRANCHISE + TOURNAMENT', era4_28_29)}
-      ${section('🚀 ERA 4 · v2.10.x — 1,050 ARCHETYPES + ONLINE FIX', era4_10)}
-      ${section('🚀 ERA 4 · v2.11.x → v2.12.0 — DEPTH + ECONOMY', era4_11_12)}
-      ${section('🚀 ERA 4 · v2.13.x — FEATURE SPRINT (30 patches!)', '<div style="font-size:11px;color:#aaa;margin-bottom:6px;font-style:italic">Each was 1 idea/iter on a 60-second autopilot loop. None big enough for a minor bump (no new architecture); all extended existing systems. Soli Deo Gloria.</div>' + era4_13)}
-      ${section('🚀 ERA 4 · v2.14.0 → v2.16.1 — POLISH + IDENTITY + MOBILE', era4_14_16)}
+      <div style="margin:14px 0 8px;text-align:center;color:#4cf07a;letter-spacing:3px;font-size:10px;font-weight:900">— BELOW: AUTO-BUILT FROM CHANGELOG · UPDATES WITH EVERY VERSION —</div>
+      ${era4Sections}
       ${section('📊 SESSION TOTALS', totals)}
       ${section('🧠 META THOUGHT PROCESS', meta)}
     </div>`;
