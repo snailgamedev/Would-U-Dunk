@@ -3450,24 +3450,49 @@ class MatchScene extends Phaser.Scene {
     g.strokeCircle(COURT_W/2, FLOOR_Y, 70);
     g.lineStyle(2, 0xff3b3b, 0.7);
     g.strokeCircle(COURT_W/2, FLOOR_Y, 30);
-    // SCORE-ZONE ARCS — visible bands aligned with point values
-    // 3PT arc (600px) — blue
-    g.lineStyle(3, 0x4f9eff, 0.7);
+    // 🆕 v2.19.0 — REVAMPED SCORE ZONES — solid gradient bands on floor + bold thick arcs + huge labels
+    // Build subtle colored zone bands as filled rectangles on the floor surface
+    const zoneG = this.add.graphics().setDepth(-4);
+    const fillAlpha = 0.10;
+    // 5PT FAR — gold tint band
+    zoneG.fillStyle(0xffd76e, fillAlpha);
+    zoneG.fillRect(40, FLOOR_Y, COURT_W - 80, 18);
+    // 4PT band — orange tint
+    zoneG.fillStyle(0xff8a3c, fillAlpha);
+    zoneG.fillRect(HOOP_LEFT_X + 600, FLOOR_Y, (COURT_W/2 - 600) - HOOP_LEFT_X, 18);
+    zoneG.fillRect(COURT_W/2, FLOOR_Y, (HOOP_RIGHT_X - 600) - COURT_W/2, 18);
+    // 3PT band — blue tint
+    zoneG.fillStyle(0x4f9eff, fillAlpha);
+    zoneG.fillRect(HOOP_LEFT_X + 230, FLOOR_Y, 370, 18);
+    zoneG.fillRect(HOOP_RIGHT_X - 600, FLOOR_Y, 370, 18);
+    // 2PT (paint) band — green tint
+    zoneG.fillStyle(0x4cf07a, fillAlpha);
+    zoneG.fillRect(HOOP_LEFT_X - 30, FLOOR_Y, 260, 18);
+    zoneG.fillRect(HOOP_RIGHT_X - 230, FLOOR_Y, 260, 18);
+    // 3PT arc (600px) — bolder blue
+    g.lineStyle(5, 0x4f9eff, 0.85);
     g.beginPath(); g.arc(HOOP_LEFT_X,  FLOOR_Y, 600, -Math.PI/2.5, Math.PI/2.5, false); g.strokePath();
     g.beginPath(); g.arc(HOOP_RIGHT_X, FLOOR_Y, 600, Math.PI - Math.PI/2.5, Math.PI + Math.PI/2.5, true); g.strokePath();
-    // 4PT arc (1100px) — orange
-    g.lineStyle(2, 0xff8a3c, 0.6);
+    // 4PT arc (1100px) — bolder orange
+    g.lineStyle(4, 0xff8a3c, 0.8);
     g.beginPath(); g.arc(HOOP_LEFT_X,  FLOOR_Y, 1100, -Math.PI/2.2, Math.PI/2.2, false); g.strokePath();
     g.beginPath(); g.arc(HOOP_RIGHT_X, FLOOR_Y, 1100, Math.PI - Math.PI/2.2, Math.PI + Math.PI/2.2, true); g.strokePath();
-    // 5PT arc (1500px) — gold
-    g.lineStyle(2, 0xffd76e, 0.5);
+    // 5PT arc (1500px) — bolder gold
+    g.lineStyle(4, 0xffd76e, 0.8);
     g.beginPath(); g.arc(HOOP_LEFT_X,  FLOOR_Y, 1500, -Math.PI/2.1, Math.PI/2.1, false); g.strokePath();
     g.beginPath(); g.arc(HOOP_RIGHT_X, FLOOR_Y, 1500, Math.PI - Math.PI/2.1, Math.PI + Math.PI/2.1, true); g.strokePath();
-    // Zone labels at 3 / 4 / 5 pt arc tops
-    [[HOOP_LEFT_X+600, '3', 0x4f9eff], [HOOP_LEFT_X+1100, '4', 0xff8a3c], [HOOP_LEFT_X+1500, '5', 0xffd76e],
-     [HOOP_RIGHT_X-600, '3', 0x4f9eff], [HOOP_RIGHT_X-1100, '4', 0xff8a3c], [HOOP_RIGHT_X-1500, '5', 0xffd76e]
-    ].forEach(([x, n, col]) => {
-      this.add.text(x, FLOOR_Y - 8, n + 'PT', {fontFamily:'monospace', fontSize:14, color:'#'+col.toString(16).padStart(6,'0'), fontStyle:'bold', stroke:'#000', strokeThickness:3}).setOrigin(0.5).setDepth(-3);
+    // Big chunky zone labels
+    [
+      [HOOP_LEFT_X + 100, '2 PTS', 0x4cf07a, 18],
+      [HOOP_LEFT_X + 600, '3 PTS', 0x4f9eff, 22],
+      [HOOP_LEFT_X + 1100, '4 PTS · 🚀', 0xff8a3c, 22],
+      [HOOP_LEFT_X + 1500, '5 PTS · 🌍', 0xffd76e, 24],
+      [HOOP_RIGHT_X - 100, '2 PTS', 0x4cf07a, 18],
+      [HOOP_RIGHT_X - 600, '3 PTS', 0x4f9eff, 22],
+      [HOOP_RIGHT_X - 1100, '🚀 · 4 PTS', 0xff8a3c, 22],
+      [HOOP_RIGHT_X - 1500, '🌍 · 5 PTS', 0xffd76e, 24],
+    ].forEach(([x, label, col, size]) => {
+      this.add.text(x, FLOOR_Y - 16, label, {fontFamily:'monospace', fontSize:size, color:'#'+col.toString(16).padStart(6,'0'), fontStyle:'bold', stroke:'#000', strokeThickness:4}).setOrigin(0.5).setDepth(-3);
     });
     // OG paint 3pt arc (still draw a shorter line for paint visual)
     g.lineStyle(4, 0xffffff, 0.85);
