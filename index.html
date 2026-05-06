@@ -2923,6 +2923,32 @@ class MatchScene extends Phaser.Scene {
   }
 
   update(time, delta){
+    // 🆕 v2.8.0 — CONTINUOUS BALL SAFETY CHECK. Catches tunneling glitches (steal pushes ball through floor,
+    // dunk warps ball below collision body, super-charged shots overshooting bounds).
+    if (this.ball && !this.ball.getData('held')){
+      // floor safety
+      if (this.ball.y > FLOOR_Y + 5){
+        this.ball.y = FLOOR_Y - 30;
+        if (this.ball.body) this.ball.body.setVelocityY(Math.min(0, this.ball.body.velocity.y) - 60);
+      }
+      // ceiling safety (only when sky-OOB hasn't already triggered)
+      if (this.SKY_CEILING != null && this.ball.y < this.SKY_CEILING - 200){
+        this.ball.y = this.SKY_CEILING - 100;
+      }
+      // X bounds safety — if ball gets stuck way past world bounds
+      if (this.OOB_PAD != null){
+        if (this.ball.x < -this.OOB_PAD - 100) this.ball.x = -this.OOB_PAD;
+        if (this.ball.x > COURT_W + this.OOB_PAD + 100) this.ball.x = COURT_W + this.OOB_PAD;
+      }
+    }
+    // 🆕 v2.8.0 — PLAYER FLOOR SAFETY too — fixes rare cases where high-velocity collision pushes player through ground
+    [this.p1, this.p2].forEach(pl => {
+      if (!pl || !pl.body) return;
+      if (pl.y > FLOOR_Y + 20){
+        pl.y = FLOOR_Y - 60;
+        pl.body.setVelocityY(0);
+      }
+    });
     // Manual camera follow runs every frame regardless of canMove
     if (this.ball){
       const cam = this.cameras.main;
