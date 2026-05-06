@@ -3991,7 +3991,15 @@ class MatchScene extends Phaser.Scene {
       if (speed > 120){
         if (Settings.cometTrail && (!this._lastTrail || time - this._lastTrail > 30)){
           this._lastTrail = time;
+          // 🆕 v2.13.2 — TRAIL COSMETIC: tinted ghost balls based on equipped trail
+          const equippedTrail = (typeof loadEquipped === 'function') ? loadEquipped('TRAIL') : '';
           const g = this.add.image(this.ball.x, this.ball.y, 'ball').setAlpha(0.4).setScale(this.ball.scaleX*0.85).setDepth(2);
+          if (equippedTrail === 'trail_fire') g.setTint(0xff5a1a);
+          else if (equippedTrail === 'trail_ice') g.setTint(0x66c2ff);
+          else if (equippedTrail === 'trail_rainbow'){
+            const rainbow = [0xff3b3b, 0xff8a3c, 0xffd76e, 0x4cf07a, 0x4f9eff, 0xa040ff];
+            g.setTint(rainbow[(time / 60 | 0) % rainbow.length]);
+          }
           this.tweens.add({ targets:g, alpha:0, scaleX: g.scaleX*0.5, scaleY: g.scaleY*0.5, duration:260, onComplete:()=>g.destroy() });
         }
         this.ball.rotation += (vx * 0.00012) * delta;
