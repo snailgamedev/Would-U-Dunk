@@ -3766,6 +3766,27 @@ class MatchScene extends Phaser.Scene {
     clearTimeout(this._coachT);
     this._coachT = setTimeout(() => el.classList.remove('on'), 1100);
   }
+  // 🆕 v2.13.15 — COACH AI TIPS — context-aware mid-game advice
+  coachAdvice(){
+    if (!Settings.coachLines) return;
+    const myStats = State.matchStats?.[0] || {};
+    const fgPct = myStats.attempts ? myStats.buckets / myStats.attempts : 0.5;
+    const myStreak = State.bucketStreak[0] || 0;
+    const oppStreak = State.bucketStreak[1] || 0;
+    const tips = [];
+    if (myStreak >= 4) tips.push('🗣 STAY HOT — keep feeding the rim');
+    if (oppStreak >= 3) tips.push('🗣 LOCK UP — D up before they cook');
+    if (fgPct < 0.30 && myStats.attempts >= 5) tips.push('🗣 SLOW DOWN — pick your spots');
+    if (fgPct > 0.65 && myStats.attempts >= 5) tips.push('🗣 SUSTAIN IT — keep the rhythm');
+    if (State.scores[0] === 0 && State.scores[1] >= 4) tips.push('🗣 FIRST BUCKET — break the seal');
+    if (State.scores[1] - State.scores[0] >= 5) tips.push('🗣 COMEBACK TIME — every possession matters');
+    if ((myStats.steals||0) === 0) tips.push('🗣 PRESS HARDER — try a steal lunge (E)');
+    if ((myStats.blocks||0) === 0 && State.bucketStreak[1] >= 2) tips.push('🗣 GO UP — block their next shot');
+    const remaining = (this.roundSecs || 120) - (this.elapsed || 0);
+    if (remaining < 30 && remaining > 5) tips.push('🗣 CLUTCH TIME — eyes on the rim');
+    if (!tips.length) tips.push('🗣 STAY DISCIPLINED');
+    this.popCoach(tips[(Math.random()*tips.length)|0]);
+  }
 
   popCrowdCheer(nearX){
     // Random fan emits a cheer bubble from a crowd row position
