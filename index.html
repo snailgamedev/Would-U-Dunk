@@ -2725,7 +2725,7 @@ class MatchScene extends Phaser.Scene {
       const y = 110 + r*22;
       const stagger = (r%2)*8;
       for (let i=0; i<COURT_W/crowdSpacing; i++){
-        const x = i*16 + stagger + (Math.random()*4|0);
+        const x = i*crowdSpacing + stagger + (Math.random()*4|0);
         const hue = Math.random();
         const top = Phaser.Display.Color.HSVToRGB(hue, 0.55, 0.7).color;
         // shirt
