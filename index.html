@@ -4422,7 +4422,9 @@ class MatchScene extends Phaser.Scene {
     const anyJustDown = (k) => arr(k).some(x => x && Phaser.Input.Keyboard.JustDown(x));
     const anyJustUp   = (k) => arr(k).some(x => x && Phaser.Input.Keyboard.JustUp(x));
 
-    const moveAccel = 1500 * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1);
+    let moveAccel = 1500 * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1);
+    // 🆕 v2.13.8 — ICE power-up: opponent slow halves your accel
+    if (p._slowedUntil && this.time.now < p._slowedUntil) moveAccel *= 0.5;
     let leftKey = anyDown(kL), rightKey = anyDown(kR);
     if (State.cfg.swapLR){ const t = leftKey; leftKey = rightKey; rightKey = t; }
     // touch override for P1 only
