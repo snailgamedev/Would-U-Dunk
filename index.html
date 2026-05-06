@@ -2503,6 +2503,90 @@ const CELEBRATIONS   = ['point','dunk','prayer','griddy','stand','flex','dab','b
 // Random basketball-themed nickname pool
 const NAME_PREFIXES = ['HOLY','SAINT','PROPHET','KING','LORD','BIG','LIL','DJ','MR','THE','MAJOR','CAPT','REV','SIR','MISS','MISTA','OL','YOUNG','UNCLE','COACH','CHIEF','SARGE','GENERAL','DR','PROFESSOR','EL','MAESTRO','SENPAI','CAPN','MASTER'];
 const NAME_CORES    = ['BUCKETS','SWISH','CROSSOVER','DAGGER','SPLASH','GLORY','BLESSED','CHOSEN','THUNDER','HEAT','LIGHT','FAVOR','GRACE','MERCY','VICTORY','TRIUMPH','COURAGE','FAITH','TRUST','HOPE','PEACE','JOY','DAVID','JOSHUA','PETER','PAUL','ELIJAH','MOSES','SAMSON','LIGHTNING','WHISTLE','SAUCE','BUTTER','CHEESE','BISCUIT','GRITS','FIRE','ICE','STORM','TEMPEST','BLAZE','VAULT','FORTRESS','CITADEL','TEMPLE','RAIN','RIVER','MOUNTAIN','VALLEY','TIDE','VAPOR','GHOST','SHADOW','PHANTOM','MIRAGE','CYCLONE','HURRICANE','BLITZ','PIVOT','HAMMER','HAMMERTIME'];
+
+// 🆕 v2.17.0 — MASSIVE NAME LAYER. Pulls from biblical · NBA · NFL · MLB · NHL · soccer · tennis · golf · combat · olympic · common
+//             Combined w/ Roman numerals (1-char + 2-char) + 1-99 jersey numbers + anti-repeat tracking.
+const NAME_POOLS = {
+  biblical: ['DAVID','GOLIATH','SOLOMON','MOSES','ABRAHAM','ISAAC','JACOB','JOSEPH','DANIEL','ELIJAH','EZEKIEL','ISAIAH','JEREMIAH','SAMUEL','NATHAN','JOSHUA','CALEB','GIDEON','SAMSON','EZRA','NEHEMIAH','JOB','JONAH','AMOS','HOSEA','MICAH','HABAKKUK','ZECHARIAH','MALACHI','AARON','MIRIAM','MARY','MARTHA','RUTH','ESTHER','RACHEL','REBECCA','SARAH','HANNAH','LEAH','DEBORAH','LAZARUS','PETER','PAUL','ANDREW','BARTHOLOMEW','JAMES','JOHN','THADDEUS','MATTHIAS','STEPHEN','PHILIP','THOMAS','SIMON','LEVI','ZACCHAEUS','CORNELIUS','BARNABAS','SILAS','TIMOTHY','TITUS','PHILEMON','MARK','LUKE','JUDE','MELCHIZEDEK','BENAIAH','URIAH','ABNER','JOAB','BOAZ','JABEZ','ELIPHAZ','ELIHU','ELDAD','MEDAD','HEZEKIAH','JOSIAH','JEHU','OBADIAH','HABAKKUK','HAGGAI','ZEPHANIAH'],
+  nba_legends: ['JORDAN','LEBRON','KOBE','MAGIC','BIRD','RUSSELL','WILT','KAREEM','HAKEEM','SHAQ','DUNCAN','NASH','IVERSON','GARNETT','PIERCE','PIPPEN','STOCKTON','OLAJUWON','DREXLER','BARKLEY','EWING','CURRY','DURANT','WESTBROOK','HARDEN','GIANNIS','EMBIID','DONCIC','TATUM','BOOKER','LILLARD','LEONARD','JOKIC','MITCHELL','MURRAY','EDWARDS','SABONIS','WAGNER','HOLIDAY','BUTLER','ADEBAYO','HERRO','BANCHERO','POWELL','HORFORD','GOBERT','TOWNS','BRUNSON','HALIBURTON','MOBLEY'],
+  wnba: ['DIANA','SUE','LISA','CHERYL','SHERYL','TAMIKA','LAUREN','SYLVIA','MAYA','BRITTNEY','BREANNA','CANDACE','ELENA','SKYLAR','CYNTHIA','CAPPIE','BECKY','TINA','ALYSSA','SABRINA','ARIKE','ALIYAH','RHYNE','NAPHEESA','KELSEY','JEWELL','JONQUEL','JACKIE','TIFFANY','CAITLIN','ANGEL','CAMERON'],
+  football: ['BRADY','MAHOMES','MANNING','MONTANA','MARINO','ELWAY','FAVRE','RODGERS','RICE','SANDERS','EMMITT','PAYTON','MEGATRON','OWENS','MOSS','EDELMAN','GRONK','KELCE','HILL','ADAMS','THOMAS','MCCAFFREY','BARKLEY','HENRY','TUNGOVAILOA','WATSON','BURROW','HERBERT','HURTS','LAMAR','ALLEN','PRESCOTT','LAWRENCE','DIGGS','JEFFERSON','CHASE','LAMB','BIJAN','HENDON','PARSONS','GARRETT','BOSA','DONALD','WATT','MILLER','WHITE','CHUBB','SAQUON'],
+  baseball: ['RUTH','MANTLE','DIMAGGIO','MAYS','AARON','BONDS','TROUT','PUJOLS','OHTANI','JUDGE','ACUNA','SOTO','VLAD','TATIS','LINDOR','DEVERS','BETTS','FREEMAN','GOLDSCHMIDT','VERLANDER','SALE','KERSHAW','SCHERZER','COLE','WHEELER','DEGROM','BUEHLER','BURNES','GLASNOW','SKENES','HARPER','MACHADO','SEAGER','ALONSO','RAMIREZ','RILEY','CORREA','SEMIEN','RUTSCHMAN','WITT','ROBERT','TURNER','ALTUVE','ARENADO','REALMUTO','OHTANI','WAINWRIGHT','GREINKE'],
+  hockey: ['GRETZKY','CROSBY','MCDAVID','OVECHKIN','LEMIEUX','HOWE','ORR','ROY','BRODEUR','HASEK','STAMKOS','TOEWS','KANE','MATTHEWS','PASTRNAK','MARNER','HART','LINDROS','BURE','ESPOSITO','JAGR','SELANNE','MODANO','MACKINNON','MAKAR','RANTANEN','BARZAL','EICHEL','HUGHES','TKACHUK','PANARIN','KUCHEROV','VASILEVSKIY','HELLEBUYCK'],
+  soccer: ['MESSI','RONALDO','PELE','MARADONA','ZIDANE','RONALDINHO','BECKHAM','INIESTA','XAVI','MODRIC','MBAPPE','HAALAND','SALAH','MANE','LEWANDOWSKI','BENZEMA','SUAREZ','CAVANI','AGUERO','DROGBA','HENRY','BERGKAMP','CANTONA','CRUYFF','BEST','EUSEBIO','GARRINCHA','PUSKAS','DISTEFANO','MALDINI','BECKENBAUER','CANNAVARO','BUFFON','CASILLAS','NEUER','COURTOIS','ALLISON','VINICIUS','BELLINGHAM','GAVI','PEDRI','RODRYGO'],
+  tennis: ['FEDERER','NADAL','DJOKOVIC','SAMPRAS','AGASSI','CONNORS','MCENROE','BORG','LAVER','SERENA','VENUS','GRAF','NAVRATILOVA','COURT','EVERT','SHARAPOVA','KERBER','HALEP','OSAKA','SWIATEK','SABALENKA','GAUFF','SINNER','ALCARAZ','TSITSIPAS','MEDVEDEV','ZVEREV','RUUD','KYRGIOS','RUNE','RYBAKINA'],
+  golf: ['TIGER','PHIL','RORY','JACK','ARNIE','VIJAY','ERNIE','SERGIO','BROOKS','BRYSON','JORDAN','COLLIN','SCOTTIE','XANDER','PATRICK','HIDEKI','HOMA','MORIKAWA','SCHEFFLER','RAHM','THOMAS','CANTLAY','JUSTIN','BURNS','MATSUYAMA','HOVLAND'],
+  combat: ['ALI','TYSON','FOREMAN','FRAZIER','HOLYFIELD','LEWIS','MAYWEATHER','PACQUIAO','HOPKINS','DELAHOYA','MARCIANO','LOUIS','DEMPSEY','SUGAR','HAGLER','LEONARD','DURAN','MCGREGOR','KHABIB','JONES','SILVA','ADESANYA','VOLKANOVSKI','PEREIRA','POIRIER','OLIVEIRA','MAKHACHEV','CEJUDO','NUNES','SHEVCHENKO','ZHANG','CYBORG','RHODES','REIGNS','ROCK','AUSTIN','HOGAN'],
+  olympic: ['BOLT','POWELL','PHELPS','LOCHTE','SPITZ','BILES','COMANECI','RETTON','LIUKIN','RAISMAN','DOUGLAS','HAMM','LEE','HOLMES','OWENS','THOMPSONHERAH','FELIX','RUDISHA','KIPCHOGE','FARAH','LEDECKY','DRESSEL','MURPHY','CARLIN','SHIFFRIN','VONN','LIPINSKI','LYSACEK','OHNO','WHITE','CLARK','LAMOUREUX'],
+  common_first: ['JAMES','MICHAEL','JOHN','ROBERT','WILLIAM','RICHARD','CHARLES','JOSEPH','THOMAS','CHRISTOPHER','DANIEL','MATTHEW','ANTHONY','MARK','DONALD','STEVEN','PAUL','ANDREW','JOSHUA','KENNETH','KEVIN','BRIAN','GEORGE','EDWARD','RONALD','TIMOTHY','JASON','JEFFREY','RYAN','JACOB','GARY','NICHOLAS','ERIC','JONATHAN','STEPHEN','LARRY','JUSTIN','SCOTT','BRANDON','FRANK','BENJAMIN','GREGORY','RAYMOND','SAMUEL','PATRICK','ALEXANDER','JACK','DENNIS','JERRY','TYLER','AARON','HENRY','DOUGLAS','PETER','ADAM','WAYNE','NATHAN','HAROLD','BRUCE','ROY'],
+  common_last: ['SMITH','JOHNSON','WILLIAMS','BROWN','JONES','GARCIA','MILLER','DAVIS','RODRIGUEZ','MARTINEZ','HERNANDEZ','LOPEZ','GONZALEZ','WILSON','ANDERSON','THOMAS','TAYLOR','MOORE','JACKSON','MARTIN','LEE','PEREZ','THOMPSON','WHITE','HARRIS','SANCHEZ','CLARK','RAMIREZ','LEWIS','ROBINSON','WALKER','YOUNG','ALLEN','KING','WRIGHT','SCOTT','TORRES','NGUYEN','HILL','FLORES','GREEN','ADAMS','NELSON','BAKER','HALL','RIVERA','CAMPBELL','MITCHELL','CARTER','ROBERTS','GOMEZ','PHILLIPS','EVANS','TURNER','DIAZ','PARKER','CRUZ','EDWARDS','COLLINS','REYES'],
+};
+// 1-char and 2-char Roman numerals (per user spec)
+const ROMAN_NUMERALS = ['I','V','X','L','C','D','M','II','IV','VI','IX','XI','XV','XX','XL','LX','XC','CD','CM'];
+// All jersey numbers 1..99 (per user spec)
+const ALL_JERSEY_NUMBERS = Array.from({length:99}, (_, i) => i + 1);
+
+// Anti-repeat: track recently-used names so a player doesn't see the same nickname twice in a row.
+const _recentNamesUsed = [];
+const RECENT_NAME_WINDOW = 80;
+function _trackName(n){
+  _recentNamesUsed.push(n);
+  if (_recentNamesUsed.length > RECENT_NAME_WINDOW) _recentNamesUsed.shift();
+}
+function _wasRecent(n){ return _recentNamesUsed.includes(n); }
+
+function pickPool(){
+  const keys = Object.keys(NAME_POOLS);
+  return NAME_POOLS[keys[(Math.random()*keys.length)|0]];
+}
+
+function generateMassiveName(){
+  // 6 generation modes, weighted for variety
+  const r = Math.random();
+  let candidate = '';
+  // 30% — pure single-name from a sport pool
+  if (r < 0.30){
+    candidate = pickPool()[(Math.random()*99)|0] || pickPool()[0];
+  }
+  // 22% — first + last from common
+  else if (r < 0.52){
+    const first = NAME_POOLS.common_first[(Math.random()*NAME_POOLS.common_first.length)|0];
+    const last  = NAME_POOLS.common_last[(Math.random()*NAME_POOLS.common_last.length)|0];
+    candidate = `${first} ${last}`;
+  }
+  // 15% — biblical first + sport last
+  else if (r < 0.67){
+    const first = NAME_POOLS.biblical[(Math.random()*NAME_POOLS.biblical.length)|0];
+    const last  = NAME_POOLS.common_last[(Math.random()*NAME_POOLS.common_last.length)|0];
+    candidate = `${first} ${last}`;
+  }
+  // 13% — sport legend + roman numeral suffix (e.g. "JORDAN III")
+  else if (r < 0.80){
+    const pool = pickPool();
+    const name = pool[(Math.random()*pool.length)|0];
+    const roman = ROMAN_NUMERALS[(Math.random()*ROMAN_NUMERALS.length)|0];
+    candidate = `${name} ${roman}`;
+  }
+  // 12% — kingdom prefix + biblical core
+  else if (r < 0.92){
+    const prefix = NAME_PREFIXES[(Math.random()*NAME_PREFIXES.length)|0];
+    const core   = NAME_POOLS.biblical[(Math.random()*NAME_POOLS.biblical.length)|0];
+    candidate = `${prefix} ${core}`;
+  }
+  // 8% — hybrid sport-prefix + nickname
+  else {
+    const pool = pickPool();
+    const first = pool[(Math.random()*pool.length)|0];
+    const core  = NAME_CORES[(Math.random()*NAME_CORES.length)|0];
+    candidate = `${first} "${core}"`;
+  }
+  // anti-repeat — try up to 5 rerolls if recent
+  let tries = 0;
+  while (_wasRecent(candidate) && tries < 5){ candidate = generateMassiveName.__inner(); tries++; }
+  _trackName(candidate);
+  return candidate;
+}
+generateMassiveName.__inner = generateMassiveName;
 const NAME_SUFFIXES = ['','24','7','3','12','99','XL','JR','III','THE GREAT','JESUS','GOD','II','SR','IV','BABY','TWO','UNO','THE GOAT','PRIME','BOOM','QB1','SR.','TINY','BIG','THA','OG'];
 
 /* ================================================================================================
