@@ -1415,6 +1415,37 @@ function rollRandomMode(){
   return Object.assign({ id:'random', name:'🎲 RANDOM RULES', desc:'rolled this match', extraCfg:{} }, pick);
 }
 
+/* ------------------- v2.12.0 ECONOMY + OVR + TRASH TALK ------------------- */
+function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
+function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
+function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
+function spendCash(n){ const cur = loadCash(); if (cur < n) return false; saveCash(cur - n); return true; }
+// OVR = computed 1-99 rating
+function computeOvrP1(){
+  const lv = (Career.level || 1);
+  const winRate = Career.games ? (Career.wins / Career.games) : 0.5;
+  const ovr = Math.min(99, Math.round(40 + lv * 0.4 + winRate * 30));
+  return ovr;
+}
+function computeOvrFromTier(tierObj){
+  if (!tierObj) return 60;
+  const idx = CPU_TIERS.findIndex(t => t.id === (tierObj.id || '').replace(/^[★😈] /,''));
+  return Math.min(99, Math.round(40 + idx * 2 + (tierObj.accuracy || 0.5) * 20));
+}
+const TRASH_TALK = [
+  'TOO EASY 😎','GET IN THE PAINT KID','BUCKETS!','DAY OFF','NIGHT-NIGHT 🌙','CASH 💸','MAILED IT IN',
+  'CALL ME','POSTERIZED','CAN\'T GUARD ME','MARK YA CALENDAR','WIDE OPEN','BARTER FOR IT','SPLASH 💧',
+  'TRASH 🗑','SIT DOWN','FORGOT YOU WERE HERE','THIS A LAYUP LINE','ALL DAY','HOLY GHOST 🙏','PRAISE!',
+];
+const HOLY_TRASH_TALK = ['ALL GLORY TO HIM','BLESSED!','GIVE GOD THE PRAISE','ANOINTED','CHOSEN','FAITHFUL'];
+function pickTrashTalk(npc){
+  // SAINT/HOLY archetypes use scripture-flavored lines
+  if (npc && /holy|saint|angelic|reborn|monk|prophet/i.test(npc.archetypeId || '')){
+    return HOLY_TRASH_TALK[(Math.random()*HOLY_TRASH_TALK.length)|0];
+  }
+  return TRASH_TALK[(Math.random()*TRASH_TALK.length)|0];
+}
+
 /* ------------------- v2.7.1 GLOBALS — depth layers, score floor, base speed ------------------- */
 // One source of truth so layering is consistent across modes
 const DEPTH = {
