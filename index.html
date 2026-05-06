@@ -4280,7 +4280,8 @@ class MatchScene extends Phaser.Scene {
       const ballAlt = Math.max(0, FLOOR_Y - this.ball.y);
       const zoomTgt = ballAlt > 600 ? Phaser.Math.Clamp(1 - (ballAlt - 600) / 4000, 0.55, 1) : 1;
       this._camZoomCurrent = (this._camZoomCurrent || 1) + (zoomTgt - (this._camZoomCurrent || 1)) * 0.04;
-      cam.setZoom(this._camZoomCurrent);
+      // 🆕 v2.13.25 — apply user zoom multiplier
+      cam.setZoom(this._camZoomCurrent * (this._userZoom || 1));
       // 🆕 ALTITUDE READOUT when ball above viewport
       if (this.ball.y < cam.scrollY + 30){
         if (!this._altText){
