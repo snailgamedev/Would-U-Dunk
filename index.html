@@ -6575,6 +6575,32 @@ function showEndCard(){
           P1 MVP RATING <span style="color:#fff;font-size:24px;font-weight:900">${mvpRating}</span> /99
         </div>
       </div>`;
+    // 🆕 v2.13.5 — SHOT HEATMAP (mini-court SVG with dots)
+    const heatShots = (State.matchStats?.[0]?.shots || []);
+    if (heatShots.length){
+      const COURT_W_HM = 240, COURT_H_HM = 70;
+      const dots = heatShots.map(s => {
+        const sx = (s.x / 2400) * COURT_W_HM;
+        const sy = (s.y / 720) * COURT_H_HM;
+        const c = s.made ? '#4cf07a' : '#ff8a8a';
+        return `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.5" fill="${c}" opacity="0.85"/>`;
+      }).join('');
+      mvpCard += `
+        <div style="margin-top:12px;padding:10px;background:#0008;border:2px solid #4cf07a44;border-radius:10px">
+          <div style="color:#4cf07a;letter-spacing:3px;font-size:11px;margin-bottom:6px">📍 SHOT HEATMAP · ${heatShots.length} attempts</div>
+          <svg viewBox="0 0 ${COURT_W_HM} ${COURT_H_HM}" style="width:100%;background:#1a1a25;border:1px solid #ffd76e44;border-radius:6px">
+            <rect x="0" y="0" width="${COURT_W_HM}" height="${COURT_H_HM}" fill="#2a1a08" opacity="0.6"/>
+            <line x1="${COURT_W_HM/2}" y1="0" x2="${COURT_W_HM/2}" y2="${COURT_H_HM}" stroke="#ffd76e44" stroke-width="0.5"/>
+            <circle cx="22" cy="${COURT_H_HM*0.8}" r="3" fill="none" stroke="#ffd76e88" stroke-width="0.5"/>
+            <circle cx="${COURT_W_HM-22}" cy="${COURT_H_HM*0.8}" r="3" fill="none" stroke="#ffd76e88" stroke-width="0.5"/>
+            ${dots}
+          </svg>
+          <div style="display:flex;justify-content:space-around;margin-top:6px;font-size:9px;color:#aaa">
+            <span><span style="color:#4cf07a">●</span> MADE</span>
+            <span><span style="color:#ff8a8a">●</span> MISSED</span>
+          </div>
+        </div>`;
+    }
   }
   // 🆕 v2.7.2 — Series scoreboard + OOB stats line + championship overlay
   const seriesPanel = isSeries
