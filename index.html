@@ -3927,6 +3927,25 @@ class MatchScene extends Phaser.Scene {
     }
     // archetype noise overlay (CLOWN/CHAOTIC)
     if (wanderNoise > 0) dirX += (Math.random()-0.5) * wanderNoise;
+    // 🆕 v2.9.0 — MIRROR override: copy opponent's recent direction
+    if (isArch('mirror') && p._mirrorDir){ dirX = p._mirrorDir; }
+    // 🆕 v2.9.0 — SHADOW glue: aggressively close to opp X position
+    if (isArch('shadow') && ball.getData('held') !== p){
+      const dx = opp.x - p.x;
+      if (Math.abs(dx) > 30) dirX = Math.sign(dx);
+    }
+    // 🆕 v2.9.0 — ORACLE pre-shot intercept: if opp has ball + is winding up, jump anyway
+    if (isArch('oracle') && ball.getData('held') === opp){
+      const oppGrounded = opp.body.blocked.down || opp.body.touching.down;
+      const cpuGrounded = p.body.blocked.down || p.body.touching.down;
+      if (cpuGrounded && oppGrounded && Math.abs(opp.x - p.x) < 200 && Math.random() < 0.05){
+        p.body.setVelocityY(-PLAYER_BASE_JUMP * (State.cfg.jumpMul||1));
+      }
+    }
+    // 🆕 v2.9.0 — GAMBLER burst chase
+    if (isArch('gambler') && p._gamblerSwing && this.time.now < p._gamblerSwing){
+      dirX = Math.sign(opp.x - p.x);
+    }
 
     // swap LR for chaos
     if (State.cfg.swapLR) dirX = -dirX;
