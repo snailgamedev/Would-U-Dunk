@@ -1607,7 +1607,38 @@ const STADIUM_TIERS = [
 function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
 function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
-function spendCash(n){ const cur = loadCash(); if (cur < n) return false; saveCash(cur - n); return true; }
+function spendCash(n){
+  const cur = loadCash(); if (cur < n) return false;
+  saveCash(cur - n);
+  // 🆕 v2.14.0 — track lifetime spending for BIG SPENDER achievement
+  Career.totalSpent = (Career.totalSpent || 0) + n;
+  saveCareer();
+  return true;
+}
+// 🆕 v2.14.0 — centralised achievement audit for newer systems (call from splash + match-end)
+function auditRecentAchievements(){
+  try {
+    if (typeof unlockAchievement !== 'function') return;
+    if ((Career.totalSpent || 0) >= 5000) unlockAchievement('big_spender');
+    if (loadOwned().length > 2) unlockAchievement('first_purchase');     // default owns 2 (ball+court)
+    if (loadDailyStreak().count >= 7) unlockAchievement('week_warrior');
+    if (loadStadiumTier() === 5) unlockAchievement('stadium_max');
+    if (loadHof().length >= 3) unlockAchievement('hof_3');
+    if (loadPotwBeaten()) unlockAchievement('potw_killer');
+    // custom teams
+    try { const ct = JSON.parse(localStorage.getItem('wud:customTeams')||'[]'); if (ct.length) unlockAchievement('team_builder'); } catch(e){}
+    // GM count via current franchise + HoF
+    let signCount = 0;
+    try { const f = loadFranchise(); if (f && f.roster) signCount += f.roster.length; } catch(e){}
+    loadHof().forEach(h => { if (h.roster) signCount += h.roster.length; });
+    if (signCount >= 5) unlockAchievement('gm_5');
+    // franchise ring
+    try { const f = loadFranchise(); if (f && (f.titles || 0) >= 1) unlockAchievement('franchise_ring'); } catch(e){}
+    loadHof().forEach(h => { if ((h.titles||0) >= 1) unlockAchievement('franchise_ring'); });
+    // objective sweep
+    try { const o = loadDailyObjectives(); if (o.objectives.every(x => x.claimed)) unlockAchievement('objective_sweep'); } catch(e){}
+  } catch(e){}
+}
 // OVR = computed 1-99 rating
 function computeOvrP1(){
   const lv = (Career.level || 1);
