@@ -4740,7 +4740,9 @@ class MatchScene extends Phaser.Scene {
     // tier.moveMul still affects DECISION quality (when to shoot, when to steal) via accuracy/react/stealRate,
     // but raw movement is normalised to the human ceiling. No more "why is MED faster than me" bug.
     const fairTierMul = Math.min(CPU_SPEED_FAIRNESS_CAP, tier.moveMul);
-    const accel = PLAYER_BASE_ACCEL * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1) * fairTierMul;
+    let accel = PLAYER_BASE_ACCEL * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1) * fairTierMul;
+    // 🆕 v2.13.8 — ICE slow on CPU too
+    if (p._slowedUntil && this.time.now < p._slowedUntil) accel *= 0.5;
     p.body.setAccelerationX(smoothed * accel);
 
     // jump occasionally if needed — capped jump-rate so high-tier CPU doesn't jump-spam
