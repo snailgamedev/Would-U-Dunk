@@ -2913,8 +2913,19 @@ class MatchScene extends Phaser.Scene {
       return;
     }
     if (this.sudden){ this.slowMoTo(() => { this.resetAfterBucket(); this.endRound(); }); return; }
-    // Standard bucket — reset positions sooner so it's visible
-    this.time.delayedCall(450, () => this.resetAfterBucket());
+    // 🆕 v2.8.2 — Reset BOTH players quickly after every bucket so neither gets stranded.
+    // Two-stage: snap freeze player input + ball, then slide back to start at 250ms, full reset at 350ms.
+    this.canMove = false;
+    this.time.delayedCall(120, () => {
+      // tween players back home (smoother than snap)
+      [[this.p1, this.p1Start], [this.p2, this.p2Start]].forEach(([pl, st]) => {
+        if (!pl || !st) return;
+        pl.body.setVelocity(0, 0);
+        pl.body.setAcceleration(0, 0);
+        this.tweens.add({ targets: pl, x: st.x, y: st.y, duration: 220, ease: 'Sine.easeInOut' });
+      });
+    });
+    this.time.delayedCall(350, () => { this.resetAfterBucket(); this.canMove = true; });
     refreshHUD();
   }
 
