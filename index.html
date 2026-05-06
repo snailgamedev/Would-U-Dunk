@@ -2747,10 +2747,24 @@ class MatchScene extends Phaser.Scene {
     }
     // LED RIBBON above bleachers — animated rectangles for glow
     const ledY = 100;
-    for (let i=0; i<COURT_W/30; i++){
-      const x = i*30;
+    // 🆕 v2.13.11 — STADIUM TIER 3+: brighter, denser LED ribbon (no alpha dim)
+    const ledAlpha = (this._stadiumTier >= 3) ? 1.0 : 0.7;
+    const ledStep  = (this._stadiumTier >= 3) ? 22 : 30;
+    for (let i=0; i<COURT_W/ledStep; i++){
+      const x = i*ledStep;
       const c = [0xff3b3b, 0xffd76e, 0x4cf07a, 0x4f9eff][i%4];
-      this.add.rectangle(x, ledY, 22, 4, c).setDepth(-9).setAlpha(0.7);
+      this.add.rectangle(x, ledY, 22, 4, c).setDepth(-9).setAlpha(ledAlpha);
+    }
+    // 🆕 v2.13.11 — STADIUM TIER 5: GOLDEN SPOTLIGHT BEAMS from rafters
+    if (this._stadiumTier >= 5){
+      for (let i = 0; i < 3; i++){
+        const sx = COURT_W * (0.3 + i*0.2);
+        const beam = this.add.graphics().setDepth(-7).setAlpha(0.18);
+        beam.fillStyle(0xffd76e, 1);
+        beam.beginPath();
+        beam.moveTo(sx, 60); beam.lineTo(sx - 90, 280); beam.lineTo(sx + 90, 280); beam.closePath();
+        beam.fillPath();
+      }
     }
     // Banners — 4 spots with team-style art
     const bannerNames = ['HOLY HOOPS','GLORY ARENA','KINGDOM COURT','PROMISED LAND'];
