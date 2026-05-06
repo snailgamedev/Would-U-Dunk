@@ -3917,6 +3917,8 @@ class MatchScene extends Phaser.Scene {
     this.time.delayedCall(120, () => player.clearTint());
     const reach = 70 * (State.cfg.stealReach || 1) * (State.cfg.playerScale||1);
     const opp = (player === this.p1) ? this.p2 : this.p1;
+    // 🆕 v2.19.0 — spin-move grants brief steal immunity (600ms)
+    if (opp && opp._spinImmuneUntil && this.time.now < opp._spinImmuneUntil) return;
     if (this.ball.getData('held') === opp){
       const d = Phaser.Math.Distance.Between(player.x, player.y, opp.x, opp.y);
       if (d < reach){
