@@ -8190,6 +8190,13 @@ function quitToMenu(){
   else showSplash();
 }
 document.getElementById('gameSettings').onclick    = togglePause;
+// 🆕 v2.16.2 — bind controls panel close + help button
+document.getElementById('movesClose')?.addEventListener('click', () => {
+  document.getElementById('moves').classList.remove('on');
+});
+document.getElementById('movesHelp')?.addEventListener('click', () => {
+  document.getElementById('moves').classList.toggle('on');
+});
 document.getElementById('btnResume').onclick       = resumeMatch;
 document.getElementById('btnPauseSettings').onclick = renderSettingsScreen;
 document.getElementById('btnPauseHow').onclick     = renderHowToPlayScreen;
