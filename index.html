@@ -1692,21 +1692,33 @@ const NAME_SUFFIXES = ['','24','7','3','12','99','XL','JR','III','THE GREAT','JE
    that tweaks AI decision thresholds (when to shoot / steal / dunk / lob / showboat).
 ================================================================================================ */
 const NPC_ARCHETYPES = [
-  { id:'sniper',       label:'SNIPER 🎯',       desc:'lives at the 3pt line · long-range bias',    bias:{ shootRange:1.6, accuracy:1.05, stealRate:0.9 } },
-  { id:'slasher',      label:'SLASHER 🗡️',     desc:'attacks the rim · craves dunks',             bias:{ shootRange:0.55, accuracy:0.95, moveMul:1.05 } },
-  { id:'lockdown',     label:'LOCKDOWN 🛡️',     desc:'defense first · steal-monster',              bias:{ stealRate:1.6, react:0.7,  shootRange:0.85 } },
-  { id:'clown',        label:'CLOWN 🤡',        desc:'unpredictable · wanders · trick shots',     bias:{ shootRange:1.2, accuracy:0.7,  wander:1.0 } },
-  { id:'prophet',      label:'PROPHET 🕊️',      desc:'predicts ball path · rarely wrong',         bias:{ react:0.5,     accuracy:1.1,  predict:1 } },
-  { id:'streetballer', label:'STREETBALLER 🏙️', desc:'hot-dogs · heat-checks · always firing',    bias:{ shootRange:1.3, accuracy:0.85, jumpy:1 } },
-  { id:'showtime',     label:'SHOWTIME 🎬',     desc:'leans poster dunks · plays for the crowd',  bias:{ shootRange:0.6, accuracy:0.92, moveMul:1.05 } },
-  { id:'steady',       label:'STEADY 🪨',       desc:'fundamentals · midrange master',            bias:{ shootRange:0.95, accuracy:1.1, react:0.85 } },
-  { id:'chaotic',      label:'CHAOTIC ⚡',      desc:'wild swings · feast or famine',             bias:{ shootRange:1.0, accuracy:0.6 + Math.random()*0.5, wander:0.6 } },
-  { id:'closer',       label:'CLOSER 🥶',       desc:'ice-cold · rises in clutch',                bias:{ shootRange:1.05, accuracy:1.15, react:0.75 } },
-  { id:'paint_beast',  label:'PAINT BEAST 🦏',  desc:'lives in the paint · blocks + putbacks',    bias:{ shootRange:0.45, stealRate:1.2, accuracy:1.0 } },
-  { id:'point_god',    label:'POINT GOD 👑',    desc:'reads the floor · perfect spacing',         bias:{ shootRange:1.1, accuracy:1.0,  react:0.7 } },
-  { id:'microwave',    label:'MICROWAVE 🔥',    desc:'instant offense off the bench',             bias:{ shootRange:1.15, accuracy:1.05, moveMul:1.05 } },
-  { id:'glue_guy',     label:'GLUE GUY 🧱',     desc:'does the little things · steal master',     bias:{ stealRate:1.4, accuracy:0.95, react:0.85 } },
-  { id:'enigma',       label:'ENIGMA 🔮',       desc:'random archetype each match',               bias:{ shootRange:1.0, accuracy:1.0 } },
+  // Core 15 — bodyMul applies to look.height (sprite scale)
+  { id:'sniper',       label:'SNIPER 🎯',       desc:'lives at the 3pt line · long-range bias',    bias:{ shootRange:1.6, accuracy:1.05, stealRate:0.9 }, bodyMul:1.0 },
+  { id:'slasher',      label:'SLASHER 🗡️',     desc:'attacks the rim · craves dunks',             bias:{ shootRange:0.55, accuracy:0.95, moveMul:1.05 }, bodyMul:1.0 },
+  { id:'lockdown',     label:'LOCKDOWN 🛡️',     desc:'defense first · steal-monster',              bias:{ stealRate:1.6, react:0.7,  shootRange:0.85 }, bodyMul:1.05 },
+  { id:'clown',        label:'CLOWN 🤡',        desc:'unpredictable · wanders · trick shots',     bias:{ shootRange:1.2, accuracy:0.7,  wander:1.0 }, bodyMul:0.95 },
+  { id:'prophet',      label:'PROPHET 🕊️',      desc:'predicts ball path · rarely wrong',         bias:{ react:0.5,     accuracy:1.1,  predict:1 }, bodyMul:1.0 },
+  { id:'streetballer', label:'STREETBALLER 🏙️', desc:'hot-dogs · heat-checks · always firing',    bias:{ shootRange:1.3, accuracy:0.85, jumpy:1 }, bodyMul:1.0 },
+  { id:'showtime',     label:'SHOWTIME 🎬',     desc:'leans poster dunks · plays for the crowd',  bias:{ shootRange:0.6, accuracy:0.92, moveMul:1.05 }, bodyMul:1.05 },
+  { id:'steady',       label:'STEADY 🪨',       desc:'fundamentals · midrange master',            bias:{ shootRange:0.95, accuracy:1.1, react:0.85 }, bodyMul:1.0 },
+  { id:'chaotic',      label:'CHAOTIC ⚡',      desc:'wild swings · feast or famine',             bias:{ shootRange:1.0, accuracy:0.6 + Math.random()*0.5, wander:0.6 }, bodyMul:0.95 + Math.random()*0.2 },
+  { id:'closer',       label:'CLOSER 🥶',       desc:'ice-cold · rises in clutch',                bias:{ shootRange:1.05, accuracy:1.15, react:0.75 }, bodyMul:1.0 },
+  { id:'paint_beast',  label:'PAINT BEAST 🦏',  desc:'lives in the paint · blocks + putbacks',    bias:{ shootRange:0.45, stealRate:1.2, accuracy:1.0 }, bodyMul:1.18 },
+  { id:'point_god',    label:'POINT GOD 👑',    desc:'reads the floor · perfect spacing',         bias:{ shootRange:1.1, accuracy:1.0,  react:0.7 }, bodyMul:0.95 },
+  { id:'microwave',    label:'MICROWAVE 🔥',    desc:'instant offense off the bench',             bias:{ shootRange:1.15, accuracy:1.05, moveMul:1.05 }, bodyMul:0.97 },
+  { id:'glue_guy',     label:'GLUE GUY 🧱',     desc:'does the little things · steal master',     bias:{ stealRate:1.4, accuracy:0.95, react:0.85 }, bodyMul:1.0 },
+  { id:'enigma',       label:'ENIGMA 🔮',       desc:'random archetype each match',               bias:{ shootRange:1.0, accuracy:1.0 }, bodyMul:1.0 },
+  // 🆕 v2.8.0 — 10 NEW archetypes w/ body distinctions
+  { id:'unicorn',      label:'UNICORN 🦄',      desc:'7-footer who shoots threes · does it all', bias:{ shootRange:1.4, accuracy:1.15, stealRate:1.1, moveMul:1.0 }, bodyMul:1.22 },
+  { id:'general',      label:'FLOOR GENERAL 🎩', desc:'orchestrator · sets up plays · low ego',   bias:{ shootRange:1.05, accuracy:1.0, react:0.6 }, bodyMul:0.98 },
+  { id:'junkyard_dog', label:'JUNKYARD DOG 🐕', desc:'all hustle · dives for loose balls',       bias:{ stealRate:1.5, react:0.6, moveMul:1.0 }, bodyMul:0.93 },
+  { id:'iceman',       label:'ICEMAN 🥶',        desc:'never rattles · clutch ALL game',           bias:{ accuracy:1.2, react:0.65 }, bodyMul:1.02 },
+  { id:'giant',        label:'GIANT 🦒',         desc:'massive · paint dominator · slow',         bias:{ shootRange:0.5, accuracy:1.0, moveMul:0.85, stealRate:1.1 }, bodyMul:1.35 },
+  { id:'waterbug',     label:'WATERBUG 🦟',      desc:'tiny + lightning fast · weaves',           bias:{ moveMul:1.0, react:0.55, stealRate:1.2 }, bodyMul:0.78 },
+  { id:'kamikaze',     label:'KAMIKAZE 💥',      desc:'sacrifices position for steals · reckless',bias:{ stealRate:1.8, accuracy:0.85, react:0.6 }, bodyMul:1.0 },
+  { id:'mountain',     label:'MOUNTAIN 🗻',      desc:'immovable post · slow but commanding',     bias:{ moveMul:0.75, shootRange:0.5, accuracy:1.05 }, bodyMul:1.4 },
+  { id:'teacher',      label:'TEACHER 🎓',       desc:'methodical · perfect fundamentals',         bias:{ accuracy:1.25, react:0.8, shootRange:1.0 }, bodyMul:1.0 },
+  { id:'zone_buster',  label:'ZONE-BUSTER 🌪',   desc:'punishes stagnation · weaves through D',  bias:{ moveMul:1.0, accuracy:1.05, shootRange:1.1 }, bodyMul:1.0 },
 ];
 
 const NPC_FIRST = ['JAMAL','CALEB','ISAIAH','ZION','TYRESE','JADEN','EZEKIEL','MICAH','EMMANUEL','JOSIAH','ELI','LUKE','MARCUS','TREVOR','DEVIN','JABARI','OMAR','TARIQ','RASHEED','DEMETRIUS','MALACHI','GIDEON','HEZEKIAH','BARNABAS','ELIJAH','MOSES','PETER','PAUL','ANDREW','THOMAS','SIMON','LEVI','JONAS','SOLOMON','SAMSON','TITUS','SILAS','JESSE','ABRAHAM','ENOCH','BENAIAH','RAIKO','KAIDO','KENJI','MATEO','SANTI','RAFA','RIO','KOJI','HIRO','PAOLO','TARO','CHEN','LI','RAVI','PRIYA','OMARI','KWAME','SEKOU','TYRELL','DESHAWN','LATRELL','TREMAINE','DARIUS','MAURICE','VIKTOR','ALEKSEI','LUCA','RAUL'];
