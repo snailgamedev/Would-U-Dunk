@@ -4575,7 +4575,10 @@ function renderFranchiseScreen(){
       </div>`).join('');
     openModal('🏆 FRANCHISE MODE · CHOOSE LEAGUE',
       `<div style="font-size:13px;color:#fff;margin-bottom:12px">Pick a league. Each season is ${SEASON_LEN} games. Win 5 to make playoffs, sweep all 8 to claim the trophy.</div>
-       <div style="max-height:60vh;overflow-y:auto" id="lgList">${leagueRows}</div>`);
+       <div style="max-height:55vh;overflow-y:auto" id="lgList">${leagueRows}</div>
+       <button class="btn" id="franchOpenHof" style="margin-top:10px;width:100%;font-size:12px;padding:9px">🏛 HALL OF FAME</button>`);
+    const hofBtn = document.getElementById('franchOpenHof');
+    if (hofBtn) hofBtn.onclick = renderHallOfFameScreen;
     document.querySelectorAll('.lgcard').forEach(el => {
       el.onclick = () => {
         el.style.background = '#ffd76e22';
