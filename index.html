@@ -2177,6 +2177,9 @@ class MatchScene extends Phaser.Scene {
   }
 
   // PICKUP / HOLD / STEAL / SHOOT
+  // 🆕 v2.7.0 — reset ball-jump counter when player loses ball (called from detachBall + tryPickup)
+  resetBallJumpCounter(p){ if (p) p._ballGroundJumps = 0; }
+
   tryPickup(player){
     const ball = this.ball;
     if (ball.getData('held')) return;
