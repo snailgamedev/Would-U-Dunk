@@ -133,7 +133,7 @@
   body.ui-desktop #touch{display:none !important}
   body.ui-desktop #moves{display:block}
   /* Reveal overlay */
-  #reveal{position:fixed;inset:0;display:none;place-items:center;background:radial-gradient(ellipse at 50% 50%, #000c 0%, #000f 100%);z-index:30}
+  #reveal{position:fixed;inset:0;display:none;justify-items:center;align-items:start;background:radial-gradient(ellipse at 50% 50%, #000c 0%, #000f 100%);z-index:30}
   #reveal.on{display:grid;animation:flash 0.18s 8 alternate}
   @keyframes flash{from{filter:brightness(1)}to{filter:brightness(1.6) hue-rotate(20deg)}}
   #reveal .inner{text-align:center;padding:30px;max-width:90vw}
