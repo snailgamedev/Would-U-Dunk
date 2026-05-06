@@ -3717,6 +3717,13 @@ class MatchScene extends Phaser.Scene {
     }
     // 🆕 v2.12.0 — CASH economy + TRASH TALK
     if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
+    // 🆕 v2.13.28 — daily objective progress
+    if (scorerIdx === 0 && typeof trackDailyObjective === 'function'){
+      trackDailyObjective('buckets', 1);
+      const shotDist = ball.getData('shotDist') || 0;
+      if (shotDist > 600) trackDailyObjective('long', 1);
+      if (State.bucketStreak[0] === 5) trackDailyObjective('streak', 5);
+    }
     if (scorerIdx === 1 && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers && Math.random() < 0.4){
       const npc = State.rolls.cpuTiers[0]?._npc;
       const line = pickTrashTalk(npc);
