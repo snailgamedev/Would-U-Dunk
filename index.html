@@ -3134,6 +3134,8 @@ function npcToTier(npc){
 }
 
 function randomUsername(){
+  // 🆕 v2.17.0 — pulls from massive multi-pool name layer (biblical + NBA + NFL + MLB + NHL + soccer + tennis + golf + combat + olympic + common) with anti-repeat
+  if (typeof generateMassiveName === 'function') return generateMassiveName();
   const pre = NAME_PREFIXES[(Math.random()*NAME_PREFIXES.length)|0];
   const core = NAME_CORES[(Math.random()*NAME_CORES.length)|0];
   const suf = NAME_SUFFIXES[(Math.random()*NAME_SUFFIXES.length)|0];
