@@ -5078,6 +5078,19 @@ function renderSettingsScreen(){
   document.querySelectorAll('[data-set]').forEach(cb => {
     cb.onchange = () => { Settings[cb.dataset.set] = cb.checked; saveSettings(); };
   });
+  // 🆕 v2.13.11 — Stadium tier upgrade buttons
+  document.querySelectorAll('[data-stadium]').forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const newTier = parseInt(b.dataset.stadium, 10);
+      const stt = STADIUM_TIERS.find(s => s.tier === newTier);
+      if (!stt) return;
+      if (!spendCash(stt.cost)){ showToast('Not enough cash', 'allpro'); return; }
+      saveStadiumTier(newTier);
+      showToast(`🏟 ${stt.name} unlocked!`, 'level');
+      renderSettingsScreen();
+    };
+  });
   // 🆕 v2.6.4 master volume slider + mute toggle
   const slider = document.getElementById('masterVolSlider');
   const pctEl  = document.getElementById('masterVolPct');
