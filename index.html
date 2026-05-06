@@ -5799,8 +5799,11 @@ function renderDailyChallengeScreen(){
   const preview = previewDailyChaos();
   const modList = preview.mods.map(({mod}) => `<li style="color:#fff;font-size:11px;padding:1px 0">${mod.name} <span style="color:#aaa;font-size:9px">— ${mod.desc}</span></li>`).join('');
   const cpuName = preview.cpuTiers.map(t => t._npc ? `${t._npc.name} (${t._npc.archetypeLabel})` : t.name).join(' + ');
+  // 🆕 v2.13.19 — show daily streak
+  const streak = loadDailyStreak();
+  const streakLine = streak.count > 0 ? `<div style="background:#0008;border:2px solid #ff8a3c;border-radius:8px;padding:6px 10px;margin-bottom:10px;text-align:center;font-size:12px;color:#ff8a3c;letter-spacing:2px;font-weight:900">🔥 STREAK · ${streak.count} DAY${streak.count!==1?'S':''}</div>` : '';
   openModal('📅 DAILY CHALLENGE — ' + key,
-    `<div style="font-size:13px;color:#fff;margin-bottom:10px">Same chaos roll for everyone today. Race to FIRST TO 7. Your best score today is recorded per profile.</div>
+    `${streakLine}<div style="font-size:13px;color:#fff;margin-bottom:10px">Same chaos roll for everyone today. Race to FIRST TO 7. Your best score today is recorded per profile. Streak counts consecutive daily plays.</div>
      <div style="background:#0008;border:2px solid #4f9eff44;border-radius:10px;padding:10px;margin-bottom:10px">
        <div style="color:#4f9eff;font-size:10px;letter-spacing:3px;font-weight:900;margin-bottom:6px">🎲 TODAY'S CHAOS · ${preview.count} mod${preview.count>1?'s':''}${preview.superChaos?' · 💀 SUPER CHAOS':''}</div>
        <ul style="margin:0;padding-left:18px">${modList}</ul>
