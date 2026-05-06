@@ -4523,6 +4523,7 @@ async function startMatch(){
   State.beatTierIdx = -1;
   State.zeroStealsThisMatch = [true,true];
   State.maxLeadVsP1 = 0;
+  State.oobCounts = [0, 0];           // 🆕 v2.7.2 reset OOB counters per match
   await startRound();
 }
 async function startRound(){
