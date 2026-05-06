@@ -1781,6 +1781,141 @@ const NPC_ROSTER = (() => {
   return list;
 })();
 function pickRandomNpc(){ return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0]; }
+
+/* ================================================================================================
+   🆕 v2.8.0 — LEAGUES + TEAMS — 8 leagues × 8 teams = 64 franchises
+================================================================================================ */
+const LEAGUES = [
+  { id:'PEL', name:'PRO ELITE LEAGUE 🏆',     desc:'Top-tier pros · 8-game season · championship belt', tier:'elite', cpuMin:18, cpuMax:28,
+    teams: [
+      { name:'NEW YORK PSALMS',     city:'NEW YORK',    abbr:'NYP', primary:0x4f9eff, secondary:0xffd76e, mascot:'⚔️' },
+      { name:'LA HALLELUJAHS',      city:'LOS ANGELES', abbr:'LAH', primary:0xa040ff, secondary:0xffd76e, mascot:'🎬' },
+      { name:'BOSTON CHOSEN',       city:'BOSTON',      abbr:'BOS', primary:0x4cf07a, secondary:0xffffff, mascot:'☘️' },
+      { name:'CHICAGO PROPHETS',    city:'CHICAGO',     abbr:'CHI', primary:0xff3b3b, secondary:0x111111, mascot:'🐂' },
+      { name:'MIAMI FIRE',          city:'MIAMI',       abbr:'MIA', primary:0xff8a3c, secondary:0x000000, mascot:'🔥' },
+      { name:'DALLAS DUSTERS',      city:'DALLAS',      abbr:'DAL', primary:0x4f9eff, secondary:0x9b59b6, mascot:'🤠' },
+      { name:'GS REVELATIONS',      city:'GOLDEN STATE',abbr:'GSR', primary:0xffd76e, secondary:0x4f9eff, mascot:'🌉' },
+      { name:'DENVER MOUNTAINS',    city:'DENVER',      abbr:'DEN', primary:0xffd76e, secondary:0x4f9eff, mascot:'🗻' },
+    ]},
+  { id:'DEV', name:'DEVELOPMENT LEAGUE 🌱',   desc:'On the come-up · grind for a call-up', tier:'mid', cpuMin:8, cpuMax:18,
+    teams: [
+      { name:'IOWA SEEDLINGS',    city:'IOWA',     abbr:'IOW', primary:0xffd76e, secondary:0x4cf07a, mascot:'🌱' },
+      { name:'OHIO ROOKIES',      city:'OHIO',     abbr:'OHI', primary:0xff3b3b, secondary:0xffffff, mascot:'🦌' },
+      { name:'TEXAS RIDERS',      city:'TEXAS',    abbr:'TEX', primary:0xffd76e, secondary:0x111111, mascot:'🐎' },
+      { name:'FLORIDA SHARKS',    city:'FLORIDA',  abbr:'FLA', primary:0x00cfff, secondary:0xffffff, mascot:'🦈' },
+      { name:'OREGON THUNDER',    city:'OREGON',   abbr:'ORE', primary:0x4cf07a, secondary:0x111111, mascot:'⚡' },
+      { name:'CAROLINA COYOTES',  city:'CAROLINA', abbr:'CAR', primary:0xff8a3c, secondary:0x4f9eff, mascot:'🐺' },
+      { name:'AZ CACTUS',         city:'PHOENIX',  abbr:'PHX', primary:0xff8a3c, secondary:0xff3b3b, mascot:'🌵' },
+      { name:'PORTLAND PIONEERS', city:'PORTLAND', abbr:'POR', primary:0x4cf07a, secondary:0x111111, mascot:'🌲' },
+    ]},
+  { id:'WPL', name:'WOMENS PRO LEAGUE 👑',    desc:'Elite womens hoops · all-archetype rosters', tier:'elite', cpuMin:14, cpuMax:24,
+    teams: [
+      { name:'NY LIBERTY',        city:'NEW YORK',     abbr:'NYL', primary:0x4cf07a, secondary:0xffd76e, mascot:'🗽' },
+      { name:'LA SPARKS',         city:'LA',           abbr:'LAS', primary:0xffd76e, secondary:0xa040ff, mascot:'⚡' },
+      { name:'CHI SKY',           city:'CHICAGO',      abbr:'CHS', primary:0xa040ff, secondary:0xffd76e, mascot:'☁️' },
+      { name:'PHX MERCURY',       city:'PHOENIX',      abbr:'MER', primary:0xff8a3c, secondary:0x111111, mascot:'🪐' },
+      { name:'SEATTLE STORM',     city:'SEATTLE',      abbr:'SEA', primary:0x4cf07a, secondary:0xffd76e, mascot:'🌩️' },
+      { name:'WASH MYSTICS',      city:'WASHINGTON',   abbr:'WAS', primary:0x4f9eff, secondary:0xff3b3b, mascot:'✨' },
+      { name:'MIN LYNX',          city:'MINNESOTA',    abbr:'MIN', primary:0x4cf07a, secondary:0xffffff, mascot:'🐱' },
+      { name:'CT SUN',            city:'CONNECTICUT',  abbr:'CTS', primary:0xff8a3c, secondary:0x4f9eff, mascot:'☀️' },
+    ]},
+  { id:'EURO', name:'EUROCONTINENTAL 🌍',     desc:'Internationals · slick passing · disciplined', tier:'elite', cpuMin:12, cpuMax:22,
+    teams: [
+      { name:'BARCELONA BLAUGRANA',city:'BARCELONA',  abbr:'BCN', primary:0x4f9eff, secondary:0xff3b3b, mascot:'🛡' },
+      { name:'REAL MADRID GLORIA', city:'MADRID',     abbr:'RMG', primary:0xffffff, secondary:0xffd76e, mascot:'👑' },
+      { name:'OLYMPIACOS PIRAEUS', city:'ATHENS',     abbr:'OLY', primary:0xff3b3b, secondary:0xffffff, mascot:'⚔️' },
+      { name:'CSKA MOSCOW',        city:'MOSCOW',     abbr:'CSK', primary:0xff3b3b, secondary:0x4f9eff, mascot:'⭐' },
+      { name:'FENERBAHCE',         city:'ISTANBUL',   abbr:'FEN', primary:0xffd76e, secondary:0x4f9eff, mascot:'🏛' },
+      { name:'EFES ANATOLIA',      city:'ISTANBUL',   abbr:'EFE', primary:0x4f9eff, secondary:0xffffff, mascot:'🐎' },
+      { name:'PANATHINAIKOS',      city:'ATHENS',     abbr:'PAO', primary:0x4cf07a, secondary:0xffffff, mascot:'🍀' },
+      { name:'VIRTUS BOLOGNA',     city:'BOLOGNA',    abbr:'VIR', primary:0x111111, secondary:0xffffff, mascot:'⚫' },
+    ]},
+  { id:'AAU', name:'AAU CIRCUIT ⚡',          desc:'High-school phenoms · streetball flair', tier:'mid', cpuMin:5, cpuMax:14,
+    teams: [
+      { name:'TEAM USA YOUTH',     city:'NATIONWIDE', abbr:'USA', primary:0x4f9eff, secondary:0xff3b3b, mascot:'🇺🇸' },
+      { name:'NIKE EYBL',          city:'BEAVERTON',  abbr:'NIK', primary:0x111111, secondary:0xffffff, mascot:'✓' },
+      { name:'ADIDAS NATIONS',     city:'PORTLAND',   abbr:'ADI', primary:0x111111, secondary:0xff3b3b, mascot:'➤' },
+      { name:'UA ASSOCIATION',     city:'BALTIMORE',  abbr:'UAA', primary:0xa040ff, secondary:0xffd76e, mascot:'⚡' },
+      { name:'PUMA PROEM',         city:'BOSTON',     abbr:'PUM', primary:0xff8a3c, secondary:0x111111, mascot:'🐆' },
+      { name:'OAKLAND SOLDIERS',   city:'OAKLAND',    abbr:'OAK', primary:0x4cf07a, secondary:0xffd76e, mascot:'⚔️' },
+      { name:'PHX RUN GMC',        city:'PHOENIX',    abbr:'GMC', primary:0xff8a3c, secondary:0x111111, mascot:'🦂' },
+      { name:'CALI SUPREME',       city:'LA',         abbr:'CAL', primary:0xffd76e, secondary:0x4cf07a, mascot:'🌴' },
+    ]},
+  { id:'STR', name:'STREETBALL CIRCUIT 🏙',  desc:'No refs · all flair · ankle-breaker rules', tier:'mid', cpuMin:6, cpuMax:18,
+    teams: [
+      { name:'RUCKER PARK KINGS',  city:'NYC',        abbr:'RKP', primary:0xff3b3b, secondary:0xffd76e, mascot:'👑' },
+      { name:'VENICE BEACH GODS',  city:'VENICE',     abbr:'VBG', primary:0xffd76e, secondary:0x4f9eff, mascot:'🏖' },
+      { name:'CHICAGO HARDWOOD',   city:'CHICAGO',    abbr:'CHW', primary:0x111111, secondary:0xff3b3b, mascot:'🏀' },
+      { name:'BROOKLYN BRIDGES',   city:'BROOKLYN',   abbr:'BKL', primary:0xff8a3c, secondary:0x111111, mascot:'🌉' },
+      { name:'PHILLY CROSSOVERS',  city:'PHILLY',     abbr:'PHL', primary:0x4f9eff, secondary:0xffffff, mascot:'🔔' },
+      { name:'OAKLAND GROUND',     city:'OAKLAND',    abbr:'OKG', primary:0x4cf07a, secondary:0x111111, mascot:'🌳' },
+      { name:'DC BLACKTOP',        city:'WASHINGTON', abbr:'DCB', primary:0x111111, secondary:0xffd76e, mascot:'⚡' },
+      { name:'ATL ALLEY CATS',     city:'ATLANTA',    abbr:'ATL', primary:0xff3b3b, secondary:0xffd76e, mascot:'🐈' },
+    ]},
+  { id:'BIB', name:'BIBLE LEAGUE ✝️',         desc:'Faith-fueled hoops · scriptures + sacred celebs', tier:'mid', cpuMin:10, cpuMax:24,
+    teams: [
+      { name:'JERUSALEM LIONS',    city:'JERUSALEM',  abbr:'JER', primary:0xffd76e, secondary:0xff3b3b, mascot:'🦁' },
+      { name:'NAZARETH GLORY',     city:'NAZARETH',   abbr:'NAZ', primary:0xffffff, secondary:0xffd76e, mascot:'✝️' },
+      { name:'EPHESUS EAGLES',     city:'EPHESUS',    abbr:'EPH', primary:0x4f9eff, secondary:0xffffff, mascot:'🦅' },
+      { name:'GALILEE FISHERMEN',  city:'GALILEE',    abbr:'GAL', primary:0x4cf07a, secondary:0xffd76e, mascot:'🐟' },
+      { name:'BETHLEHEM STARS',    city:'BETHLEHEM',  abbr:'BET', primary:0x4f9eff, secondary:0xffd76e, mascot:'⭐' },
+      { name:'DAMASCUS ROAD',      city:'DAMASCUS',   abbr:'DAM', primary:0xffd76e, secondary:0x4f9eff, mascot:'🛤' },
+      { name:'JERICHO WALLS',      city:'JERICHO',    abbr:'JCH', primary:0xff8a3c, secondary:0xffd76e, mascot:'🏛' },
+      { name:'CORINTH RUNNERS',    city:'CORINTH',    abbr:'COR', primary:0xa040ff, secondary:0xffd76e, mascot:'🏃' },
+    ]},
+  { id:'OFW', name:'OFF-WORLD HOOPS 🚀',      desc:'Zero-G · alien archetypes · physics is a suggestion', tier:'elite', cpuMin:20, cpuMax:28,
+    teams: [
+      { name:'MARS COLONY DUST',   city:'MARS',       abbr:'MRS', primary:0xff3b3b, secondary:0x111111, mascot:'🪐' },
+      { name:'LUNA TIDE',          city:'LUNA BASE',  abbr:'LUN', primary:0xffffff, secondary:0x4f9eff, mascot:'🌙' },
+      { name:'EUROPA ICE',         city:'EUROPA',     abbr:'EUR', primary:0x00cfff, secondary:0xffffff, mascot:'❄️' },
+      { name:'TITAN GIANTS',       city:'TITAN',      abbr:'TIT', primary:0xff8a3c, secondary:0x111111, mascot:'🪐' },
+      { name:'KEPLER VOYAGERS',    city:'KEPLER-22B', abbr:'KEP', primary:0x4cf07a, secondary:0xffd76e, mascot:'🚀' },
+      { name:'PROXIMA PIONEERS',   city:'PROXIMA-B',  abbr:'PRX', primary:0xa040ff, secondary:0xffffff, mascot:'⭐' },
+      { name:'ANDROMEDA AURORA',   city:'ANDROMEDA',  abbr:'AND', primary:0x4f9eff, secondary:0xa040ff, mascot:'🌌' },
+      { name:'GANYMEDE GUARDS',    city:'GANYMEDE',   abbr:'GAN', primary:0xffd76e, secondary:0x4f9eff, mascot:'🛸' },
+    ]},
+];
+// flat lookup
+function getLeague(id){ return LEAGUES.find(l => l.id === id) || LEAGUES[0]; }
+function getTeam(leagueId, teamName){ const lg = getLeague(leagueId); return lg.teams.find(t => t.name === teamName) || lg.teams[0]; }
+// Pick CPU tier within league's tier range
+function pickLeagueTier(leagueId){
+  const lg = getLeague(leagueId);
+  const lo = lg.cpuMin || 5, hi = lg.cpuMax || 28;
+  const idx = lo + ((Math.random()*(hi - lo))|0);
+  return CPU_TIERS[Math.min(CPU_TIERS.length-1, Math.max(0, idx))];
+}
+
+/* ================================================================================================
+   🆕 v2.8.0 — FRANCHISE STATE — persisted per profile in localStorage
+================================================================================================ */
+const SEASON_LEN = 8;
+function loadFranchise(){
+  try {
+    const raw = localStorage.getItem(`wud:franchise:${currentProfileName()}`);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return null;
+}
+function saveFranchise(f){
+  try { localStorage.setItem(`wud:franchise:${currentProfileName()}`, JSON.stringify(f)); } catch(e){}
+}
+function newFranchise(leagueId, teamName){
+  const lg = getLeague(leagueId);
+  const opponents = lg.teams.filter(t => t.name !== teamName);
+  // shuffle and take SEASON_LEN games
+  for (let i=opponents.length-1; i>0; i--){ const j=(Math.random()*(i+1))|0; [opponents[i],opponents[j]]=[opponents[j],opponents[i]]; }
+  const schedule = [];
+  for (let g=0; g<SEASON_LEN; g++){
+    schedule.push({ opp: opponents[g % opponents.length].name, played:false, won:false, myScore:0, oppScore:0 });
+  }
+  return {
+    leagueId, teamName, season:1, gameNum:0, wins:0, losses:0,
+    schedule,
+    standings: lg.teams.map(t => ({ name:t.name, w:0, l:0 })),
+    champion:null, lastResult:null,
+  };
+}
 function npcToTier(npc){
   // Inherit base tier + apply archetype bias to derive an effective CPU tier object
   const base = CPU_TIERS.find(t => t.id === npc.tierId) || CPU_TIERS[10];
