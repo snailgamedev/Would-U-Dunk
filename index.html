@@ -5451,10 +5451,22 @@ class MatchScene extends Phaser.Scene {
     }
   }
 
-  // 🆕 v2.8.2 — Standalone block executor used by both human + CPU paths
+  // 🆕 v2.8.2 — Standalone block executor · 🆕 v2.19.0 — distance-graded probability so blocks aren't binary
   executeBlock(blocker, opp){
     if (!blocker || !opp || this.ball.getData('held') !== opp) return;
     if ((blocker._lastBlockAt || 0) + 250 > this.time.now) return;   // debounce
+    // 🆕 v2.19.0 — RNG block: very close (<60px) = ~95% success, far (>140px) = ~25% — and slight player Y advantage
+    const d = Phaser.Math.Distance.Between(blocker.x, blocker.y, opp.x, opp.y);
+    const baseChance = Phaser.Math.Clamp(1 - (d / 200), 0.20, 0.95);
+    const heightAdv = (blocker.y < opp.y) ? 0.10 : 0;     // slight bonus if jumping over opp
+    const successChance = Math.min(0.97, baseChance + heightAdv);
+    if (Math.random() > successChance){
+      // miss — visual flutter + brief cooldown but no ball release
+      blocker._lastBlockAt = this.time.now;
+      const miss = this.add.text(blocker.x, blocker.y - 70, '💨 missed', {fontFamily:'monospace', fontSize:12, color:'#aaa', stroke:'#000', strokeThickness:3}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets: miss, y: miss.y - 30, alpha:{from:1, to:0}, duration:600, onComplete:()=>miss.destroy() });
+      return;
+    }
     blocker._lastBlockAt = this.time.now;
     this.detachBall();
     this.ball.body.setVelocity((blocker.x < opp.x ? -1 : 1) * 260, -380);
