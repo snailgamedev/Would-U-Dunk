@@ -3871,6 +3871,8 @@ class MatchScene extends Phaser.Scene {
     this._dunking = true;
     State.usedDunk = true;
     if (State.matchStats?.[player.idx]) State.matchStats[player.idx].dunks += 1;
+    // 🆕 v2.16.6 — daily-objective dunk hook (player only)
+    if (player.idx === 0 && typeof trackDailyObjective === 'function') trackDailyObjective('dunks', 1);
     if (State.dunksThisRound) State.dunksThisRound[player.idx] = (State.dunksThisRound[player.idx]||0) + 1;
     if (player.idx === 0 && State.dunksThisRound[0] >= 3) State._airRaidThisMatch = true;
     if (player.idx === 0 && (State.looks[0].height || 1) <= 0.85) checkAchievements({ dunkAtMinHeight:true });
