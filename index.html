@@ -6070,7 +6070,23 @@ function showReveal(rolls){
     }
     return `<div style="margin-top:6px;font-size:13px;color:#ffd76e">CPU TIER · ${t.name}</div>`;
   }).join('') : '';
-  document.getElementById('revealCpu').innerHTML = npcLine;
+  // 🆕 v2.13.3 — Current loadout summary so user sees what cosmetics are active this match
+  let loadoutLine = '';
+  if (typeof loadEquipped === 'function'){
+    const ball = SHOP_ITEMS.find(s => s.id === loadEquipped('BALL'));
+    const court = SHOP_ITEMS.find(s => s.id === loadEquipped('COURT'));
+    const trail = SHOP_ITEMS.find(s => s.id === loadEquipped('TRAIL'));
+    const celeb = SHOP_ITEMS.find(s => s.id === loadEquipped('CELEB'));
+    const parts = [];
+    if (ball) parts.push(`${ball.icon} ${ball.name}`);
+    if (court) parts.push(`${court.icon} ${court.name}`);
+    if (trail) parts.push(`${trail.icon} ${trail.name}`);
+    if (celeb) parts.push(`${celeb.icon} ${celeb.name}`);
+    if (parts.length){
+      loadoutLine = `<div style="margin-top:10px;padding:6px 10px;background:#0008;border:1px solid #ffd76e44;border-radius:6px;font-size:10px;color:#aaa;letter-spacing:1px">🛒 LOADOUT · ${parts.join(' · ')}</div>`;
+    }
+  }
+  document.getElementById('revealCpu').innerHTML = npcLine + loadoutLine;
   r.classList.add('on');
   return new Promise(res => setTimeout(() => { r.classList.remove('on'); res(); }, 3000));
 }
