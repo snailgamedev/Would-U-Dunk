@@ -5489,6 +5489,73 @@ function renderCustomTeamBuilder(leagueId){
   };
 }
 /* ================================================================================================
+   🆕 v2.13.13 — CUSTOM RULE EDITOR — build your own mode w/ saved persistence
+================================================================================================ */
+function loadCustomRules(){ try { return JSON.parse(localStorage.getItem(`wud:rules:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveCustomRules(arr){ try { localStorage.setItem(`wud:rules:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
+function renderCustomRuleEditor(){
+  const saved = loadCustomRules();
+  const savedRows = saved.map((r, i) => `<div data-rule-idx="${i}" style="background:#0008;border:1px solid #ffd76e44;border-radius:8px;padding:8px 10px;margin:4px 0;display:flex;align-items:center;gap:8px;cursor:pointer">
+    <div style="font-size:22px">⚔️</div>
+    <div style="flex:1">
+      <div style="color:#fff;font-weight:900;font-size:13px">${r.name}</div>
+      <div style="color:#aaa;font-size:10px">First to ${r.target} · ${r.rounds} round${r.rounds!==1?'s':''} · ${r.roundLen}s${r.forceSuper?' · 💀 SUPER':''}</div>
+    </div>
+    <button class="btn hot" data-play-rule="${i}" style="font-size:10px;padding:5px 10px;width:auto">▶ PLAY</button>
+    <button class="opt txt" data-del-rule="${i}" style="background:#222;color:#ff8a8a;font-size:9px;padding:5px 6px">DEL</button>
+  </div>`).join('');
+  openModal('⚙ CUSTOM RULES — BUILD YOUR OWN MODE',
+    `<div style="font-size:13px;color:#fff;margin-bottom:10px">Set your own match rules and save up to 10 modes per profile.</div>
+     ${saved.length ? `<div style="margin-bottom:14px">${savedRows}</div><div style="height:1px;background:#ffd76e44;margin:10px 0"></div>` : ''}
+     <div style="background:#0006;border:1px solid #ffd76e44;border-radius:8px;padding:10px">
+       <div style="color:var(--gold);font-size:10px;letter-spacing:3px;font-weight:900;margin-bottom:8px">➕ NEW RULE</div>
+       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:#fff">
+         <label>NAME<br><input id="ruleName" type="text" maxlength="22" placeholder="MY CUSTOM" style="width:100%;padding:6px;background:#0008;border:1px solid #ffd76e44;border-radius:4px;color:#fff;font-size:12px"></label>
+         <label>FORCE SUPER CHAOS<br><select id="ruleSuper" style="width:100%;padding:6px;background:#0008;border:1px solid #ffd76e44;border-radius:4px;color:#fff;font-size:12px"><option value="">NO</option><option value="1">YES (6 mods + 2 CPUs)</option></select></label>
+         <label>TARGET POINTS<br><input id="ruleTarget" type="number" min="3" max="50" value="10" style="width:100%;padding:6px;background:#0008;border:1px solid #ffd76e44;border-radius:4px;color:#fff;font-size:12px"></label>
+         <label>ROUNDS<br><input id="ruleRounds" type="number" min="1" max="9" value="3" style="width:100%;padding:6px;background:#0008;border:1px solid #ffd76e44;border-radius:4px;color:#fff;font-size:12px"></label>
+         <label style="grid-column:span 2">ROUND LENGTH (sec)<br><input id="ruleLen" type="number" min="30" max="900" value="120" style="width:100%;padding:6px;background:#0008;border:1px solid #ffd76e44;border-radius:4px;color:#fff;font-size:12px"></label>
+       </div>
+       <button class="btn hot" id="ruleSave" style="margin-top:10px;width:100%;font-size:13px;padding:9px">💾 SAVE RULE</button>
+     </div>`);
+  document.getElementById('ruleSave').onclick = () => {
+    const name = (document.getElementById('ruleName').value || '').trim().toUpperCase() || 'MY RULE';
+    const target = Math.max(3, Math.min(50, parseInt(document.getElementById('ruleTarget').value, 10) || 10));
+    const rounds = Math.max(1, Math.min(9, parseInt(document.getElementById('ruleRounds').value, 10) || 3));
+    const roundLen = Math.max(30, Math.min(900, parseInt(document.getElementById('ruleLen').value, 10) || 120));
+    const forceSuper = !!document.getElementById('ruleSuper').value;
+    const arr = loadCustomRules();
+    if (arr.length >= 10){ showToast('Max 10 saved rules', 'allpro'); return; }
+    arr.push({ name, target, rounds, roundLen, forceSuper });
+    saveCustomRules(arr);
+    showToast(`💾 Saved "${name}"`, 'level');
+    renderCustomRuleEditor();
+  };
+  document.querySelectorAll('[data-play-rule]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const arr = loadCustomRules();
+    const r = arr[parseInt(b.dataset.playRule, 10)];
+    if (!r) return;
+    closeModal();
+    // inject as a synthetic mode
+    State._activeMode = Object.assign({ id:'custom_rule', name:'⚙ ' + r.name, desc:'custom' }, r);
+    State.modeId = 'custom_rule';
+    State.mode = 'CPU';
+    // Override MODE_BY_ID lookup so refreshHUD finds it
+    MODE_BY_ID['custom_rule'] = State._activeMode;
+    GAME_MODES.push(State._activeMode);
+    startMatch();
+  });
+  document.querySelectorAll('[data-del-rule]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const arr = loadCustomRules();
+    arr.splice(parseInt(b.dataset.delRule, 10), 1);
+    saveCustomRules(arr);
+    renderCustomRuleEditor();
+  });
+}
+
+/* ================================================================================================
    🆕 v2.13.12 — DAILY CHALLENGE — same chaos for everyone today, leaderboard your own best
 ================================================================================================ */
 function dailyKey(){
