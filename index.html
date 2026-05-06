@@ -3834,22 +3834,27 @@ class MatchScene extends Phaser.Scene {
     this.cameras.main.flash(80, 80, 200, 255);
   }
 
-  // 🆕 v2.13.0 — POWER-UP STAR PICKUPS — random spawn, +25% accuracy 8s on pickup
+  // 🆕 v2.13.0 — POWER-UP STAR PICKUPS · 🆕 v2.13.8 — 4 VARIANTS (star/fire/ice/lucky)
   spawnPowerUpStar(){
     if (this._activeStar || !this.canMove) return;
+    const POWER_VARIANTS = [
+      { id:'star',  icon:'⭐', color:0xffd76e, label:'+25% ACCURACY 8s' },
+      { id:'fire',  icon:'🔥', color:0xff5a1a, label:'+50% SHOT POWER 6s' },
+      { id:'ice',   icon:'❄️', color:0x66c2ff, label:'OPPONENT SLOWED 5s' },
+      { id:'lucky', icon:'🍀', color:0x4cf07a, label:'NEXT 3 SHOTS PERFECT' },
+    ];
+    const variant = POWER_VARIANTS[(Math.random() * POWER_VARIANTS.length) | 0];
     const x = 200 + Math.random() * (COURT_W - 400);
     const y = FLOOR_Y - 120 - Math.random() * 250;
-    const star = this.add.text(x, y, '⭐', {fontSize:'40px'}).setOrigin(0.5).setDepth(DEPTH.EFFECT_FRONT);
+    const star = this.add.text(x, y, variant.icon, {fontSize:'40px'}).setOrigin(0.5).setDepth(DEPTH.EFFECT_FRONT);
     star.setData('isPowerStar', true);
+    star.setData('variant', variant);
     this._activeStar = star;
-    // gentle bob + pulse
     this.tweens.add({ targets: star, y: y - 14, duration: 700, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
     this.tweens.add({ targets: star, scale: 1.25, duration: 500, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
-    // halo
-    const halo = this.add.circle(x, y, 30, 0xffd76e, 0.25).setDepth(DEPTH.EFFECT_FRONT - 1);
+    const halo = this.add.circle(x, y, 30, variant.color, 0.25).setDepth(DEPTH.EFFECT_FRONT - 1);
     star.setData('halo', halo);
     this.tweens.add({ targets: halo, scale: 1.6, alpha: 0.05, duration: 1000, yoyo:true, repeat:-1 });
-    // auto-despawn after 12s if not picked
     this.time.delayedCall(12000, () => {
       if (this._activeStar === star){
         star.destroy(); halo.destroy(); this._activeStar = null;
@@ -3858,15 +3863,26 @@ class MatchScene extends Phaser.Scene {
   }
   applyPowerUp(player){
     if (!player) return;
-    player._powerBoostUntil = this.time.now + 8000;
+    const variant = (this._activeStar && this._activeStar.getData('variant')) || { id:'star', icon:'⭐', color:0xffd76e, label:'+25% ACCURACY 8s' };
     SFX.chime && SFX.chime();
     SFX.crowdAhh && SFX.crowdAhh();
-    // popCoach toast
-    this.popCoach && this.popCoach('⭐ POWER UP! +25% acc 8s');
-    // gold aura
-    const aura = this.add.circle(player.x, player.y, 60, 0xffd76e, 0.4).setDepth(DEPTH.EFFECT_BACK);
+    this.popCoach && this.popCoach(`${variant.icon} POWER UP! ${variant.label}`);
+    // aura
+    const aura = this.add.circle(player.x, player.y, 60, variant.color, 0.4).setDepth(DEPTH.EFFECT_BACK);
     player._powerAura = aura;
     this.tweens.add({ targets: aura, scale: 1.4, alpha: 0.15, duration: 600, yoyo:true, repeat:6, onComplete:()=>{ aura.destroy(); player._powerAura = null; }});
+    // 🆕 v2.13.8 — variant effects
+    if (variant.id === 'star')       player._powerBoostUntil = this.time.now + 8000;
+    else if (variant.id === 'fire')  player._firePowerUntil   = this.time.now + 6000;
+    else if (variant.id === 'lucky') player._luckyShotsLeft   = 3;
+    else if (variant.id === 'ice'){
+      const opp = (player === this.p1) ? this.p2 : this.p1;
+      if (opp){
+        opp._slowedUntil = this.time.now + 5000;
+        opp.setTint(0x88ccff);
+        this.time.delayedCall(5000, () => opp && opp.clearTint && opp.clearTint());
+      }
+    }
   }
 
   update(time, delta){
