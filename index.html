@@ -7080,6 +7080,26 @@ function showEndCard(){
           P1 MVP RATING <span style="color:#fff;font-size:24px;font-weight:900">${mvpRating}</span> /99
         </div>
       </div>`;
+    // 🆕 v2.13.16 — TOP 3 MOMENTS reel
+    const moments = (State.matchMoments || []).slice().sort((a,b) => b.weight - a.weight).slice(0, 3);
+    if (moments.length){
+      const momentRows = moments.map((m, i) => {
+        const who = m.idx === 0 ? '⭐ YOU' : '🤖 CPU';
+        const icon = m.type === 'logo' ? '🌍' : m.type === 'halfcourt' ? '🚀' : m.type === 'three' ? '🎯' : '🔥';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:${i>0?'1px solid #ffd76e22':'none'}">
+          <div style="font-size:22px">${icon}</div>
+          <div style="flex:1">
+            <div style="color:#fff;font-weight:900;font-size:12px">${who} · ${m.label}</div>
+            <div style="color:#aaa;font-size:10px">RD ${m.round} · @${m.time}s</div>
+          </div>
+          <div style="color:var(--gold);font-size:10px;letter-spacing:2px;font-weight:900">#${i+1}</div>
+        </div>`;
+      }).join('');
+      mvpCard += `<div style="margin-top:12px;padding:10px;background:#0008;border:2px solid #ff8a3c44;border-radius:10px">
+        <div style="color:#ff8a3c;letter-spacing:3px;font-size:11px;margin-bottom:4px">🎬 TOP MOMENTS</div>
+        ${momentRows}
+      </div>`;
+    }
     // 🆕 v2.13.5 — SHOT HEATMAP (mini-court SVG with dots)
     const heatShots = (State.matchStats?.[0]?.shots || []);
     if (heatShots.length){
