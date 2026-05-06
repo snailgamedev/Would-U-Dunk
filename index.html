@@ -5385,10 +5385,23 @@ class MatchScene extends Phaser.Scene {
   }
 
   exitMatch(){
-    this.scene.stop();
+    // 🆕 v2.16.2 — defensive teardown so the game doesn't keep running in the background
     State.matchOver = true;
-    document.getElementById('hud').style.display = 'none';
+    State._franchiseActive = false; State._tourneyActive = false; State._dailyActive = false;
+    State._wasFranchise = false; State._wasTourney = false;
+    if (this.physics && this.physics.world){ this.physics.world.timeScale = 1; }
+    if (this.cameras && this.cameras.main){ this.cameras.main.setZoom(1); }
+    // hide HUD chrome
+    const hud = document.getElementById('hud'); if (hud) hud.style.display = 'none';
+    const ls = document.getElementById('liveStats'); if (ls) ls.style.display = 'none';
+    const pause = document.getElementById('pause'); if (pause) pause.classList.remove('on');
+    const moves = document.getElementById('moves'); if (moves) moves.classList.remove('on');
+    const gear = document.getElementById('gameSettings'); if (gear) gear.classList.remove('on');
+    if (typeof closeModal === 'function') closeModal();
+    this.scene.stop();
     showSplash();
+    // confirm to user that match really ended
+    if (typeof showToast === 'function') showToast('🏠 Returned to main menu — match ended', 'level');
   }
 }
 
