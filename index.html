@@ -1871,6 +1871,15 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.3';
 const CHANGELOG = [
+  { v:'v2.16.3', notes:[
+      '📱 MOBILE FIT FIX — touch buttons no longer overlap (use calc() positioning, shrink to 78px on phone, 64px on phones <380px)',
+      '📜 SPLASH AUTO-SCROLLS on mobile when content is taller than the viewport (no clipping)',
+      '🪟 Modals now max-height 94vh + scroll inside · header padding tightened on mobile',
+      '🚫 Touch overlay no longer leaks onto splash — only shows during a match',
+      '📐 Buttons stack 2-up on mobile rows (instead of 3-up squeeze) · 42px min height for thumb-friendly taps',
+      '🔢 HUD numbers + badges scaled down on phones · live stats panel constrained to 60vw',
+      '⛪ Order from above — "He has made everything beautiful in its time" · Eccl 3:11',
+  ]},
   { v:'v2.16.2', notes:[
       '🪲 BUG FIX — Settings now defensively PAUSES the active match on open. Closing settings keeps match paused — only RESUME or QUIT actually proceeds. No more silent background play',
       '🏠 BUG FIX — exitMatch now does a full teardown: stops scene, hides HUD/pause/moves/gear/modal, resets all in-progress flags, normalizes camera + physics. Toast confirms "Match ended"',
