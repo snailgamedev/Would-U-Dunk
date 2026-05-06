@@ -1992,6 +1992,17 @@ class MatchScene extends Phaser.Scene {
     // Players <-> ball pickup
     this.physics.add.overlap(this.p1, this.ball, () => this.tryPickup(this.p1));
     this.physics.add.overlap(this.p2, this.ball, () => this.tryPickup(this.p2));
+    // 🆕 v2.7.0 — SOLID PLAYERS. Soft body-check so they don't phase through each other.
+    // Mass set so neither pushes the other off the court trivially; pushable but not tunneling.
+    this.p1.body.setMass(1.0); this.p2.body.setMass(1.0);
+    this.physics.add.collider(this.p1, this.p2, (a, b) => {
+      // tiny separation kick + bounce SFX on first contact only (debounced 250ms)
+      const t = this.time.now;
+      if ((this._lastBodyCheck || 0) + 250 < t){
+        this._lastBodyCheck = t;
+        SFX.bounce && SFX.bounce();
+      }
+    });
 
     // Inputs
     this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P');
