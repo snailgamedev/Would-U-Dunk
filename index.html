@@ -6666,6 +6666,9 @@ function showSplash(){
   document.getElementById('btnSet').onclick   = renderSettingsScreen;
   document.getElementById('btnAbout').onclick = renderAboutScreen;
   document.getElementById('btnUpdates').onclick = renderUpdatesScreen;
+  // 🆕 v2.16.1 — visual chronicle (rich version history with semver rationale + meta)
+  const btnChron = document.getElementById('btnChronicle');
+  if (btnChron) btnChron.onclick = renderChronicleScreen;
   document.getElementById('btnShareGame').onclick = renderShareGameScreen;
   document.getElementById('btnProfile').onclick = renderProfileScreen;
   // 🆕 v2.6.3 — SURPRISE ME: roll random looks + random mode + start match immediately
