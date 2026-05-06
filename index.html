@@ -6712,6 +6712,20 @@ function showEndCard(){
   } else {
     State._wasFranchise = false;
   }
+  // 🆕 v2.13.12 — DAILY CHALLENGE result save
+  if (matchDone && State._dailyActive){
+    const myPts = State.matchPoints?.[0] || 0;
+    const oppPts = State.matchPoints?.[1] || 0;
+    const won = myPts > oppPts;
+    const key = dailyKey();
+    const all = loadDailyBest();
+    const prev = all[key];
+    if (!prev || myPts > (prev.myPts || 0)){
+      all[key] = { myPts, oppPts, won, at: Date.now() };
+      saveDailyBest(all);
+    }
+    State._dailyActive = false;
+  }
   // 🆕 v2.9.0 — TOURNAMENT update on match-done
   if (matchDone && State._tourneyActive){
     const t = loadTourney();
