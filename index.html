@@ -3642,6 +3642,16 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v2.7.0 — clamp score to MIN_SCORE so cursed mode can't bottom-out indefinitely
     State.scores[scorerIdx] = clampScore((State.scores[scorerIdx] || 0) + points);
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
+    // 🆕 v2.13.26 — BUZZER BEATER detection — last 3 sec of round = 2× points + special FX
+    const remainingNow = (this.roundSecs || 120) - (this.elapsed || 0);
+    if (remainingNow > 0 && remainingNow < 3){
+      points *= 2;
+      this.bigShotHighlight && this.bigShotHighlight(`🚨 BUZZER BEATER · ${points}PT`);
+      this.cameras.main.flash(180, 255, 80, 80);
+      if (scorerIdx === 0) awardCash(100);   // bonus
+      if (scorerIdx === 0) State._buzzerThisMatch = true;
+      SFX.crowdAhh && SFX.crowdAhh();
+    }
     // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
     if (points >= 3) this.bigShotHighlight(zoneLabel || '+' + points);
     // 🆕 v2.13.16 — TRACK MATCH MOMENTS (for top-3 highlight reel on end card)
