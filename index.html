@@ -6017,45 +6017,7 @@ function renderChronicleScreen(){
     const rows = buildEraRows(list);
     return section(b.label, T(['VER','HEADLINE','RATIONALE'], rows));
   }).join('');
-  const era4_13 = T(['VER','FEATURE','RATIONALE'],[
-    ['v2.13.0','❄️ ICE COLD · ⭐ POWER-UPS · 🛒 SHOP (17 items) · 30 lore lines','"Fire & Ice" symmetry'],
-    ['v2.13.1','Ball skins WORK · power-up boost real · court themes live','functional cosmetics'],
-    ['v2.13.2','☄️ trail tints · 🎆 pyro · 🕊️ doves · 📅 daily seed','cosmetic functionality'],
-    ['v2.13.3','Shop visual previews · loadout line · audit','confirmation pass'],
-    ['v2.13.4','🥇 profile badges · 🎬 big shot slow-mo','medal + cinematic'],
-    ['v2.13.5','📋 scouting report · 📍 shot heatmap','post-game analytics'],
-    ['v2.13.6','🔀 trade block · 🎬 replay ghost arc','franchise depth + visual'],
-    ['v2.13.7','🎤 halftime show (8 acts)','event polish'],
-    ['v2.13.8','🎴 4 power-up variants (STAR/FIRE/ICE/LUCKY)','depth'],
-    ['v2.13.9','💰 streak cash bonuses (3X/5X/7X/10X)','reward loop'],
-    ['v2.13.10','+4 streak achievements','unlock pace'],
-    ['v2.13.11','🏟 stadium tier system (5 levels)','persistent visual upgrade'],
-    ['v2.13.12','📅 daily challenge dedicated UI','retention loop'],
-    ['v2.13.13','⚙ custom rule editor','UGC'],
-    ['v2.13.14','📋 NBA 2K-style 6-attribute rating card','profile depth'],
-    ['v2.13.15','🗣 Coach AI tips (9 categories)','mid-game flavor'],
-    ['v2.13.16','🎬 top moments reel (top 3)','post-game flair'],
-    ['v2.13.17','😎 emote system (1-5 keys) + online sync','expression'],
-    ['v2.13.18','🏆 trophy room polish (rarity tiers)','UX polish'],
-    ['v2.13.19','🔥 daily streak tracker','retention'],
-    ['v2.13.20','📚 first-run tutorial','onboarding'],
-    ['v2.13.21','📺 splash news ticker (10 rotating msgs)','live data hype'],
-    ['v2.13.22','💰 daily login bonus ($200/day)','retention reward'],
-    ['v2.13.23','🎯 3-PT + LOGO drill modes','content'],
-    ['v2.13.24','📊 TAB live stats panel','mid-game UX'],
-    ['v2.13.25','📷 Z-key zoom toggle','camera'],
-    ['v2.13.26','🚨 buzzer beater 2× bonus','dramatic moment'],
-    ['v2.13.27','🎬 pre-game walk-in animation','NBA 2K intro feel'],
-    ['v2.13.28','🎯 daily 3-objective challenges','quest system'],
-    ['v2.13.29','🌟 Player of the Week','weekly retention'],
-    ['v2.13.30','🔥 shop daily flash sale (50% off)','shopping hook'],
-  ]);
-  const era4_14_16 = T(['VER','SHIPPED','RATIONALE'],[
-    ['v2.14.0','+12 achievements for new systems · centralized audit · totalSpent','minor — new persistent state field'],
-    ['v2.15.0','✝️ HOLY EDITION — opening prayer · verse of day · golden pulse badge · 30% holy NPC boost · GOLD easter egg','minor — faith-forward identity layer'],
-    ['v2.16.0','📱 MOBILE EDITION — device picker · ui-mobile/ui-desktop · responsive scaling','minor — whole new device path'],
-    ['v2.16.1','📚 VISUAL CHRONICLE — this very screen · semver legend · meta thought','patch — adds in-game history viewer'],
-  ]);
+  // (era4_13 + era4_14_16 removed — replaced by era4Sections above which auto-builds from CHANGELOG)
   // 🆕 v2.16.4 — totals now pulled live from computeStats() so they NEVER go stale
   const __s = computeStats();
   const totals = T(['METRIC','COUNT (LIVE)'],[
