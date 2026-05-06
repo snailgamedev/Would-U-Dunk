@@ -5463,7 +5463,12 @@ function openModal(title, htmlBody){
   document.getElementById('modalBody').innerHTML = htmlBody;
   document.getElementById('modalRoot').classList.add('on');
 }
-function closeModal(){ document.getElementById('modalRoot').classList.remove('on'); }
+function closeModal(){
+  document.getElementById('modalRoot').classList.remove('on');
+  // 🆕 v2.16.2 — match stays PAUSED on settings close (user must explicitly click RESUME or QUIT)
+  // Previously it could silently resume; now it doesn't.
+  window._wudSettingsResumeAfterClose = false;
+}
 document.getElementById('modalX').onclick = closeModal;
 document.getElementById('modalRoot').addEventListener('click', e => { if (e.target.id === 'modalRoot') closeModal(); });
 
