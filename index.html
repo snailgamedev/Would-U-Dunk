@@ -4093,7 +4093,30 @@ class MatchScene extends Phaser.Scene {
     this.ball.setData('lockUntil', this.time.now + 200);
   }
 
+  // 🆕 v2.13.23 — drop the ball at a fixed distance from the player's hoop (drill modes)
+  drillSpawn(){
+    const cfg = State.cfg || {};
+    if (!cfg.drillMode) return;
+    const range = cfg.drillRange || 600;
+    const hoop = (this.p1 && this.p1.scoringHoop) || this.hoopR;
+    const fromLeft = hoop && (hoop.x > COURT_W/2);
+    const x = fromLeft ? hoop.x - range : hoop.x + range;
+    this.ball.setPosition(x, FLOOR_Y - 50);
+    this.ball.body.setVelocity(0, 0);
+    this.detachBall();
+    this.ball.setData('lockUntil', this.time.now + 200);
+  }
+
   onBallFloor(){
+    // 🆕 v2.13.23 — drill mode auto-respawns ball after a brief delay when it lands on floor
+    if (State.cfg && State.cfg.drillMode){
+      if (this._drillRespawnPending) return;
+      this._drillRespawnPending = true;
+      this.time.delayedCall(700, () => {
+        this._drillRespawnPending = false;
+        if (this.canMove) this.drillSpawn();
+      });
+    }
     // friction handled by floorFriction cfg
   }
 
