@@ -7393,6 +7393,19 @@ function showEndCard(){
   } else {
     State._wasTourney = false;
   }
+  // 🆕 v2.13.29 — PLAYER OF THE WEEK beat-bonus
+  if (matchDone && winner === 'P1' && State.mode === 'CPU' && State.rolls?.cpuTiers?.[0]?._npc){
+    try {
+      const potw = getPlayerOfTheWeek();
+      const opp = State.rolls.cpuTiers[0]._npc;
+      const beaten = loadPotwBeaten() === potw.week;
+      if (!beaten && opp.id === potw.npc.id){
+        savePotwBeaten(potw.week);
+        if (typeof awardCash === 'function') awardCash(500);
+        showToast(`🌟 BEAT POTW · +$500 BONUS`, 'level');
+      }
+    } catch(e){}
+  }
   // career update on match-done
   if (matchDone && !State._matchRecorded){
     State._matchRecorded = true;
