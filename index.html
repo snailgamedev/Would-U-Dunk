@@ -5055,6 +5055,20 @@ function renderSettingsScreen(){
       <div style="font-size:10px;color:#aaa;letter-spacing:1px;margin-bottom:6px">earn XP from franchise + tournament games</div>
       ${xpProgress}
     `)}
+    ${section(`🏟 STADIUM TIER · ${(typeof loadStadiumTier === 'function') ? loadStadiumTier() : 1}/5`, (() => {
+      const t = (typeof loadStadiumTier === 'function') ? loadStadiumTier() : 1;
+      const myCash = loadCash();
+      return STADIUM_TIERS.map(stt => {
+        const isOwned = t >= stt.tier;
+        const canBuy = !isOwned && stt.tier === t + 1 && myCash >= stt.cost;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:${stt.tier>1?'1px solid #ffd76e22':'none'}">
+          <div style="font-size:13px;color:${isOwned?'#4cf07a':'#aaa'};flex:1">${isOwned?'✅ ':''}${stt.name} <span style="color:#aaa;font-size:10px">· ${stt.desc}</span></div>
+          ${isOwned ? '<span style="color:#4cf07a;font-size:10px;letter-spacing:2px">OWNED</span>' :
+            canBuy ? `<button class="btn hot" data-stadium="${stt.tier}" style="font-size:10px;padding:5px 10px;width:auto">UPGRADE $${stt.cost}</button>` :
+            `<span style="color:#888;font-size:10px">$${stt.cost}</span>`}
+        </div>`;
+      }).join('');
+    })())}
     <div style="margin-top:18px;border-top:1px solid #ffd76e44;padding-top:14px">
       <button class="btn hot" id="btnReset" style="background:#ff3b3b">🗑️ RESET ALL CAREER PROGRESS</button>
       <div class="small" style="margin-top:6px">wipes career, achievements, settings, and saved looks. cannot be undone.</div>
