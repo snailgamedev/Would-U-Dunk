@@ -5151,6 +5151,22 @@ function renderFranchiseScreen(){
   // 🆕 v2.11.1 — HoF button on franchise dashboard
   const hofB = document.getElementById('franchHofBtn');
   if (hofB) hofB.onclick = renderHallOfFameScreen;
+  // 🆕 v2.13.6 — TRADE buttons on each roster row
+  document.querySelectorAll('[data-trade]').forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const releaseId = b.dataset.trade;
+      const offer = offerTrade(f, releaseId);
+      if (!offer){ showToast('No trade offers right now', 'allpro'); return; }
+      const tier = CPU_TIERS.find(t => t.id === offer.tierId) || CPU_TIERS[10];
+      const released = f.roster.find(r => r.id === releaseId);
+      if (confirm(`TRADE OFFER:\n\nRelease: ${released.name} (${released.archetypeLabel || released.tierId})\nReceive: ${offer.name} (${offer.archetypeLabel} · ${tier.name})\n\nAccept?`)){
+        executeTrade(f, releaseId, offer);
+        showToast(`🔀 Traded for ${offer.name}`, 'level');
+        renderFranchiseScreen();
+      }
+    };
+  });
   document.getElementById('franchReset').onclick = () => {
     // 🆕 v2.11.1 — offer to archive to Hall of Fame instead of just deleting
     if (f.season > 1 || (f.gameNum > 0)){
