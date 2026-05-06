@@ -7945,6 +7945,8 @@ function showEndCard(){
   if (matchDone && !State._matchRecorded){
     State._matchRecorded = true;
     Career.games += 1;
+    // 🆕 v2.16.6 — daily-objective games hook
+    if (typeof trackDailyObjective === 'function') trackDailyObjective('games', 1);
     const myMode = (Career.gameModesPlayed[State.modeId] = Career.gameModesPlayed[State.modeId] || {plays:0, wins:0});
     myMode.plays += 1;
     if (winner === 'P1'){
