@@ -3400,6 +3400,22 @@ class MatchScene extends Phaser.Scene {
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
     // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
     if (points >= 3) this.bigShotHighlight(zoneLabel || '+' + points);
+    // 🆕 v2.13.6 — REPLAY GHOST TRAJECTORY arc on 3+ pt shots (parabolic dotted line from origin to hoop)
+    if (points >= 3){
+      const sx = ball.getData('shotFromX'), sy = ball.getData('shotFromY');
+      if (sx != null && sy != null){
+        const ex = hoop.x, ey = hoop.y;
+        const arcColor = points >= 5 ? 0xffd76e : points >= 4 ? 0xff8a3c : 0x4f9eff;
+        const peakLift = 180 + (points - 3) * 60;
+        for (let i = 1; i <= 18; i++){
+          const t = i / 18;
+          const px = sx + (ex - sx) * t;
+          const py = sy + (ey - sy) * t - Math.sin(Math.PI * t) * peakLift;
+          const dot = this.add.circle(px, py, 3, arcColor, 0.85).setDepth(DEPTH.EFFECT_FRONT);
+          this.tweens.add({ targets: dot, alpha: 0, scale: 0.4, duration: 1400 + i * 30, onComplete: () => dot.destroy() });
+        }
+      }
+    }
     // 🆕 v2.12.0 — CASH economy + TRASH TALK
     if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
     if (scorerIdx === 1 && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers && Math.random() < 0.4){
