@@ -3555,6 +3555,25 @@ class MatchScene extends Phaser.Scene {
       cb && cb();
     });
   }
+  // 🆕 v2.13.4 — quick slow-mo highlight on big shots WITHOUT ending the round
+  bigShotHighlight(label){
+    if (this._highlightActive) return;
+    this._highlightActive = true;
+    const orig = this.physics.world.timeScale;
+    this.physics.world.timeScale = 2.5;
+    // film border frames (top + bottom black bars)
+    const topBar = this.add.rectangle(VIEW_W/2, 0, VIEW_W, 50, 0x000000, 0.85).setOrigin(0.5, 0).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+    const botBar = this.add.rectangle(VIEW_W/2, VIEW_H, VIEW_W, 50, 0x000000, 0.85).setOrigin(0.5, 1).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+    const txt = this.add.text(VIEW_W/2, 24, `🎬 ${label}`, {fontFamily:'monospace', fontSize:18, color:'#ffd76e', stroke:'#000', strokeThickness:4, fontStyle:'bold'}).setOrigin(0.5, 0).setDepth(DEPTH.BANNER + 1).setScrollFactor(0).setAlpha(0);
+    this.tweens.add({ targets:[topBar, botBar, txt], alpha: 1, duration: 180 });
+    this.time.delayedCall(620, () => {
+      this.physics.world.timeScale = orig;
+      this.tweens.add({ targets:[topBar, botBar, txt], alpha: 0, duration: 200, onComplete: () => {
+        topBar.destroy(); botBar.destroy(); txt.destroy();
+        this._highlightActive = false;
+      }});
+    });
+  }
 
   celebrate(player){
     const cel = State.looks[player.idx].celebration;
