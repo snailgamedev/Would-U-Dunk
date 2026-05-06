@@ -5262,9 +5262,14 @@ function renderProfileScreen(){
           <button class="opt txt" data-switch="${p.name}" style="background:${p.name===cur?'#444':'var(--hot)'};color:#fff;font-size:10px">${p.name===cur?'CURRENT':'SWITCH'}</button>
           <button class="opt txt" data-del="${p.name}" style="background:#222;color:#ff8a8a;font-size:10px">DEL</button>
         </div>`).join('');
+  // 🆕 v2.13.14 — show player rating card on profile screen
+  const myCard = computePlayerCard();
+  const cardHtml = ratingCardHtml((cur === 'default' ? 'GUEST' : cur.toUpperCase()), myCard, '#ffd76e');
   const html = `
     <div>
-      <div class="section-divider" style="margin-top:0">YOUR PROFILES</div>
+      <div class="section-divider" style="margin-top:0">📋 YOUR CARD</div>
+      ${cardHtml}
+      <div class="section-divider">YOUR PROFILES</div>
       ${rows}
       <div class="section-divider">CREATE NEW PROFILE</div>
       <div style="display:flex;gap:6px;align-items:center">
