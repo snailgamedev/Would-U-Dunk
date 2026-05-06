@@ -5951,6 +5951,58 @@ function dailyKey(){
 }
 function loadDailyBest(){ try { return JSON.parse(localStorage.getItem(`wud:daily:${currentProfileName()}`) || '{}'); } catch(e){ return {}; } }
 function saveDailyBest(obj){ try { localStorage.setItem(`wud:daily:${currentProfileName()}`, JSON.stringify(obj)); } catch(e){} }
+// 🆕 v2.13.28 — DAILY OBJECTIVES (3 per day, date-seeded, cash rewards on completion)
+const DAILY_OBJECTIVES = [
+  { id:'buckets_5',   stat:'buckets', goal:5,  reward:150, label:'Score 5 buckets today' },
+  { id:'buckets_10',  stat:'buckets', goal:10, reward:300, label:'Score 10 buckets today' },
+  { id:'dunks_3',     stat:'dunks',   goal:3,  reward:200, label:'Throw down 3 dunks' },
+  { id:'dunks_5',     stat:'dunks',   goal:5,  reward:400, label:'Throw down 5 dunks' },
+  { id:'wins_1',      stat:'wins',    goal:1,  reward:250, label:'Win 1 match' },
+  { id:'wins_3',      stat:'wins',    goal:3,  reward:600, label:'Win 3 matches' },
+  { id:'games_3',     stat:'games',   goal:3,  reward:200, label:'Play 3 matches' },
+  { id:'streak_5',    stat:'streak',  goal:5,  reward:300, label:'Hit a 5-bucket streak' },
+  { id:'longshot',    stat:'long',    goal:1,  reward:500, label:'Make a long-range shot' },
+  { id:'block_2',     stat:'blocks',  goal:2,  reward:200, label:'Block 2 shots' },
+];
+function loadDailyObjectives(){
+  const today = (typeof dailyKey === 'function') ? dailyKey() : new Date().toISOString().slice(0,10);
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(`wud:objectives:${currentProfileName()}`) || 'null'); } catch(e){}
+  if (raw && raw.day === today) return raw;
+  // generate 3 fresh date-seeded objectives
+  const seed = today.split('-').join('') | 0;
+  let s = seed;
+  const rand = () => { s = (s * 1664525 + 1013904223) | 0; return ((s >>> 0) / 0x100000000); };
+  const pool = DAILY_OBJECTIVES.slice();
+  const picks = [];
+  for (let i = 0; i < 3 && pool.length; i++){
+    const idx = (rand() * pool.length) | 0;
+    picks.push({ ...pool[idx], progress: 0, claimed: false });
+    pool.splice(idx, 1);
+  }
+  const fresh = { day: today, objectives: picks };
+  try { localStorage.setItem(`wud:objectives:${currentProfileName()}`, JSON.stringify(fresh)); } catch(e){}
+  return fresh;
+}
+function saveDailyObjectives(o){ try { localStorage.setItem(`wud:objectives:${currentProfileName()}`, JSON.stringify(o)); } catch(e){} }
+function trackDailyObjective(stat, n){
+  n = n || 1;
+  const o = loadDailyObjectives();
+  let claimedAny = false;
+  o.objectives.forEach(obj => {
+    if (obj.stat === stat && !obj.claimed){
+      obj.progress = Math.min(obj.goal, (obj.progress || 0) + n);
+      if (obj.progress >= obj.goal){
+        obj.claimed = true;
+        claimedAny = true;
+        if (typeof awardCash === 'function') awardCash(obj.reward);
+        showToast && showToast(`🎯 OBJECTIVE +$${obj.reward} · ${obj.label}`, 'level');
+      }
+    }
+  });
+  saveDailyObjectives(o);
+  return claimedAny;
+}
 // 🆕 v2.13.19 — DAILY STREAK tracker
 function loadDailyStreak(){ try { return JSON.parse(localStorage.getItem(`wud:dailystreak:${currentProfileName()}`) || '{"count":0,"last":""}'); } catch(e){ return {count:0, last:''}; } }
 function saveDailyStreak(s){ try { localStorage.setItem(`wud:dailystreak:${currentProfileName()}`, JSON.stringify(s)); } catch(e){} }
