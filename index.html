@@ -268,34 +268,34 @@
 <!-- Menus (Splash / Mode / Char Select) -->
 <div id="menu">
   <div class="panel" id="splash">
-    <div class="title">WOULD U DUNK</div>
-    <div class="subtitle">THE UNHINGED CHRONICLES</div>
+    <div class="title" style="text-shadow:0 0 20px #ffd76e88, 0 4px 0 #000, 0 6px 18px #ff3b3baa;background:linear-gradient(135deg,#ffd76e,#ff8a3c 60%,#ff3b3b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">WOULD U DUNK</div>
+    <div class="subtitle" style="color:#ffd76e;text-shadow:0 2px 0 #000;letter-spacing:5px">THE UNHINGED CHRONICLES</div>
+    <div style="font-size:9px;letter-spacing:4px;color:#ff8a3c;margin-top:4px;font-weight:900">a basketball fan's best dream · a non-fan's worst nightmare</div>
     <div class="verse" id="splashVerse">"For I know the plans I have for you" — Jer 29:11 🙏</div>
     <div id="splashLvlBar"></div>
-    <button class="btn hot" id="btnPlay">TAP TO BALL UP</button>
+    <button class="btn hot" id="btnPlay" style="font-size:18px;padding:13px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c,#ffd76e);border:3px solid #ffd76e;box-shadow:0 0 30px #ff8a3c66,inset 0 0 18px #ffd76e44">🏀 TAP TO BALL UP 🏀</button>
+    <!-- 🆕 v2.10.0 — featured big modes promoted to top -->
+    <div class="row" style="margin-top:8px">
+      <button class="btn hot" id="btnFranchise" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);border-color:#ffd76e;color:#fff;box-shadow:0 4px 14px #4f9eff44">🏆 FRANCHISE</button>
+      <button class="btn hot" id="btnTournament" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#9b59b6,#ff3b3b,#ffd76e);border-color:#ffd76e;color:#fff;box-shadow:0 4px 14px #9b59b644">⚔️ TOURNAMENT</button>
+    </div>
     <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnStats" style="font-size:13px;padding:10px">STATS</button>
-      <button class="btn" id="btnAch" style="font-size:13px;padding:10px">ACHIEVEMENTS</button>
-      <button class="btn" id="btnBoard" style="font-size:13px;padding:10px">LEADERBOARD</button>
+      <button class="btn hot" id="btnSurprise" style="font-size:14px;padding:11px;background:linear-gradient(135deg,#a040ff,#ff3b3b,#ffd76e);border-color:#ffd76e;box-shadow:0 4px 14px #a040ff44">🎲 SURPRISE ME — RANDOM EVERYTHING</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" id="btnStats" style="font-size:12px;padding:9px">📊 STATS</button>
+      <button class="btn" id="btnAch" style="font-size:12px;padding:9px">🏅 ACHIEVES</button>
+      <button class="btn" id="btnBoard" style="font-size:12px;padding:9px">📈 BOARD</button>
     </div>
     <div class="row" style="margin-top:4px">
-      <button class="btn" id="btnHow" style="font-size:13px;padding:10px">HOW TO PLAY</button>
-      <button class="btn" id="btnSet" style="font-size:13px;padding:10px">⚙ SETTINGS</button>
-      <button class="btn" id="btnAbout" style="font-size:13px;padding:10px">ABOUT</button>
+      <button class="btn" id="btnHow" style="font-size:12px;padding:9px">🎮 HOW</button>
+      <button class="btn" id="btnSet" style="font-size:12px;padding:9px">⚙ SETTINGS</button>
+      <button class="btn" id="btnAbout" style="font-size:12px;padding:9px">ℹ ABOUT</button>
     </div>
     <div class="row" style="margin-top:4px">
-      <button class="btn" id="btnUpdates" style="font-size:13px;padding:10px">📋 UPDATES</button>
-      <button class="btn" id="btnShareGame" style="font-size:13px;padding:10px">🔗 SHARE GAME</button>
-      <button class="btn" id="btnProfile" style="font-size:13px;padding:10px">👤 ACCOUNT</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnSurprise" style="font-size:14px;padding:11px;background:linear-gradient(135deg,#a040ff,#ff3b3b);border-color:#ffd76e">🎲 SURPRISE ME — RANDOM EVERYTHING</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnFranchise" style="font-size:14px;padding:11px;background:linear-gradient(135deg,#1a3a8a,#ffd76e);border-color:#ffd76e;color:#fff">🏆 FRANCHISE MODE — 11 LEAGUES · 88 TEAMS</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnTournament" style="font-size:14px;padding:11px;background:linear-gradient(135deg,#9b59b6,#ff3b3b);border-color:#ffd76e;color:#fff">⚔️ TOURNAMENT — 8-TEAM SINGLE ELIM</button>
+      <button class="btn" id="btnUpdates" style="font-size:12px;padding:9px">📋 UPDATES</button>
+      <button class="btn" id="btnShareGame" style="font-size:12px;padding:9px">🔗 SHARE</button>
+      <button class="btn" id="btnProfile" style="font-size:12px;padding:9px">👤 ACCOUNT</button>
     </div>
     <div id="profileBadge" style="margin-top:10px;font-size:11px;color:var(--gold);letter-spacing:3px;font-weight:900"></div>
     <div class="small">82 modifiers · 29 CPU tiers · 22 modes · 97 achievements · zero player input on anything</div>
