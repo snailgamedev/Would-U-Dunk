@@ -2453,13 +2453,26 @@ function loadEquipped(cat){ try { return localStorage.getItem(`wud:equipped:${ca
 function saveEquipped(cat, id){ try { localStorage.setItem(`wud:equipped:${cat}:${currentProfileName()}`, id); } catch(e){} }
 function buyItem(item){
   const cash = loadCash();
-  if (cash < item.price) return { ok:false, msg:'NOT ENOUGH CASH' };
+  // 🆕 v2.13.30 — apply daily flash sale discount
+  const sale = getDailyFlashSale();
+  const effectivePrice = (sale && sale.itemId === item.id) ? Math.round(item.price * (1 - sale.discount)) : item.price;
+  if (cash < effectivePrice) return { ok:false, msg:'NOT ENOUGH CASH' };
   const owned = loadOwned();
   if (owned.includes(item.id)) return { ok:false, msg:'ALREADY OWNED' };
-  if (item.price > 0) spendCash(item.price);
+  if (effectivePrice > 0) spendCash(effectivePrice);
   owned.push(item.id);
   saveOwned(owned);
   return { ok:true };
+}
+// 🆕 v2.13.30 — DAILY FLASH SALE: 1 random shop item at 50% off, date-seeded so everyone sees same
+function getDailyFlashSale(){
+  const today = (typeof dailyKey === 'function') ? dailyKey() : new Date().toISOString().slice(0,10);
+  const seed = parseInt(today.split('-').join(''), 10) || 1;
+  let s = (seed * 1664525 + 1013904223) | 0;
+  // pick from items that COST > 0
+  const candidates = SHOP_ITEMS.filter(i => i.price > 0);
+  const idx = (((s >>> 0) / 0x100000000) * candidates.length) | 0;
+  return { day: today, itemId: candidates[idx].id, discount: 0.5 };
 }
 
 /* ================================================================================================
