@@ -2575,7 +2575,15 @@ class MatchScene extends Phaser.Scene {
 
     // === ARENA BACKDROP ===
     // Deep arena sky (multi-band gradient)
-    this.add.rectangle(COURT_W/2, COURT_H/2, COURT_W, COURT_H, 0x0a0e1f).setDepth(-13);
+    this.add.rectangle(COURT_W/2, COURT_H/2, COURT_W, COURT_H, this._themeBgRect || 0x0a0e1f).setDepth(-13);
+    // 🆕 v2.13.1 — space court starfield
+    if (this._courtTheme === 'court_space'){
+      for (let i = 0; i < 80; i++){
+        const sx = Math.random() * COURT_W;
+        const sy = Math.random() * (COURT_H * 0.6);
+        this.add.rectangle(sx, sy, 1 + (Math.random()*2|0), 1 + (Math.random()*2|0), 0xffffff).setAlpha(0.3 + Math.random()*0.7).setDepth(-12);
+      }
+    }
     this.add.rectangle(COURT_W/2, 50, COURT_W, 100, 0x05070f).setDepth(-13);  // ceiling shadow
     this.add.rectangle(COURT_W/2, 250, COURT_W, 200, 0x141a30).setDepth(-13); // mid section
 
