@@ -7426,6 +7426,8 @@ function showEndCard(){
     // 🆕 v2.9.0 — DEV XP for franchise games
     const xp = (won ? 50 : 20) + (f && f.wins >= 7 ? 100 : 0);
     awardDevXp(xp, 'franchise game');
+    // 🆕 v2.14.0 — FINALS CHAMPION achievement on franchise season clinch (7+ wins)
+    if (f && f.wins >= 7) unlockAchievement('franchise_ring');
   } else {
     State._wasFranchise = false;
   }
