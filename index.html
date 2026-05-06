@@ -4290,6 +4290,9 @@ function showSplash(){
   // 🆕 v2.6.3 — SURPRISE ME: roll random looks + random mode + start match immediately
   const btnSurprise = document.getElementById('btnSurprise');
   if (btnSurprise) btnSurprise.onclick = startSurpriseMatch;
+  // 🆕 v2.8.0 — FRANCHISE button
+  const btnFranchise = document.getElementById('btnFranchise');
+  if (btnFranchise) btnFranchise.onclick = renderFranchiseScreen;
   // profile badge
   const pb = document.getElementById('profileBadge');
   if (pb) pb.textContent = profileBadge();
