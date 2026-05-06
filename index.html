@@ -2898,6 +2898,23 @@ class MatchScene extends Phaser.Scene {
       State.matchStats[player.idx].attempts += 1;
       if (dist > 600) State.matchStats[player.idx].longRange += 1;
     }
+    // 🆕 v2.13.0 — track miss streak for ICE COLD overlay (gets reset to 0 in tryScore)
+    if (!State.missStreak) State.missStreak = [0, 0];
+    State.missStreak[player.idx] = (State.missStreak[player.idx] || 0) + 1;
+    if (State.missStreak[player.idx] === 3){
+      // ICE COLD overlay — only fire on the 3rd consecutive miss
+      const ice = this.add.text(player.x, player.y - 130, `❄️ ICE COLD ❄️`, {fontFamily:'monospace', fontSize:18, color:'#00cfff', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets: ice, y: ice.y - 40, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:1300, onComplete:()=>ice.destroy() });
+      // blue frost tint flash
+      player.setTint(0x66c2ff);
+      this.time.delayedCall(700, () => player.clearTint && player.clearTint());
+      // ❄️ snow particles
+      for (let i=0; i<10; i++){
+        const sn = this.add.text(player.x + (Math.random()-0.5)*40, player.y - 80, '❄', {fontSize:'14px', color:'#aaeaff'}).setDepth(DEPTH.EFFECT_FRONT);
+        this.tweens.add({ targets: sn, y: sn.y + 80, alpha: 0, duration: 1100 + Math.random()*400, onComplete: () => sn.destroy() });
+      }
+      SFX.crowdOoh && SFX.crowdOoh();
+    }
     // Tag the ball with shot origin for SCORE ZONES (2/3/4/5 pts)
     this.ball.setData('shotFromX', player.x);
     this.ball.setData('shotFromY', player.y);
