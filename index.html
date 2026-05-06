@@ -3113,6 +3113,9 @@ class MatchScene extends Phaser.Scene {
     State.bucketsThisRound[scorerIdx] += 1;
     State.bucketStreak[scorerIdx] += 1;
     State.bucketStreak[1-scorerIdx] = 0;
+    // 🆕 v2.13.0 — RESET miss streak for the scorer (they're warmed up now)
+    if (!State.missStreak) State.missStreak = [0, 0];
+    State.missStreak[scorerIdx] = 0;
     if (State.matchStats?.[scorerIdx]){
       State.matchStats[scorerIdx].buckets += 1;
       // long-range MADE — if last shot was a long-range attempt, count it
