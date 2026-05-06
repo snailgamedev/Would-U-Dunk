@@ -902,7 +902,17 @@ function drawPlayerToCtx(ctx, look, w, h){
   drawDigits(ctx, look.number || 0, cx-12, numY,   0xffffff, 2);
 }
 
+// 🆕 v2.13.1 — ball skin dispatcher
 function drawBallToCtx(ctx, w, h, rotation){
+  const skin = (typeof loadEquipped === 'function') ? loadEquipped('BALL') : 'ball_classic';
+  if (skin === 'ball_beach')       return drawBeachBall(ctx, w, h, rotation);
+  if (skin === 'ball_watermelon')  return drawWatermelonBall(ctx, w, h, rotation);
+  if (skin === 'ball_soccer')      return drawSoccerBall(ctx, w, h, rotation);
+  if (skin === 'ball_eight')       return drawEightBall(ctx, w, h, rotation);
+  if (skin === 'ball_globe')       return drawGlobeBall(ctx, w, h, rotation);
+  return drawClassicBall(ctx, w, h, rotation);
+}
+function drawClassicBall(ctx, w, h, rotation){
   ctx.imageSmoothingEnabled = true;   // smooth gradients for realistic look
   ctx.clearRect(0,0,w,h);
   const cx = w/2, cy = h/2, r = w/2 - 2;
