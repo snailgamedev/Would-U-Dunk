@@ -3397,6 +3397,9 @@ class MatchScene extends Phaser.Scene {
     State.missStreak[scorerIdx] = 0;
     if (State.matchStats?.[scorerIdx]){
       State.matchStats[scorerIdx].buckets += 1;
+      // 🆕 v2.13.5 — mark last tracked shot as MADE (heatmap dot color)
+      const shots = State.matchStats[scorerIdx].shots;
+      if (shots && shots.length) shots[shots.length-1].made = true;
       // long-range MADE — if last shot was a long-range attempt, count it
       const stats = State.matchStats[scorerIdx];
       // 🆕 v2.12.0 — fixed 3P% calc. Was setting longMade = longRange (always 100%). Now: increment by 1 if last shot was long.
