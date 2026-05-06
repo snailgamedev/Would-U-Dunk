@@ -1651,6 +1651,101 @@ const CELEBRATIONS   = ['point','dunk','prayer','griddy','stand','flex','dab','b
 const NAME_PREFIXES = ['HOLY','SAINT','PROPHET','KING','LORD','BIG','LIL','DJ','MR','THE','MAJOR','CAPT','REV'];
 const NAME_CORES    = ['BUCKETS','SWISH','CROSSOVER','DAGGER','SPLASH','GLORY','BLESSED','CHOSEN','THUNDER','HEAT','LIGHT','FAVOR','GRACE','MERCY','VICTORY','TRIUMPH','COURAGE','FAITH','TRUST','HOPE','PEACE','JOY','DAVID','JOSHUA','PETER','PAUL','ELIJAH','MOSES','SAMSON'];
 const NAME_SUFFIXES = ['','24','7','3','12','99','XL','JR','III','THE GREAT','JESUS','GOD'];
+
+/* ================================================================================================
+   🆕 v2.7.0 — NPC ROSTER (120+ procedural CPUs w/ DISTINCT playstyles, names, looks, archetypes)
+   Each NPC inherits a CPU_TIER (stat baseline) and overlays a personality archetype
+   that tweaks AI decision thresholds (when to shoot / steal / dunk / lob / showboat).
+================================================================================================ */
+const NPC_ARCHETYPES = [
+  { id:'sniper',       label:'SNIPER 🎯',       desc:'lives at the 3pt line · long-range bias',    bias:{ shootRange:1.6, accuracy:1.05, stealRate:0.9 } },
+  { id:'slasher',      label:'SLASHER 🗡️',     desc:'attacks the rim · craves dunks',             bias:{ shootRange:0.55, accuracy:0.95, moveMul:1.05 } },
+  { id:'lockdown',     label:'LOCKDOWN 🛡️',     desc:'defense first · steal-monster',              bias:{ stealRate:1.6, react:0.7,  shootRange:0.85 } },
+  { id:'clown',        label:'CLOWN 🤡',        desc:'unpredictable · wanders · trick shots',     bias:{ shootRange:1.2, accuracy:0.7,  wander:1.0 } },
+  { id:'prophet',      label:'PROPHET 🕊️',      desc:'predicts ball path · rarely wrong',         bias:{ react:0.5,     accuracy:1.1,  predict:1 } },
+  { id:'streetballer', label:'STREETBALLER 🏙️', desc:'hot-dogs · heat-checks · always firing',    bias:{ shootRange:1.3, accuracy:0.85, jumpy:1 } },
+  { id:'showtime',     label:'SHOWTIME 🎬',     desc:'leans poster dunks · plays for the crowd',  bias:{ shootRange:0.6, accuracy:0.92, moveMul:1.05 } },
+  { id:'steady',       label:'STEADY 🪨',       desc:'fundamentals · midrange master',            bias:{ shootRange:0.95, accuracy:1.1, react:0.85 } },
+  { id:'chaotic',      label:'CHAOTIC ⚡',      desc:'wild swings · feast or famine',             bias:{ shootRange:1.0, accuracy:0.6 + Math.random()*0.5, wander:0.6 } },
+  { id:'closer',       label:'CLOSER 🥶',       desc:'ice-cold · rises in clutch',                bias:{ shootRange:1.05, accuracy:1.15, react:0.75 } },
+  { id:'paint_beast',  label:'PAINT BEAST 🦏',  desc:'lives in the paint · blocks + putbacks',    bias:{ shootRange:0.45, stealRate:1.2, accuracy:1.0 } },
+  { id:'point_god',    label:'POINT GOD 👑',    desc:'reads the floor · perfect spacing',         bias:{ shootRange:1.1, accuracy:1.0,  react:0.7 } },
+  { id:'microwave',    label:'MICROWAVE 🔥',    desc:'instant offense off the bench',             bias:{ shootRange:1.15, accuracy:1.05, moveMul:1.05 } },
+  { id:'glue_guy',     label:'GLUE GUY 🧱',     desc:'does the little things · steal master',     bias:{ stealRate:1.4, accuracy:0.95, react:0.85 } },
+  { id:'enigma',       label:'ENIGMA 🔮',       desc:'random archetype each match',               bias:{ shootRange:1.0, accuracy:1.0 } },
+];
+
+const NPC_FIRST = ['JAMAL','CALEB','ISAIAH','ZION','TYRESE','JADEN','EZEKIEL','MICAH','EMMANUEL','JOSIAH','ELI','LUKE','MARCUS','TREVOR','DEVIN','JABARI','OMAR','TARIQ','RASHEED','DEMETRIUS','MALACHI','GIDEON','HEZEKIAH','BARNABAS','ELIJAH','MOSES','PETER','PAUL','ANDREW','THOMAS','SIMON','LEVI','JONAS','SOLOMON','SAMSON','TITUS','SILAS','JESSE','ABRAHAM','ENOCH','BENAIAH','RAIKO','KAIDO','KENJI','MATEO','SANTI','RAFA','RIO','KOJI','HIRO','PAOLO','TARO','CHEN','LI','RAVI','PRIYA','OMARI','KWAME','SEKOU','TYRELL','DESHAWN','LATRELL','TREMAINE','DARIUS','MAURICE','VIKTOR','ALEKSEI','LUCA','RAUL'];
+const NPC_LAST  = ['"BUCKETS"','"SPLASH"','"BLITZ"','"SMOKE"','"GREASE"','"FREEZE"','"SLIM"','"VOLT"','"NEON"','"DRIPPY"','"GHOST"','"WAVE"','"BUTTER"','"DUST"','"FLEX"','"PRAYER"','"FAITH"','"GRACE"','"GLORY"','"REIGN"','"STORM"','"ECHO"','"COMET"','"CHURCH"','"GLOW"','"FOG"','"PIXEL"','"DOJO"','"COBRA"','"PHARAOH"','"KING"','"PROPHET"','"MAGIC"','"TANK"','"FRESH"','"NITRO"','"VAULT"','"VAPOR"','"OXIDE"','"NOISE"','"RIFT"','"BANDIT"','"MIDAS"','"LAVA"','"RHYME"'];
+const NPC_LASTNAMES = ['JOHNSON','WILLIAMS','BROWN','DAVIS','MILLER','WILSON','MOORE','TAYLOR','THOMAS','JACKSON','HARRIS','LEWIS','WALKER','HALL','YOUNG','KING','WRIGHT','HILL','GREEN','ADAMS','BAKER','NELSON','CARTER','MITCHELL','ROBERTS','PHILLIPS','EVANS','TURNER','PARKER','COLLINS','EDWARDS','STEWART','MORRIS','MURPHY','COOK','BAILEY','REED','RICHARDSON','WOOD','OKAFOR','ANTETOKOUNMPO','GIANNOPOULOS','SABONIS','DONCIC','JOKIC','EMBIID','KAWHI','TATUM','BOOKER'];
+
+function rngPick(arr){ return arr[(Math.random()*arr.length)|0]; }
+function genNpcLook(slot){
+  return {
+    skin: SKIN_COLORS[(Math.random()*SKIN_COLORS.length)|0],
+    hair: rngPick(HAIR_STYLES),
+    hairColor: rngPick(HAIR_COLORS),
+    jersey: rngPick(JERSEY_COLORS),
+    shorts: rngPick(SHORT_COLORS),
+    shoes: rngPick(SHOE_COLORS),
+    socks: rngPick(SOCK_COLORS),
+    eyes: rngPick(EYE_COLORS),
+    beard: rngPick(BEARDS),
+    glasses: rngPick(GLASSES),
+    build: rngPick(BUILDS),
+    tattoo: rngPick(TATTOOS),
+    pattern: rngPick(PATTERNS),
+    number: 1 + ((Math.random()*98)|0),
+    height: 0.85 + Math.random() * 0.4,
+    celebration: rngPick(CELEBRATIONS),
+  };
+}
+function genNpcName(){
+  const r = Math.random();
+  if (r < 0.34) return `${rngPick(NPC_FIRST)} ${rngPick(NPC_LAST)}`;
+  if (r < 0.67) return `${rngPick(NPC_FIRST)} ${rngPick(NPC_LASTNAMES)}`;
+  return `${rngPick(NAME_PREFIXES)} ${rngPick(NAME_CORES)}${Math.random()<0.4?' '+rngPick(NAME_SUFFIXES):''}`.trim();
+}
+const NPC_ROSTER = (() => {
+  const list = [];
+  // 8 NPCs per CPU tier to cover the full skill spectrum (29 tiers × 8 = 232 NPCs)
+  for (let i = 0; i < CPU_TIERS.length; i++){
+    const tier = CPU_TIERS[i];
+    for (let j = 0; j < 8; j++){
+      const arch = NPC_ARCHETYPES[(i*7 + j*3) % NPC_ARCHETYPES.length];
+      list.push({
+        id: `npc_${tier.id}_${j}`,
+        name: genNpcName(),
+        tierId: tier.id,
+        archetypeId: arch.id,
+        archetypeLabel: arch.label,
+        archetypeDesc: arch.desc,
+        bias: arch.bias,
+        look: genNpcLook(j),
+      });
+    }
+  }
+  return list;
+})();
+function pickRandomNpc(){ return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0]; }
+function npcToTier(npc){
+  // Inherit base tier + apply archetype bias to derive an effective CPU tier object
+  const base = CPU_TIERS.find(t => t.id === npc.tierId) || CPU_TIERS[10];
+  const b = npc.bias || {};
+  return {
+    ...base,
+    id: base.id,
+    name: `${npc.name} · ${base.name} · ${npc.archetypeLabel}`,
+    moveMul: base.moveMul * (b.moveMul || 1),
+    accuracy: Math.min(1, base.accuracy * (b.accuracy || 1)),
+    react: base.react * (b.react || 1),
+    stealRate: Math.min(1, base.stealRate * (b.stealRate || 1)),
+    shootRange: base.shootRange * (b.shootRange || 1),
+    behavior: b.predict ? 'predict' : (b.wander ? 'wander' : base.behavior),
+    _npc: npc,   // keep reference for HUD display + look apply
+  };
+}
+
 function randomUsername(){
   const pre = NAME_PREFIXES[(Math.random()*NAME_PREFIXES.length)|0];
   const core = NAME_CORES[(Math.random()*NAME_CORES.length)|0];
