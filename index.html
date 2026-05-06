@@ -5226,7 +5226,19 @@ function showEndCard(){
     : 'NEXT ROUND';
   btnNext.onclick = () => {
     document.getElementById('endcard').classList.remove('on');
-    if (matchDone){ State._matchRecorded = false; startMatch(); }
+    if (matchDone){
+      State._matchRecorded = false;
+      if (State._wasFranchise){
+        // return to franchise dashboard
+        State._wasFranchise = false;
+        if (game.scene.getScene('Match')) game.scene.stop('Match');
+        State.matchOver = true;
+        showSplash();
+        renderFranchiseScreen();
+      } else {
+        startMatch();
+      }
+    }
     else startRound();
   };
   document.getElementById('btnQuitMatch').onclick = () => {
