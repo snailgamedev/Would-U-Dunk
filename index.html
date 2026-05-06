@@ -1904,7 +1904,41 @@ const LEAGUES = [
       { name:'ANDROMEDA AURORA',   city:'ANDROMEDA',  abbr:'AND', primary:0x4f9eff, secondary:0xa040ff, mascot:'🌌' },
       { name:'GANYMEDE GUARDS',    city:'GANYMEDE',   abbr:'GAN', primary:0xffd76e, secondary:0x4f9eff, mascot:'🛸' },
     ]},
+  // 🆕 v2.8.2 — PRACTICE LEAGUE (warmup) + SUMMER LEAGUE (rookies) + MASSIVE LEAGUE (multiverse)
+  { id:'PRA', name:'PRACTICE LEAGUE 🎯',      desc:'Warmup hoops · low-tier scrimmages · learn the ropes', tier:'pra', cpuMin:0, cpuMax:8,
+    teams: [
+      { name:'OPEN GYM SCRIMMAGE', city:'ANYWHERE',   abbr:'GYM', primary:0xaaaaaa, secondary:0xffffff, mascot:'🎯' },
+      { name:'WALK-ON WARRIORS',   city:'COMMUNITY',  abbr:'WLK', primary:0x4cf07a, secondary:0xffffff, mascot:'🚶' },
+      { name:'YMCA YOUTHS',        city:'EVERYWHERE', abbr:'YMC', primary:0x4f9eff, secondary:0xffd76e, mascot:'💪' },
+      { name:'CHURCH LEAGUE',      city:'PARISH',     abbr:'CHL', primary:0xffd76e, secondary:0xffffff, mascot:'⛪' },
+      { name:'REC CENTER REGULARS',city:'CITY',       abbr:'REC', primary:0xff8a3c, secondary:0x111111, mascot:'🏟' },
+      { name:'PARK RUNNERS',       city:'OUTDOORS',   abbr:'PRK', primary:0x4cf07a, secondary:0x4f9eff, mascot:'🌳' },
+      { name:'INTRAMURAL ALLSTARS',city:'CAMPUS',     abbr:'INT', primary:0xa040ff, secondary:0xffd76e, mascot:'🎓' },
+      { name:'BACKYARD SHOOTERS',  city:'DRIVEWAY',   abbr:'BYS', primary:0xff3b3b, secondary:0xffffff, mascot:'🏠' },
+    ]},
+  { id:'SUM', name:'SUMMER LEAGUE ☀️',         desc:'Rookies + young vets · big runs · breakout szn', tier:'mid', cpuMin:6, cpuMax:16,
+    teams: [
+      { name:'VEGAS ROOKIES',      city:'LAS VEGAS',  abbr:'VEG', primary:0xffd76e, secondary:0xff3b3b, mascot:'🎰' },
+      { name:'UTAH SUMMER BLUE',   city:'SALT LAKE',  abbr:'UTH', primary:0x4f9eff, secondary:0xffd76e, mascot:'🏔' },
+      { name:'CALI HEAT CHECK',    city:'SACRAMENTO', abbr:'CAH', primary:0xff3b3b, secondary:0xffd76e, mascot:'☀️' },
+      { name:'ORLANDO PHENOMS',    city:'ORLANDO',    abbr:'ORL', primary:0x4f9eff, secondary:0x111111, mascot:'🪄' },
+      { name:'INDY SUMMER',        city:'INDIANAPOLIS', abbr:'IND', primary:0xffd76e, secondary:0x4f9eff, mascot:'🏎' },
+      { name:'BOSTON SUMMER GRIND',city:'BOSTON',     abbr:'BSG', primary:0x4cf07a, secondary:0xffd76e, mascot:'🌊' },
+      { name:'MIAMI HEATWAVE',     city:'MIAMI',      abbr:'MHW', primary:0xff8a3c, secondary:0xff3b3b, mascot:'🌴' },
+      { name:'HOUSTON HUSTLE',     city:'HOUSTON',    abbr:'HOU', primary:0xff3b3b, secondary:0x111111, mascot:'🚀' },
+    ]},
+  { id:'MEG', name:'⚡ MASSIVE LEAGUE ⚡',     desc:'MULTIVERSE — top 2 teams from EVERY other league · season of the gods', tier:'meg', cpuMin:22, cpuMax:28,
+    teams: [],   // populated lazily — see post-LEAGUES code below
+  },
 ];
+// 🆕 v2.8.2 — populate MASSIVE LEAGUE with top 2 from every other league
+(() => {
+  const meg = LEAGUES.find(l => l.id === 'MEG');
+  if (!meg) return;
+  LEAGUES.filter(l => l.id !== 'MEG' && l.id !== 'PRA').forEach(lg => {
+    meg.teams.push(...lg.teams.slice(0, 2).map(t => Object.assign({}, t, { name: t.name + ' ★', _fromLeague: lg.id })));
+  });
+})();
 // 🆕 v2.8.1 — CUSTOM TEAMS (persisted across sessions, joined into league pool)
 function loadCustomTeams(){
   try {
