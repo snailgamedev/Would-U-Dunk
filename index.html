@@ -6019,14 +6019,21 @@ function renderChronicleScreen(){
     ['v2.16.0','📱 MOBILE EDITION — device picker · ui-mobile/ui-desktop · responsive scaling','minor — whole new device path'],
     ['v2.16.1','📚 VISUAL CHRONICLE — this very screen · semver legend · meta thought','patch — adds in-game history viewer'],
   ]);
-  const totals = T(['METRIC','COUNT'],[
-    ['Versions in session', '54 (v2.7.0 → v2.16.1)'],
-    ['Lines of code added', '~3,800 (4,604 → 8,540)'],
-    ['Major systems built', 'Franchise · Tournament · Series · Daily · Custom Rules · Drills · Skirmish · Shop · Stadium · Free Agency · HoF · Dev XP · Cash · Top Moments · Heatmap · Scouting · Tutorial · Mobile · Holy Edition'],
-    ['Archetype count', '30 → <b>1,050</b>'],
-    ['NPCs', '0 → <b>232+</b>'],
-    ['Leagues × teams', '0 × 0 → <b>11 × 88</b>'],
-    ['Achievements', '97 → <b>113</b>'],
+  // 🆕 v2.16.4 — totals now pulled live from computeStats() so they NEVER go stale
+  const __s = computeStats();
+  const totals = T(['METRIC','COUNT (LIVE)'],[
+    ['Current version', `<b>${__s.version}</b>`],
+    ['Total CHANGELOG entries', `<b>${CHANGELOG.length}</b>`],
+    ['Major systems built', 'Franchise · Tournament · Series · Daily · Custom Rules · Drills · Skirmish · Shop · Stadium · Free Agency · HoF · Dev XP · Cash · Top Moments · Heatmap · Scouting · Tutorial · Mobile · Holy Edition · Chronicle'],
+    ['Archetypes', `<b>${__s.archetypes.toLocaleString()}</b> (${__s.baseArch} base × ${__s.traits} traits)`],
+    ['NPC roster', `<b>${__s.npcs.toLocaleString()}</b>`],
+    ['Leagues × teams', `<b>${__s.leagues} × ${__s.teams}</b>`],
+    ['Game modes', `<b>${__s.modes}</b>`],
+    ['Modifiers', `<b>${__s.modifiers}</b>`],
+    ['CPU tiers', `<b>${__s.cpuTiers}</b> + secret`],
+    ['Achievements', `<b>${__s.achievements}</b>`],
+    ['Shop items', `<b>${__s.shopItems}</b>`],
+    ['Stadium tiers', `<b>${__s.stadiumTiers}</b>`],
     ['Critical bugs squashed', '4 (3P% · TDZ · Online inputs · Ball-tunneling)'],
   ]);
   const meta = `<div style="font-size:12px;color:#fff;line-height:1.7;letter-spacing:0.3px">
