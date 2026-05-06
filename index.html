@@ -4721,7 +4721,21 @@ function showEndCard(){
       checkAchievements({ roundOppZero: true });
     }
   }
-  document.getElementById('endTitle').textContent = matchDone ? (winner==='TIE'?'TIE GAME':`${winner} TAKES THE SHIP!`) : 'ROUND OVER';
+  // 🆕 v2.7.2 — SERIES mode tally + championship clinch
+  const isSeries = State._seriesActive && State.modeId === 'series';
+  let seriesClinched = false, seriesChampion = null;
+  if (matchDone && isSeries && winner !== 'TIE'){
+    const widx = winner === 'P1' ? 0 : 1;
+    State.seriesWins[widx] = (State.seriesWins[widx] || 0) + 1;
+    if (State.seriesWins[widx] >= 4){
+      seriesClinched = true;
+      seriesChampion = winner;
+      State._seriesActive = false;   // series complete — next start fresh
+    }
+  }
+  document.getElementById('endTitle').textContent = matchDone
+    ? (winner==='TIE'?'TIE GAME':(seriesClinched ? `🏆 ${winner} WINS THE FINALS!` : `${winner} TAKES THE GAME!`))
+    : 'ROUND OVER';
   document.getElementById('endSub').textContent = isMulti
     ? `THIS ROUND · P1 ${State.scores[0]} — P2 ${State.scores[1]} · target ${mode.target}`
     : isTarget
