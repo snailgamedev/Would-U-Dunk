@@ -2544,7 +2544,13 @@ class IdleScene extends Phaser.Scene {
   constructor(){ super('Idle'); }
   create(){
     // black canvas, controlled by DOM menus
-    this.cameras.main.setBackgroundColor('#0b0d12');
+    // 🆕 v2.13.1 — equipped court theme tint
+    const _ct = (typeof loadEquipped === 'function') ? loadEquipped('COURT') : 'court_classic';
+    this._courtTheme = _ct;
+    this._themeBgColor = _ct === 'court_space' ? '#01010a' : _ct === 'court_holy' ? '#1a1208' : _ct === 'court_street' ? '#0f0f12' : '#0b0d12';
+    this._themeBgRect  = _ct === 'court_space' ? 0x010118 : _ct === 'court_holy' ? 0x2a1a08 : _ct === 'court_street' ? 0x111114 : 0x0a0e1f;
+    this._themeFloor   = _ct === 'court_space' ? 0x222a55 : _ct === 'court_holy' ? 0xe8c878 : _ct === 'court_street' ? 0x4a4a4a : 0xc8924a;
+    this.cameras.main.setBackgroundColor(this._themeBgColor);
   }
 }
 
