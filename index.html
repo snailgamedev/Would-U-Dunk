@@ -2926,8 +2926,31 @@ class MatchScene extends Phaser.Scene {
         this.ball.rotation += (vx * 0.00012) * delta;
       }
     }
+    // 🆕 v2.7.0 — PERSISTENT HUD: CPU TIER badge top-left of viewport
+    if (!this.cpuTierHud && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers){
+      const names = State.rolls.cpuTiers.map(t => t.name).join(' + ');
+      this.cpuTierHud = this.add.container(0, 0).setDepth(DEPTH.HUD_FIXED).setScrollFactor(0);
+      const bg = this.add.rectangle(8, 8, 280, 36, 0x000000, 0.78).setOrigin(0,0).setStrokeStyle(2, 0xff8a3c);
+      const lbl = this.add.text(16, 12, '🤖 CPU', {fontFamily:'monospace', fontSize:11, color:'#ff8a3c', fontStyle:'bold'}).setOrigin(0,0);
+      const nm = this.add.text(16, 26, names, {fontFamily:'monospace', fontSize:13, color:'#ffd76e', fontStyle:'bold'}).setOrigin(0,0);
+      this.cpuTierHud.add([bg, lbl, nm]);
+      // dynamic width to fit name
+      const w = Math.max(280, nm.width + 24);
+      bg.width = w;
+    }
+    // 🆕 v2.7.0 — SERIES SCORE PANEL top-right of viewport for SERIES / BO7 modes
+    if (!this.seriesHud && State.cfg && (State.cfg.isSeries || (State.mode2 && State.mode2.id === 'series'))){
+      this.seriesHud = this.add.container(0, 0).setDepth(DEPTH.HUD_FIXED).setScrollFactor(0);
+      const bg = this.add.rectangle(VIEW_W - 8, 8, 220, 50, 0x000000, 0.78).setOrigin(1,0).setStrokeStyle(2, 0xffd76e);
+      const lbl = this.add.text(VIEW_W - 16, 12, '🏆 NBA FINALS · BO7', {fontFamily:'monospace', fontSize:10, color:'#ffd76e', fontStyle:'bold'}).setOrigin(1,0);
+      this.seriesScoreTxt = this.add.text(VIEW_W - 16, 28, '0 — 0', {fontFamily:'monospace', fontSize:18, color:'#ffffff', fontStyle:'bold'}).setOrigin(1,0);
+      this.seriesHud.add([bg, lbl, this.seriesScoreTxt]);
+    }
+    if (this.seriesScoreTxt && State.seriesWins){
+      this.seriesScoreTxt.setText(`${State.seriesWins[0]||0} — ${State.seriesWins[1]||0}`);
+    }
     // ===== CONSISTENT METERS: always show charge + arc preview while ANY human player holds the ball =====
-    if (!this.chargeBar) this.chargeBar = this.add.graphics().setDepth(70);
+    if (!this.chargeBar) this.chargeBar = this.add.graphics().setDepth(DEPTH.CHARGE_BAR);
     if (!this.arcLine) this.arcLine = this.add.graphics().setDepth(8);
     this.chargeBar.clear();
     this.arcLine.clear();
