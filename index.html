@@ -593,9 +593,19 @@ const ChaosEngine = {
     // super chaos: allow categories to repeat (extra rolls)
     while (selected.length < count) selected.push(CATEGORIES[(Math.random()*CATEGORIES.length)|0]);
     const mods = selected.map(cat => ({ cat, mod: MODS[cat][(Math.random() * MODS[cat].length) | 0] }));
-    const cpuTiers = superChaos
-      ? [CPU_TIERS[(Math.random()*CPU_TIERS.length)|0], CPU_TIERS[(Math.random()*CPU_TIERS.length)|0]]
-      : [CPU_TIERS[(Math.random()*CPU_TIERS.length)|0]];
+    // 🆕 v2.7.0 — 70% of CPU rolls pull from the 200+ procedural NPC roster (real names + archetypes).
+    // Falls back to raw CPU_TIERS for the other 30% so existing tier achievements still trigger.
+    const useRoster = (typeof npcToTier === 'function') && Math.random() < 0.7;
+    let cpuTiers;
+    if (useRoster){
+      cpuTiers = superChaos
+        ? [npcToTier(pickRandomNpc()), npcToTier(pickRandomNpc())]
+        : [npcToTier(pickRandomNpc())];
+    } else {
+      cpuTiers = superChaos
+        ? [CPU_TIERS[(Math.random()*CPU_TIERS.length)|0], CPU_TIERS[(Math.random()*CPU_TIERS.length)|0]]
+        : [CPU_TIERS[(Math.random()*CPU_TIERS.length)|0]];
+    }
     return { count, superChaos, mods, cpuTiers };
   },
   apply(rolls){
