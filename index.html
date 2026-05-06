@@ -3856,8 +3856,11 @@ class MatchScene extends Phaser.Scene {
     document.getElementById('timer').textContent = formatTime(remain);
     const u1 = (State.looks[0]?.username || 'P1').toUpperCase();
     const u2 = (State.looks[1]?.username || 'P2').toUpperCase();
-    document.getElementById('scoreL').innerHTML = `<span>${u1}</span>${State.scores[0]}`;
-    document.getElementById('scoreR').innerHTML = `<span style="text-align:right;display:block">${u2}</span>${State.scores[1]}`;
+    document.getElementById('scoreL').innerHTML = `<span>${u1}</span>${State.scores[0]}<span id="ovrL" style="font-size:10px;color:#ffd76e;letter-spacing:2px;display:block;margin-top:2px">OVR ${computeOvrP1()}</span>`;
+    const cpuOvr = (State.rolls && State.rolls.cpuTiers && State.rolls.cpuTiers[0]) ? computeOvrFromTier(State.rolls.cpuTiers[0]) : 60;
+    document.getElementById('scoreR').innerHTML = `<span style="text-align:right;display:block">${u2}</span>${State.scores[1]}<span id="ovrR" style="font-size:10px;color:#ffd76e;letter-spacing:2px;display:block;margin-top:2px">OVR ${cpuOvr}</span>`;
+    // 🆕 v2.12.0 — cash HUD + heater overlay
+    const ch = document.getElementById('cashHud'); if (ch) ch.textContent = `$${loadCash()}`;
     if (!this.sudden && remain <= 0){ this.endRound(); }
 
     // jumbotron
