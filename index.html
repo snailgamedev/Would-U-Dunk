@@ -2465,7 +2465,14 @@ const NPC_ROSTER = (() => {
   }
   return list;
 })();
-function pickRandomNpc(){ return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0]; }
+function pickRandomNpc(){
+  // 🆕 v2.15.0 — 30% boost toward HOLY/SAINT/PROPHET/ANGELIC/MONK archetypes (faith forward)
+  if (Math.random() < 0.3){
+    const holy = NPC_ROSTER.filter(n => /holy|saint|angelic|monk|prophet|reborn|father/i.test(n.archetypeBaseId || ''));
+    if (holy.length) return holy[(Math.random() * holy.length) | 0];
+  }
+  return NPC_ROSTER[(Math.random()*NPC_ROSTER.length)|0];
+}
 // 🆕 v2.13.29 — PLAYER OF THE WEEK — date-seeded NPC pick, persists per ISO week
 function getWeekKey(){
   const d = new Date();
