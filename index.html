@@ -6653,6 +6653,24 @@ function showSplash(){
   if (btnRules) btnRules.onclick = renderCustomRuleEditor;
   // 🆕 v2.14.0 — centralized achievement audit
   if (typeof auditRecentAchievements === 'function') auditRecentAchievements();
+  // 🆕 v2.15.0 — STAY GOLDEN PONYBOY easter egg — type "GOLD" on splash to bank +$1000
+  try {
+    if (!window._goldBuf) window._goldBuf = '';
+    if (!window._goldBound){
+      window._goldBound = true;
+      document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('splash')) return;
+        const splashVisible = (document.getElementById('menu') && !document.getElementById('menu').classList.contains('hide'));
+        if (!splashVisible) return;
+        window._goldBuf = (window._goldBuf + (e.key||'').toUpperCase()).slice(-4);
+        if (window._goldBuf === 'GOLD'){
+          window._goldBuf = '';
+          if (typeof awardCash === 'function') awardCash(1000);
+          showToast('🌟 STAY GOLDEN, PONYBOY · +$1000', 'level');
+        }
+      });
+    }
+  } catch(e){}
   // 🆕 v2.13.20 — first-run tutorial (auto-show once per profile)
   try {
     const seen = localStorage.getItem(`wud:tutDone:${currentProfileName()}`);
