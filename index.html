@@ -6311,6 +6311,27 @@ function showSplash(){
     const seen = localStorage.getItem(`wud:tutDone:${currentProfileName()}`);
     if (!seen) setTimeout(() => renderTutorialFlow(), 600);
   } catch(e){}
+  // 🆕 v2.13.21 — SPLASH NEWS TICKER — rotates messages
+  const tickerEl = document.getElementById('tickerText');
+  if (tickerEl){
+    const msgs = [
+      `🚨 LIVE · ${VERSION}`,
+      `🎯 1,050 ARCHETYPES IN ROTATION · 30 BASE × 35 TRAITS`,
+      `🏆 ${(Career.wins||0)} WINS · ${(Career.games||0)} GAMES PLAYED`,
+      `💰 CASH: $${(typeof loadCash === 'function') ? loadCash() : 0} · SHOP HAS 17 ITEMS`,
+      `🔥 LONGEST STREAK: ${Career.longestStreak||0} BUCKETS`,
+      `📅 DAILY STREAK: ${(typeof loadDailyStreak === 'function') ? loadDailyStreak().count : 0} DAYS`,
+      `🏟 STADIUM TIER: ${(typeof loadStadiumTier === 'function') ? loadStadiumTier() : 1}/5`,
+      `⚙ TIP · press 1-5 mid-game for emote bubbles`,
+      `🏆 ${Object.keys(Career.achievements||{}).length}/101 ACHIEVEMENTS UNLOCKED`,
+      `✝️ "Run in such a way as to take the prize" — 1 Cor 9:24`,
+    ];
+    let mi = 0;
+    const showMsg = () => { if (tickerEl) tickerEl.textContent = msgs[mi]; mi = (mi + 1) % msgs.length; };
+    showMsg();
+    if (this._tickerInt) clearInterval(this._tickerInt);
+    this._tickerInt = setInterval(showMsg, 4000);
+  }
   // profile badge
   const pb = document.getElementById('profileBadge');
   if (pb) pb.textContent = profileBadge();
