@@ -4289,35 +4289,58 @@ function renderSettingsScreen(){
       <input type="checkbox" data-set="${key}" ${Settings[key] ? 'checked' : ''}>
     </label>`;
   const volPct = Math.round((Settings.masterVolume != null ? Settings.masterVolume : 1) * 100);
+  // 🆕 v2.10.2 — sectioned layout w/ icons + dev XP panel
+  const xp = (typeof loadDevXp === 'function') ? loadDevXp() : 0;
+  const xpUnlocks = [
+    { at:100,  name:'Rare jersey colors' },
+    { at:500,  name:'Yeshua tier rolls' },
+    { at:1000, name:'All archetypes pickable' },
+    { at:2500, name:'Legend status badge' },
+  ];
+  const xpProgress = xpUnlocks.map(u => `<div style="display:flex;justify-content:space-between;font-size:11px;color:${xp>=u.at?'#4cf07a':'#888'};letter-spacing:1px;margin:2px 0">
+    <span>${xp >= u.at ? '✅' : '🔒'} ${u.name}</span><span>${u.at} XP</span>
+  </div>`).join('');
+  const section = (title, body) => `
+    <div style="margin-top:14px;background:#0006;border-radius:10px;padding:8px 10px;border:1px solid #ffd76e44">
+      <div style="color:var(--gold);font-size:10px;letter-spacing:3px;font-weight:900;margin-bottom:6px">${title}</div>
+      ${body}
+    </div>`;
   const html = `
-    <div class="setlist">
-      ${toggle('sound',         '🔊 SOUNDS',          'master audio toggle')}
+    ${section('🔊 AUDIO', `
       <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span class="sk">🎚 MASTER VOLUME</span>
           <span id="masterVolPct" style="color:var(--gold);font-weight:900;font-size:14px">${volPct}%</span>
         </div>
-        <span class="sd" style="margin-top:-4px">drag to adjust all sound levels</span>
         <div style="display:flex;align-items:center;gap:10px">
           <input type="range" min="0" max="100" value="${volPct}" id="masterVolSlider" style="flex:1;accent-color:#ffd76e">
           <button class="btn" id="btnMute" style="font-size:11px;padding:6px 12px;width:auto;letter-spacing:1px">${volPct === 0 ? '🔇 UNMUTE' : '🔊 MUTE'}</button>
         </div>
       </label>
-      ${toggle('scripturePops', '📜 SCRIPTURE POPS',  'verse popup on every bucket')}
-      ${toggle('coachLines',    '🗣️ COACH COMMENTARY','BUCKETS! HEAT CHECK! etc.')}
-      ${toggle('cameraShake',   '📷 CAMERA SHAKE',    'screen shake on big moments')}
-      ${toggle('crowdRoar',     '👏 CROWD ROAR',      'crowd noise on score')}
-      ${toggle('cometTrail',    '☄️ BALL COMET TRAIL', 'afterimages while ball is in flight')}
-      ${toggle('aimAssist',     '🎯 AIM ASSIST',       'every shot at 99% accuracy · disabled in online MP')}
-      ${toggle('hardcore',      '😈 HARDCORE',          'CPU multiplier 1.5× even before All-Pro')}
-      ${toggle('sneakerSqueak', '👟 SNEAKER SQUEAK',   'audio chirp on direction change')}
-      ${toggle('showStats',     '📊 SHOW HUD STATS',    'live stats panel during match')}
-    </div>
+      ${toggle('sound',         '🔊 ALL SOUNDS',         'master audio toggle')}
+      ${toggle('crowdRoar',     '👏 CROWD NOISE',        'oohs/ahhs/buzzer · v2.8.2')}
+      ${toggle('sneakerSqueak', '👟 SNEAKER SQUEAK',     'audio chirp on direction change')}
+    `)}
+    ${section('🎬 DISPLAY', `
+      ${toggle('cameraShake',   '📷 CAMERA SHAKE',       'screen shake on dunks/big moments')}
+      ${toggle('cometTrail',    '☄️ BALL COMET TRAIL',  'afterimages while ball is in flight')}
+      ${toggle('showStats',     '📊 LIVE HUD STATS',    'mini stats panel during match')}
+    `)}
+    ${section('🎮 GAMEPLAY', `
+      ${toggle('coachLines',    '🗣️ COACH COMMENTARY',  'BUCKETS! HEAT CHECK! etc.')}
+      ${toggle('scripturePops', '📜 SCRIPTURE POPS',     'verse popup on every bucket')}
+      ${toggle('aimAssist',     '🎯 AIM ASSIST',         'every shot ~99% accurate · disabled online')}
+      ${toggle('hardcore',      '😈 HARDCORE',           'CPU 1.5× even pre All-Pro')}
+    `)}
+    ${section(`📈 PLAYER DEVELOPMENT · ${xp} XP`, `
+      <div style="font-size:10px;color:#aaa;letter-spacing:1px;margin-bottom:6px">earn XP from franchise + tournament games</div>
+      ${xpProgress}
+    `)}
     <div style="margin-top:18px;border-top:1px solid #ffd76e44;padding-top:14px">
       <button class="btn hot" id="btnReset" style="background:#ff3b3b">🗑️ RESET ALL CAREER PROGRESS</button>
       <div class="small" style="margin-top:6px">wipes career, achievements, settings, and saved looks. cannot be undone.</div>
     </div>`;
-  openModal('SETTINGS', html);
+  openModal('⚙ SETTINGS', html);
   // bind toggles
   document.querySelectorAll('[data-set]').forEach(cb => {
     cb.onchange = () => { Settings[cb.dataset.set] = cb.checked; saveSettings(); };
