@@ -2783,7 +2783,10 @@ class MatchScene extends Phaser.Scene {
     });
 
     // 🆕 v2.7.0 — POSTERS on the back wall. 8 posters showing NPC roster legends + scriptures
-    const posterSpots = [0.06, 0.14, 0.27, 0.36, 0.55, 0.68, 0.78, 0.93];
+    // 🆕 v2.13.11 — STADIUM TIER 4+: +4 extra posters (12 total)
+    const posterSpots = (this._stadiumTier >= 4)
+      ? [0.04, 0.12, 0.20, 0.28, 0.36, 0.44, 0.56, 0.64, 0.72, 0.80, 0.88, 0.96]
+      : [0.06, 0.14, 0.27, 0.36, 0.55, 0.68, 0.78, 0.93];
     const posterText = [
       ['🐐','GREATEST'],['🏆','RING SZN'],['📖','PSALM 23'],['👑','KING'],
       ['🔥','BUCKETS'],['✝️','CHOSEN'],['💧','SPLASH'],['⚡','LIGHTNING'],
