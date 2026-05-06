@@ -3397,7 +3397,29 @@ class MatchScene extends Phaser.Scene {
     // Show HUD
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('gameSettings').classList.add('on');
-    document.getElementById('moves').classList.add('on');
+    // 🆕 v2.16.2 — auto-show controls only for first 3 matches per profile, then auto-hide after 6s
+    try {
+      const k = `wud:movesShownCount:${currentProfileName()}`;
+      const shown = parseInt(localStorage.getItem(k) || '0', 10);
+      const isMobile = document.body.classList.contains('ui-mobile');
+      const movesEl = document.getElementById('moves');
+      const helpEl = document.getElementById('movesHelp');
+      // mobile never sees the keyboard panel; ? button also hidden
+      if (isMobile){
+        if (movesEl) movesEl.classList.remove('on');
+        if (helpEl) helpEl.style.display = 'none';
+      } else {
+        // help button is always available during match
+        if (helpEl) helpEl.style.display = 'block';
+        if (shown < 3){
+          movesEl.classList.add('on');
+          setTimeout(() => { movesEl.classList.remove('on'); }, 6000);
+          localStorage.setItem(k, String(shown + 1));
+        } else {
+          movesEl.classList.remove('on');
+        }
+      }
+    } catch(e){ document.getElementById('moves').classList.add('on'); }
 
     // Sudden death flag
     this.sudden = !!cfg.suddenDeath;
