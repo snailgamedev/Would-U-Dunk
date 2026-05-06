@@ -6651,6 +6651,21 @@ function showSplash(){
       setTimeout(() => showToast(`💰 DAILY LOGIN +$${bonus}`, 'level'), 1200);
     }
   } catch(e){}
+  // 🆕 v2.15.0 — DAILY VERSE OF THE DAY at top of splash (date-seeded, holy and present)
+  try {
+    const sv = document.getElementById('splashVerse');
+    if (sv && typeof SCRIPTURES !== 'undefined' && typeof dailyKey === 'function'){
+      const dk = dailyKey();
+      const seed = parseInt(dk.replace(/-/g,''), 10) || 1;
+      const idx = ((seed * 1103515245 + 12345) >>> 0) % SCRIPTURES.length;
+      const v = SCRIPTURES[idx];
+      sv.innerHTML = `📜 <span style="color:#ffd76e;font-weight:900">VERSE OF THE DAY</span> · "${v.text}" — <span style="color:#ffd76e">${v.ref}</span> 🙏`;
+      sv.style.background = 'linear-gradient(135deg,#1a0e02,#3a2208,#1a0e02)';
+      sv.style.border = '2px solid #ffd76e88';
+      sv.style.borderRadius = '8px';
+      sv.style.padding = '10px 12px';
+    }
+  } catch(e){}
   // 🆕 v2.13.29 — populate PLAYER OF THE WEEK card
   try {
     const potw = getPlayerOfTheWeek();
