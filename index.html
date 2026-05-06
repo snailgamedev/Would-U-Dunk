@@ -5908,6 +5908,9 @@ function showSplash(){
   // 🆕 v2.13.0 — SHOP button
   const btnShop = document.getElementById('btnShop');
   if (btnShop) btnShop.onclick = renderShopScreen;
+  // 🆕 v2.13.12 — DAILY CHALLENGE button
+  const btnDaily = document.getElementById('btnDaily');
+  if (btnDaily) btnDaily.onclick = renderDailyChallengeScreen;
   // profile badge
   const pb = document.getElementById('profileBadge');
   if (pb) pb.textContent = profileBadge();
