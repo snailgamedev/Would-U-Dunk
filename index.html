@@ -5062,6 +5062,9 @@ function showEndCard(){
       saveFranchise(f);
     }
     State._franchiseActive = false;
+    State._wasFranchise = true;
+  } else {
+    State._wasFranchise = false;
   }
   // career update on match-done
   if (matchDone && !State._matchRecorded){
