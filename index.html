@@ -1887,6 +1887,15 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.5';
 const CHANGELOG = [
+  { v:'v2.16.5', notes:[
+      '📚 CHRONICLE AUTO-UPDATES — "current era" tables now BUILD FROM the CHANGELOG array. Add a new version → it instantly appears in Chronicle without manual edits',
+      '🤖 Bump-kind detection — major/minor/patch labels inferred from version diff (e.g. v2.16.4 → v2.16.5 = patch · v2.15.x → v2.16.0 = minor)',
+      '📊 Auto-partitions into 6 era bands by minor version (v2.7.x · v2.8-9 · v2.10 · v2.11-12 · v2.13 · v2.14-16+)',
+      '🏛 Frozen eras 1-3 (v0.x → v2.6.x) stay hardcoded — they\'re history',
+      '🔢 Header now shows "${30 + CHANGELOG.length} versions logged · LIVE"',
+      '🏃 Companion DRY-counts memory updated to include this rule',
+      '✝️ Glory above for systems that maintain themselves',
+  ]},
   { v:'v2.16.4', notes:[
       '📊 DRY COUNTS — added computeStats() single source of truth for: archetypes · leagues · teams · achievements · modifiers · CPU tiers · NPCs · modes · shop items · stadium tiers',
       '🪲 Splash count badge no longer hardcoded — auto-updates from the live data on every splash render',
