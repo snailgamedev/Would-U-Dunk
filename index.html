@@ -4133,6 +4133,115 @@ function renderUpdatesScreen(){
   openModal(`UPDATE HISTORY · ${VERSION}`, `<div style="max-height:60vh;overflow-y:auto">${rows}</div>`);
 }
 
+/* ================================================================================================
+   🆕 v2.8.0 — FRANCHISE MODE SCREEN
+================================================================================================ */
+function renderFranchiseScreen(){
+  const f = loadFranchise();
+  if (!f){
+    // New franchise picker — choose league
+    const leagueRows = LEAGUES.map(lg => `
+      <div data-league="${lg.id}" class="lgcard" style="background:#0008;border:2px solid #ffd76e44;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s">
+        <div style="color:var(--gold);font-size:15px;font-weight:900;letter-spacing:2px">${lg.name}</div>
+        <div style="color:#fff;font-size:11px;margin-top:4px">${lg.desc}</div>
+        <div style="color:#aaa;font-size:10px;margin-top:4px">${lg.teams.length} teams · CPU tier ${lg.cpuMin}-${lg.cpuMax}</div>
+      </div>`).join('');
+    openModal('🏆 FRANCHISE MODE · CHOOSE LEAGUE',
+      `<div style="font-size:13px;color:#fff;margin-bottom:12px">Pick a league. Each season is ${SEASON_LEN} games. Win 5 to make playoffs, sweep all 8 to claim the trophy.</div>
+       <div style="max-height:60vh;overflow-y:auto" id="lgList">${leagueRows}</div>`);
+    document.querySelectorAll('.lgcard').forEach(el => {
+      el.onclick = () => {
+        el.style.background = '#ffd76e22';
+        renderFranchiseTeamPicker(el.dataset.league);
+      };
+      el.onmouseover = () => { el.style.borderColor = '#ffd76e'; };
+      el.onmouseout = () => { el.style.borderColor = '#ffd76e44'; };
+    });
+    return;
+  }
+  // Existing franchise — show dashboard
+  const lg = getLeague(f.leagueId);
+  const myTeam = getTeam(f.leagueId, f.teamName);
+  const recordHtml = f.schedule.map((g, i) => {
+    const status = i < f.gameNum ? (g.won ? '✅ W' : '❌ L') : (i === f.gameNum ? '➡️ NEXT' : '·');
+    const score = g.played ? ` (${g.myScore}-${g.oppScore})` : '';
+    return `<tr style="${i===f.gameNum?'background:#ffd76e22':''}">
+      <td style="padding:4px 8px">G${i+1}</td>
+      <td style="padding:4px 8px;color:#fff">vs ${g.opp}</td>
+      <td style="padding:4px 8px;color:${g.won ? '#4cf07a' : g.played ? '#ff8a8a' : '#aaa'}">${status}${score}</td>
+    </tr>`;
+  }).join('');
+  const seasonDone = f.gameNum >= SEASON_LEN;
+  const champ = f.wins >= 5 ? '🏆 PLAYOFF BERTH' : (seasonDone ? '😢 MISSED PLAYOFFS' : '');
+  const champBig = (f.wins >= 7 && seasonDone) ? `<div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,#ffd76e44,#ff8a3c44);border:3px solid #ffd76e;border-radius:10px;text-align:center"><div style="font-size:48px">🏆 👑 🏆</div><div style="color:#ffd76e;font-size:22px;font-weight:900;letter-spacing:3px;margin-top:6px">LEAGUE CHAMPION!</div></div>` : '';
+  openModal(`🏆 ${myTeam.name} · ${lg.name}`,
+    `<div style="font-size:13px;color:#fff">
+      <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="background:#0008;border:1px solid #ffd76e44;border-radius:8px;padding:8px 12px"><div style="color:#aaa;font-size:9px;letter-spacing:2px">SEASON</div><div style="color:var(--gold);font-size:18px;font-weight:900">${f.season}</div></div>
+        <div style="background:#0008;border:1px solid #ffd76e44;border-radius:8px;padding:8px 12px"><div style="color:#aaa;font-size:9px;letter-spacing:2px">GAME</div><div style="color:var(--gold);font-size:18px;font-weight:900">${Math.min(f.gameNum+1, SEASON_LEN)} / ${SEASON_LEN}</div></div>
+        <div style="background:#0008;border:1px solid #4cf07a;border-radius:8px;padding:8px 12px"><div style="color:#aaa;font-size:9px;letter-spacing:2px">RECORD</div><div style="color:#4cf07a;font-size:18px;font-weight:900">${f.wins} - ${f.losses}</div></div>
+      </div>
+      <table style="width:100%;font-size:11px;color:#fff;border-collapse:collapse;background:#0008;border-radius:8px;overflow:hidden;margin-bottom:10px">
+        <thead><tr style="background:#ffd76e22;color:#ffd76e;letter-spacing:2px;font-size:9px">
+          <th style="padding:6px 8px;text-align:left">#</th><th style="padding:6px 8px;text-align:left">OPPONENT</th><th style="padding:6px 8px;text-align:left">RESULT</th>
+        </tr></thead>
+        <tbody>${recordHtml}</tbody>
+      </table>
+      ${champ ? `<div style="text-align:center;color:var(--gold);letter-spacing:3px;font-size:13px;margin-bottom:10px;font-weight:900">${champ}</div>` : ''}
+      ${champBig}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        ${seasonDone ? `<button class="btn hot" id="franchNewSeason" style="font-size:13px;padding:9px 14px;flex:1">⏭ NEW SEASON</button>` : `<button class="btn hot" id="franchPlayNext" style="font-size:14px;padding:11px;flex:1">🏀 PLAY NEXT GAME</button>`}
+        <button class="btn" id="franchReset" style="font-size:11px;padding:9px;flex:0 0 auto">🗑 RESET</button>
+      </div>
+    </div>`);
+  const next = document.getElementById('franchPlayNext');
+  if (next) next.onclick = () => playFranchiseGame();
+  const ns = document.getElementById('franchNewSeason');
+  if (ns) ns.onclick = () => { f.season += 1; f.gameNum = 0; f.wins = 0; f.losses = 0; f.schedule.forEach(g => { g.played=false; g.won=false; g.myScore=0; g.oppScore=0; }); saveFranchise(f); renderFranchiseScreen(); };
+  document.getElementById('franchReset').onclick = () => {
+    if (confirm('Reset franchise progress?')){
+      try{ localStorage.removeItem(`wud:franchise:${currentProfileName()}`); }catch(e){}
+      renderFranchiseScreen();
+    }
+  };
+}
+function renderFranchiseTeamPicker(leagueId){
+  const lg = getLeague(leagueId);
+  const teams = lg.teams.map(t => `
+    <div data-team="${t.name}" class="tmcard" style="background:#0008;border:2px solid #${t.primary.toString(16).padStart(6,'0')}aa;border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.2s">
+      <div style="font-size:28px">${t.mascot}</div>
+      <div style="flex:1">
+        <div style="color:#fff;font-size:14px;font-weight:900">${t.name}</div>
+        <div style="color:#aaa;font-size:10px">${t.city} · ${t.abbr}</div>
+      </div>
+    </div>`).join('');
+  openModal(`🏀 ${lg.name} · CHOOSE TEAM`,
+    `<div style="font-size:13px;color:#fff;margin-bottom:12px">Pick the franchise you'll lead through ${SEASON_LEN} games.</div>
+     <div style="max-height:60vh;overflow-y:auto">${teams}</div>`);
+  document.querySelectorAll('.tmcard').forEach(el => {
+    el.onclick = () => {
+      const f = newFranchise(leagueId, el.dataset.team);
+      saveFranchise(f);
+      renderFranchiseScreen();
+    };
+    el.onmouseover = () => { el.style.background = '#ffd76e22'; };
+    el.onmouseout = () => { el.style.background = '#0008'; };
+  });
+}
+function playFranchiseGame(){
+  const f = loadFranchise();
+  if (!f) return;
+  if (f.gameNum >= SEASON_LEN) return;
+  closeModal();
+  // mark franchise game active so showEndCard can record the result
+  State._franchiseActive = true;
+  State._franchiseLeagueId = f.leagueId;
+  State._franchiseOpp = f.schedule[f.gameNum].opp;
+  State.modeId = 'first_10';     // use a quick FIRST TO 10 for franchise games
+  State.mode = 'CPU';
+  startMatch();
+}
+
 function renderShareGameScreen(){
   const html = `
     <div style="font-size:13px;line-height:1.7;color:#fff;letter-spacing:0.5px">
