@@ -7496,7 +7496,8 @@ function showCharSelect(){
 }
 function randomLook(slot){
   const pick = arr => arr[(Math.random()*arr.length)|0];
-  const bibleNums = [3,7,8,12,14,21,23,33,40,42,77,99];
+  // 🆕 v2.17.0 — use full 1-99 jersey range (was only 12 biblical numbers)
+  const allNums = (typeof ALL_JERSEY_NUMBERS !== 'undefined') ? ALL_JERSEY_NUMBERS : [3,7,8,12,14,21,23,33,40,42,77,99];
   return {
     username: randomUsername(),
     skin: pick(SKIN_COLORS),
