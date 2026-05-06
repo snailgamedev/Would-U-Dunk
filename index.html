@@ -4610,6 +4610,9 @@ function renderFranchiseScreen(){
   if (next) next.onclick = () => playFranchiseGame();
   const ns = document.getElementById('franchNewSeason');
   if (ns) ns.onclick = () => { f.season += 1; f.gameNum = 0; f.wins = 0; f.losses = 0; f.schedule.forEach(g => { g.played=false; g.won=false; g.myScore=0; g.oppScore=0; }); saveFranchise(f); renderFranchiseScreen(); };
+  // 🆕 v2.11.0 — FREE AGENCY button
+  const fa = document.getElementById('franchFreeAgency');
+  if (fa) fa.onclick = () => renderFreeAgencyScreen(f);
   document.getElementById('franchReset').onclick = () => {
     if (confirm('Reset franchise progress?')){
       try{ localStorage.removeItem(`wud:franchise:${currentProfileName()}`); }catch(e){}
