@@ -4695,6 +4695,22 @@ class MatchScene extends Phaser.Scene {
     document.getElementById('scoreL').innerHTML = `<span>${u1}</span>${State.scores[0]}<span id="ovrL" style="font-size:10px;color:#ffd76e;letter-spacing:2px;display:block;margin-top:2px">OVR ${computeOvrP1()}</span>`;
     const cpuOvr = (State.rolls && State.rolls.cpuTiers && State.rolls.cpuTiers[0]) ? computeOvrFromTier(State.rolls.cpuTiers[0]) : 60;
     document.getElementById('scoreR').innerHTML = `<span style="text-align:right;display:block">${u2}</span>${State.scores[1]}<span id="ovrR" style="font-size:10px;color:#ffd76e;letter-spacing:2px;display:block;margin-top:2px">OVR ${cpuOvr}</span>`;
+    // 🆕 v2.13.24 — refresh live stats panel if open
+    const lsEl = document.getElementById('liveStats');
+    if (lsEl && lsEl.style.display !== 'none'){
+      const s1 = State.matchStats?.[0] || {}, s2 = State.matchStats?.[1] || {};
+      const fg = (s) => s.attempts ? Math.round(100 * s.buckets / s.attempts) + '%' : '—';
+      lsEl.innerHTML = `<div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:6px">📊 LIVE STATS · TAB to hide</div>
+        <table style="width:100%;color:#fff;font-size:11px;border-collapse:collapse">
+          <tr style="color:#ffd76e88;letter-spacing:1px;font-size:9px"><td></td><td style="text-align:center">${u1}</td><td style="text-align:center">${u2}</td></tr>
+          <tr><td style="color:#aaa">PTS</td><td style="text-align:center;font-weight:900">${State.matchPoints[0]}</td><td style="text-align:center;font-weight:900">${State.matchPoints[1]}</td></tr>
+          <tr><td style="color:#aaa">FG%</td><td style="text-align:center">${fg(s1)}</td><td style="text-align:center">${fg(s2)}</td></tr>
+          <tr><td style="color:#aaa">DNK</td><td style="text-align:center">${s1.dunks||0}</td><td style="text-align:center">${s2.dunks||0}</td></tr>
+          <tr><td style="color:#aaa">BLK</td><td style="text-align:center">${s1.blocks||0}</td><td style="text-align:center">${s2.blocks||0}</td></tr>
+          <tr><td style="color:#aaa">STL</td><td style="text-align:center">${s1.steals||0}</td><td style="text-align:center">${s2.steals||0}</td></tr>
+          <tr><td style="color:#aaa">STREAK</td><td style="text-align:center">${State.bucketStreak[0]||0}</td><td style="text-align:center">${State.bucketStreak[1]||0}</td></tr>
+        </table>`;
+    }
     // 🆕 v2.12.0 — cash HUD + heater overlay
     const ch = document.getElementById('cashHud'); if (ch) ch.textContent = `$${loadCash()}`;
     if (!this.sudden && remain <= 0){ this.endRound(); }
