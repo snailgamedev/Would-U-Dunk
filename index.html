@@ -6103,10 +6103,51 @@ function showReveal(rolls){
   });
   // 🆕 v2.7.1 — Show NPC archetype + description if any cpuTier was sourced from the roster
   // 🆕 v2.13.0 — also show archetype LORE backstory line
+  // 🆕 v2.13.5 — add SCOUTING REPORT — accuracy / speed / steal % bars + counter-strategy hint
+  const counterHint = (id) => {
+    const hints = {
+      sniper:       'Crowd them at the perimeter · they hate close quarters',
+      slasher:      'Block at the rim · their range is short',
+      lockdown:     'Fast-break before they set up · keep the ball moving',
+      clown:        'Predictable in chaos · stay disciplined',
+      prophet:      'Use ball-fakes · they read patterns',
+      streetballer: 'Punish their hero ball · steal mid-charge',
+      showtime:     'Stop the dunk · they\'ll force the issue',
+      steady:       'Force them long · they\'re midrange-only',
+      chaotic:      'Survive their hot streak · cold spells follow',
+      closer:       'Finish early · they get scary in last 30s',
+      paint_beast:  'Stay outside · don\'t go to the rim',
+      point_god:    'Disrupt timing · their reads need rhythm',
+      microwave:    'Steal the ball before they pickup-shoot',
+      glue_guy:     'Spread the floor · they thrive in tight space',
+      ninja:        'Don\'t over-dribble · pickpocket city',
+      mirror:       'Be unpredictable · they copy your moves',
+      shadow:       'Cut hard · break their stick-on D',
+      oracle:       'Quick releases · they pre-jump on slow shots',
+      gambler:      'Punish their gambles · they lunge at fakes',
+    };
+    return hints[id] || 'Play your game · stay aggressive';
+  };
+  const bar = (pct, color) => `<div style="background:#222;border-radius:3px;height:6px;overflow:hidden;margin-top:2px"><div style="background:${color};height:100%;width:${Math.round(pct*100)}%"></div></div>`;
   const npcLine = (State.mode === 'CPU') ? rolls.cpuTiers.map(t => {
+    const acc = Math.min(1, t.accuracy || 0.5);
+    const spd = Math.min(1, (t.moveMul || 1) / 1.5);
+    const stl = Math.min(1, t.stealRate || 0.5);
     if (t._npc){
       const lore = ARCHETYPE_LORE[t._npc.archetypeBaseId] || '';
-      return `<div style="margin-top:6px;font-size:13px;color:#ffd76e;font-weight:bold">🎭 ${t._npc.name} · #${t._npc.look.number}</div><div style="font-size:11px;color:#aaa">${t._npc.archetypeLabel} — ${t._npc.archetypeDesc}</div>${lore ? `<div style="font-size:10px;color:#8aafff;font-style:italic;margin-top:4px">"${lore}"</div>` : ''}`;
+      const hint = counterHint(t._npc.archetypeBaseId);
+      return `<div style="margin-top:6px;font-size:13px;color:#ffd76e;font-weight:bold">🎭 ${t._npc.name} · #${t._npc.look.number}</div>
+        <div style="font-size:11px;color:#aaa">${t._npc.archetypeLabel} — ${t._npc.archetypeDesc}</div>
+        ${lore ? `<div style="font-size:10px;color:#8aafff;font-style:italic;margin-top:4px">"${lore}"</div>` : ''}
+        <div style="margin-top:8px;background:#0008;border:1px solid #ffd76e44;border-radius:6px;padding:6px 10px;text-align:left">
+          <div style="color:var(--gold);font-size:9px;letter-spacing:3px;font-weight:900;margin-bottom:4px">📋 SCOUTING REPORT</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:9px;color:#aaa;letter-spacing:1px">
+            <div>ACC ${(acc*100|0)}%${bar(acc, '#4cf07a')}</div>
+            <div>SPD ${(spd*100|0)}%${bar(spd, '#ff8a3c')}</div>
+            <div>STL ${(stl*100|0)}%${bar(stl, '#ff3b3b')}</div>
+          </div>
+          <div style="margin-top:6px;font-size:10px;color:#ffd76e;letter-spacing:1px">⚔ COUNTER · <span style="color:#fff">${hint}</span></div>
+        </div>`;
     }
     return `<div style="margin-top:6px;font-size:13px;color:#ffd76e">CPU TIER · ${t.name}</div>`;
   }).join('') : '';
