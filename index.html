@@ -4999,6 +4999,16 @@ async function startRound(){
     }));
   }
   State.rolls = rolls; State.cfg = cfg;
+  // 🆕 v2.8.1 — FRANCHISE OVERRIDE — pick CPU tier from league pool when franchise active
+  if (State._franchiseActive && State._franchiseLeagueId){
+    const baseTier = pickLeagueTier(State._franchiseLeagueId);
+    const npc = pickRandomNpc();
+    npc.tierId = baseTier.id;
+    const overlaid = npcToTier(npc);
+    overlaid.name = `${State._franchiseOpp} · ${overlaid.name}`;
+    rolls.cpuTiers = [overlaid];
+    State.rolls = rolls;
+  }
   // 🆕 v2.7.2 — Apply NPC look + name to State.looks[1] when CPU rolls a roster NPC.
   // Player keeps their custom look (slot 0); CPU sprite + nameplate now match the rolled persona.
   if (State.mode === 'CPU' && rolls.cpuTiers && rolls.cpuTiers[0] && rolls.cpuTiers[0]._npc){
@@ -5006,6 +5016,14 @@ async function startRound(){
     State.looks[1] = Object.assign(defaultLook(1), npc.look, { username: npc.name });
     if (!State.usernames) State.usernames = ['P1','P2'];
     State.usernames[1] = npc.name;
+    // 🆕 v2.8.1 — if franchise mode, color jersey to match opponent team's primary color
+    if (State._franchiseActive && State._franchiseLeagueId){
+      const oppTeam = getTeam(State._franchiseLeagueId, State._franchiseOpp);
+      if (oppTeam){
+        State.looks[1].jersey = oppTeam.primary;
+        State.looks[1].shorts = oppTeam.secondary;
+      }
+    }
   }
   // track per-match metrics
   rolls.mods.forEach(({mod}) => {
