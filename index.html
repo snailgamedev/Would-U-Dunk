@@ -5663,7 +5663,7 @@ function showEndCard(){
     (winVerse ? `<div style="margin-top:14px;color:#fff;font-style:italic;font-size:14px;line-height:1.4">"${winVerse.text}"<div style="color:#ffd76e;font-style:normal;font-size:11px;letter-spacing:3px;margin-top:4px;font-weight:900">${winVerse.ref}</div></div>` : '');
   const btnNext = document.getElementById('btnNextRound');
   btnNext.textContent = matchDone
-    ? (State._wasFranchise ? '🏆 BACK TO FRANCHISE' : (seriesClinched ? 'NEW SERIES' : (isSeries ? `NEXT GAME (${State.seriesWins?.[0]||0}-${State.seriesWins?.[1]||0})` : 'PLAY AGAIN')))
+    ? (State._wasTourney ? '⚔️ BACK TO BRACKET' : (State._wasFranchise ? '🏆 BACK TO FRANCHISE' : (seriesClinched ? 'NEW SERIES' : (isSeries ? `NEXT GAME (${State.seriesWins?.[0]||0}-${State.seriesWins?.[1]||0})` : 'PLAY AGAIN'))))
     : 'NEXT ROUND';
   btnNext.onclick = () => {
     document.getElementById('endcard').classList.remove('on');
