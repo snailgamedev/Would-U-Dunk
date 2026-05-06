@@ -7009,7 +7009,7 @@ function showEndCard(){
   } else {
     State._wasFranchise = false;
   }
-  // 🆕 v2.13.12 — DAILY CHALLENGE result save
+  // 🆕 v2.13.12 — DAILY CHALLENGE result save · 🆕 v2.13.19 — daily streak tick
   if (matchDone && State._dailyActive){
     const myPts = State.matchPoints?.[0] || 0;
     const oppPts = State.matchPoints?.[1] || 0;
@@ -7021,6 +7021,9 @@ function showEndCard(){
       all[key] = { myPts, oppPts, won, at: Date.now() };
       saveDailyBest(all);
     }
+    // streak
+    const s = tickDailyStreak();
+    showToast(`📅 DAILY STREAK · ${s.count} day${s.count!==1?'s':''}`, 'level');
     State._dailyActive = false;
   }
   // 🆕 v2.9.0 — TOURNAMENT update on match-done
