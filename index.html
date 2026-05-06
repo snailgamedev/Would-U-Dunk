@@ -5548,6 +5548,14 @@ function renderAchievementsScreen(){
     </div>${sections}`);
 }
 function renderSettingsScreen(){
+  // 🆕 v2.16.2 — defensively pause the active match while settings is open
+  try {
+    const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+    if (sc && sc.scene && sc.scene.isActive && sc.scene.isActive()){
+      sc.scene.pause();
+      window._wudSettingsResumeAfterClose = true;
+    }
+  } catch(e){}
   const toggle = (key, label, desc) => `
     <label class="setrow">
       <span class="sk">${label}</span>
