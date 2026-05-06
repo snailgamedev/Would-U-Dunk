@@ -3885,17 +3885,81 @@ class MatchScene extends Phaser.Scene {
   }
 
   handleRemoteInput(p){
-    // Apply remote-side inputs (movement). Position-sync from peer.
+    // 🆕 v2.10.1 — FULL remote input handling (was movement-only — bug since v2 multiplayer added).
+    // Now mirrors handleHumanInput so the remote player can JUMP, SHOOT (charge/release), and STEAL.
     const inp = Online.remoteInputs || {};
-    const moveAccel = 1500 * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1);
+    const moveAccel = PLAYER_BASE_ACCEL * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1);
     if (inp.left)  p.body.setAccelerationX(-moveAccel);
     else if (inp.right) p.body.setAccelerationX( moveAccel);
     else p.body.setAccelerationX(0);
-    // Position correction — gentle lerp toward peer's reported position to fight divergence
+    // gentle X position correction to fight divergence (small lerp)
     if (inp.x !== undefined){
       const dx = inp.x - p.x;
       if (Math.abs(dx) > 8) p.x += dx * 0.3;
     }
+    // edge detection for jump press / release
+    const prev = this._lastRemoteJumpDown || false;
+    const cur  = !!inp.jumpDown;
+    const jumpPressed  = cur && !prev;
+    const jumpReleased = !cur && prev;
+    this._lastRemoteJumpDown = cur;
+
+    const grounded = p.body.blocked.down || p.body.touching.down;
+    const heldByP = this.ball.getData('held') === p;
+    if (heldByP){
+      // CHARGE-RELEASE shoot identical to local human path
+      if (jumpPressed){
+        p._chargeStart = this.time.now;
+        p._charging = true;
+        p._jumpedThisHold = false;
+        if (grounded){
+          const power = PLAYER_BASE_JUMP * (State.cfg.jumpMul || 1);
+          p.body.setVelocityY(-power);
+          SFX.bounce && SFX.bounce();
+          this.tweens.add({ targets:p, scaleY: p.scaleY*0.85, scaleX: p.scaleX*1.12, duration:80, yoyo:true });
+          p._jumpedThisHold = true;
+          p._ballGroundJumps = (p._ballGroundJumps || 0) + 1;
+        }
+      }
+      if (p._charging){
+        p._chargeAmount = Phaser.Math.Clamp((this.time.now - p._chargeStart) / 600, 0, 1);
+      }
+      if (p._charging && (jumpReleased || (this.time.now - p._chargeStart) > 1100)){
+        const heldFor = this.time.now - p._chargeStart;
+        const charge = p._chargeAmount || 0;
+        const forcedShoot = (p._ballGroundJumps || 0) >= 2;
+        p._charging = false; p._chargeAmount = 0; p._chargeStart = 0;
+        if (heldFor < 200 && !forcedShoot){
+          // tap = jump only
+        } else {
+          SFX.chargeRelease && SFX.chargeRelease(charge);
+          this.shoot(p, charge);
+          p._ballGroundJumps = 0;
+        }
+      }
+    } else if (jumpPressed){
+      if (grounded){
+        const power = PLAYER_BASE_JUMP * (State.cfg.jumpMul || 1);
+        p.body.setVelocityY(-power);
+        SFX.bounce && SFX.bounce();
+        this.tweens.add({ targets:p, scaleY: p.scaleY*0.85, scaleX: p.scaleX*1.12, duration:80, yoyo:true });
+      } else {
+        // mid-air block opportunity (use shared executor)
+        const opp = (p===this.p1)?this.p2:this.p1;
+        if (this.ball.getData('held') === opp){
+          const d = Phaser.Math.Distance.Between(p.x,p.y,opp.x,opp.y);
+          if (d < 160) this.executeBlock(p, opp);
+        }
+      }
+    }
+    // STEAL — rising edge
+    const stealPrev = this._lastRemoteSteal || false;
+    const stealCur = !!inp.steal;
+    if (stealCur && !stealPrev) this.onStealKey(p);
+    this._lastRemoteSteal = stealCur;
+    // facing follows movement direction
+    if (inp.left) p.facing = -1;
+    else if (inp.right) p.facing = 1;
   }
 
   runCpu(p, dt){
