@@ -6142,9 +6142,12 @@ function renderShopScreen(){
   const sections = cats.map(cat => {
     const items = SHOP_ITEMS.filter(i => i.cat === cat);
     const equipped = loadEquipped(cat);
+    const sale = getDailyFlashSale();
     const rows = items.map(item => {
       const isOwned = owned.includes(item.id);
       const isEquipped = equipped === item.id;
+      const onSale = sale && sale.itemId === item.id && !isOwned;
+      const salePrice = onSale ? Math.round(item.price * (1 - sale.discount)) : item.price;
       // 🆕 v2.13.3 — render a CANVAS preview for ball skins; emoji for everything else
       const visual = (cat === 'BALL')
         ? `<canvas data-ballpreview="${item.id}" width="48" height="48" style="border-radius:50%"></canvas>`
