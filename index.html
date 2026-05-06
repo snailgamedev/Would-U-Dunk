@@ -2478,6 +2478,29 @@ function rollFreeAgentPool(){
   }
   return pool;
 }
+// 🆕 v2.13.6 — TRADE BLOCK: swap a roster NPC for a randomized offer (50% up-tier chance)
+function offerTrade(f, releaseId){
+  if (!f.roster) return null;
+  const released = f.roster.find(r => r.id === releaseId);
+  if (!released) return null;
+  // try to upgrade tier 50% of the time
+  const tierIdx = CPU_TIERS.findIndex(t => t.id === released.tierId);
+  const upTier = (Math.random() < 0.5) ? Math.min(CPU_TIERS.length - 1, tierIdx + 2) : tierIdx;
+  // pick an NPC at that tier
+  const candidates = NPC_ROSTER.filter(n => n.tierId === CPU_TIERS[upTier].id && !f.roster.find(r => r.id === n.id));
+  if (!candidates.length) return null;
+  return candidates[(Math.random() * candidates.length) | 0];
+}
+function executeTrade(f, releaseId, newNpc){
+  f.roster = (f.roster || []).filter(r => r.id !== releaseId);
+  // recompute boost
+  const tier = CPU_TIERS.find(t => t.id === newNpc.tierId) || CPU_TIERS[10];
+  const boost = (tier.accuracy + tier.moveMul + tier.stealRate) / 12;
+  f.roster.push({ id:newNpc.id, name:newNpc.name, tierId:newNpc.tierId, archetypeLabel:newNpc.archetypeLabel, boost });
+  f.rosterBoost = f.roster.reduce((s, r) => s + (r.boost || 0), 0);
+  saveFranchise(f);
+}
+
 function signFreeAgent(f, npc){
   if (!f.roster) f.roster = [];
   if (f.roster.length >= 5) return false;
