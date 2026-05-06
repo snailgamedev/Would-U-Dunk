@@ -4038,11 +4038,42 @@ class MatchScene extends Phaser.Scene {
     // SLAM through after warp
     this.time.delayedCall(280, () => {
       this.detachBall();
-      this.ball.setPosition(target.x, target.y - 4);
-      // Tag dunk shotDist as zero so it counts as 2 points
+      // 🆕 v2.18.0 — DUNK MISS CHANCE (8%, more on jellyGrav/aimChaos modes) → ricochet off rim
+      const baseMissChance = 0.08 + (State.cfg.aimChaos || 0) * 0.5 + (State.cfg.jellyGrav ? 0.10 : 0);
+      const isMiss = Math.random() < baseMissChance;
+      if (isMiss){
+        // Spawn ball at rim height, send it bouncing off
+        this.ball.setPosition(target.x + (Math.random()-0.5)*30, target.y - 40);
+        const ricochetX = (Math.random()<0.5 ? -1 : 1) * (200 + Math.random()*180);
+        this.ball.body.setVelocity(ricochetX, -300 - Math.random()*120);
+        this.ball.setData('shotFromX', target.x);
+        this.ball.setData('shotFromY', target.y);
+        this.ball.setData('shotDist',  0);
+        this.ball.setData('lastShooter', player);
+        this.ball.setData('lastTouchedAt', this.time.now);
+        this.ball.setData('apexY', undefined);   // reset so apex-track restarts cleanly
+        // CLANK FX
+        const clank = this.add.text(target.x, target.y - 60, 'CLANK!', {fontFamily:'monospace', fontSize:30, color:'#ff8a8a', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+        this.tweens.add({ targets: clank, y: clank.y - 30, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:900, onComplete:()=>clank.destroy() });
+        SFX.miss && SFX.miss();
+        SFX.crowdOoh && SFX.crowdOoh();
+        // Decrement dunks count (it was incremented optimistically up top)
+        if (State.matchStats?.[player.idx]) State.matchStats[player.idx].dunks = Math.max(0, (State.matchStats[player.idx].dunks||0) - 1);
+        // Hang on rim brief, then drop
+        const rimY = target.y - 22; player.setPosition(target.x + (target.side === 'L' ? 18 : -18), rimY);
+        player.body.setVelocity(0, 0); player.body.setAllowGravity(false);
+        this.tweens.add({ targets:player, angle: { from: -8, to: 8 }, duration: 250, yoyo: true, repeat: 1 });
+        this.time.delayedCall(700, () => { player.body.setAllowGravity(true); player.angle = 0; this._dunking = false; });
+        return;
+      }
+      // 🆕 v2.18.0 — Spawn ball ABOVE rim w/ explicit apex so the top-to-bottom check passes
+      this.ball.setPosition(target.x, target.y - 60);
+      this.ball.setData('apexY', target.y - 60);
       this.ball.setData('shotFromX', target.x);
       this.ball.setData('shotFromY', target.y);
       this.ball.setData('shotDist',  0);
+      this.ball.setData('lastShooter', player);
+      this.ball.setData('lastTouchedAt', this.time.now);
       this.ball.body.setVelocity(0, 720);     // hammer straight down
       this.shakeCam(260, 0.013);
       this.cameras.main.flash(140, 255, 220, 80);
