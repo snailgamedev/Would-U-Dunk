@@ -3282,14 +3282,35 @@ class MatchScene extends Phaser.Scene {
     const smoothed = Math.abs(p._smoothDir) < 0.15 ? 0 : p._smoothDir;
     p.facing = smoothed > 0 ? 1 : -1;
 
-    const accel = 1500 * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1) * tier.moveMul;
+    // 🆕 v2.7.0 — FAIR PLAY. CPU can't accelerate faster than the player at base.
+    // tier.moveMul still affects DECISION quality (when to shoot, when to steal) via accuracy/react/stealRate,
+    // but raw movement is normalised to the human ceiling. No more "why is MED faster than me" bug.
+    const fairTierMul = Math.min(CPU_SPEED_FAIRNESS_CAP, tier.moveMul);
+    const accel = PLAYER_BASE_ACCEL * (State.cfg.playerScale||1) * (State.cfg.playerSpeedMul||1) * fairTierMul;
     p.body.setAccelerationX(smoothed * accel);
 
-    // jump occasionally if needed
+    // jump occasionally if needed — capped jump-rate so high-tier CPU doesn't jump-spam
     const grounded = p.body.blocked.down || p.body.touching.down;
-    if (grounded && Math.random() < 0.02 * tier.moveMul) {
-      p.body.setVelocityY(-720 * (State.cfg.jumpMul||1));
+    const jumpRate = Math.min(CPU_JUMP_RATE_CAP, 0.012 + 0.013 * fairTierMul);
+    if (grounded && Math.random() < jumpRate) {
+      // 🆕 v2.7.0 — track ball-jump phase so CPU obeys forced-shoot rule too
+      if (this.ball.getData('held') === p){
+        p._ballGroundJumps = (p._ballGroundJumps || 0) + 1;
+      }
+      p.body.setVelocityY(-PLAYER_BASE_JUMP * (State.cfg.jumpMul||1));
+      p._lastJumpAt = this.time.now;
     }
+    // 🆕 v2.7.0 — FORCED-SHOOT. If CPU has the ball, jumped twice off the floor without shooting,
+    // auto-fire near the apex of the second jump (simulates "release jump button = shoot")
+    if (this.ball.getData('held') === p && (p._ballGroundJumps || 0) >= 2 && !grounded){
+      const sinceJump = this.time.now - (p._lastJumpAt || 0);
+      if (sinceJump > 220 && p.body.velocity.y > -120){
+        this.shoot(p);
+        p._ballGroundJumps = 0;
+      }
+    }
+    // reset ball-jump counter when CPU loses the ball
+    if (this.ball.getData('held') !== p) p._ballGroundJumps = 0;
   }
 
   endRound(){
