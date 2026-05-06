@@ -3839,11 +3839,10 @@ class MatchScene extends Phaser.Scene {
       // 🆕 v2.8.2 — CPU mid-air BLOCK. If opp is mid-air w/ ball + close, jump + block
       const oppGrounded = opp.body.blocked.down || opp.body.touching.down;
       const cpuGrounded = p.body.blocked.down || p.body.touching.down;
-      if (!oppGrounded && d < 160 && cpuGrounded && Math.random() < tier.react ? tier.stealRate * 0.5 : 0){
+      if (!oppGrounded && d < 170 && cpuGrounded && Math.random() < tier.stealRate * 0.4){
         p.body.setVelocityY(-PLAYER_BASE_JUMP * (State.cfg.jumpMul||1));
       }
       if (!oppGrounded && d < 160 && !cpuGrounded){
-        // already in air close enough → execute block
         this.executeBlock(p, opp);
       }
     } else {
