@@ -7107,7 +7107,7 @@ function showSplash(){
       `📅 DAILY STREAK: ${(typeof loadDailyStreak === 'function') ? loadDailyStreak().count : 0} DAYS`,
       `🏟 STADIUM TIER: ${(typeof loadStadiumTier === 'function') ? loadStadiumTier() : 1}/5`,
       `⚙ TIP · press 1-5 mid-game for emote bubbles`,
-      `🏆 ${Object.keys(Career.achievements||{}).length}/101 ACHIEVEMENTS UNLOCKED`,
+      `🏆 ${Object.keys(Career.achievements||{}).length}/${computeStats().achievements} ACHIEVEMENTS UNLOCKED`,
       `✝️ "Run in such a way as to take the prize" — 1 Cor 9:24`,
     ];
     let mi = 0;
