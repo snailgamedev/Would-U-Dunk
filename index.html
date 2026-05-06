@@ -1807,26 +1807,29 @@ function genNpcName(){
 }
 const NPC_ROSTER = (() => {
   const list = [];
-  // 8 NPCs per CPU tier × 29 tiers = 232 base NPCs, expanded archetype variety w/ 25 archetypes
+  // 🆕 v2.10.0 — 16 NPCs per CPU tier × 29 tiers = 464 NPCs. Each pairs a base archetype + a trait
+  // for distinct identities. With 30 base × 35 traits = 1050 unique archetype combos in rotation.
   for (let i = 0; i < CPU_TIERS.length; i++){
     const tier = CPU_TIERS[i];
-    for (let j = 0; j < 8; j++){
-      const arch = NPC_ARCHETYPES[(i*7 + j*3) % NPC_ARCHETYPES.length];
+    for (let j = 0; j < 16; j++){
+      const baseArch = NPC_ARCHETYPES[(i*7 + j*3) % NPC_ARCHETYPES.length];
+      const trait = ARCHETYPE_TRAITS[(i*11 + j*5) % ARCHETYPE_TRAITS.length];
+      const eff = combineArchetype(baseArch, trait);
       const look = genNpcLook(j);
-      // 🆕 v2.8.0 — archetype affects body size. Apply bodyMul to height for sprite scale.
-      look.height = (look.height || 1) * (arch.bodyMul || 1);
-      // Specific archetype tuning for build/look
-      if (arch.id === 'giant' || arch.id === 'mountain' || arch.id === 'paint_beast') look.build = 'beefy';
-      if (arch.id === 'waterbug' || arch.id === 'point_god') look.build = 'slim';
+      look.height = (look.height || 1) * (baseArch.bodyMul || 1);
+      if (baseArch.id === 'giant' || baseArch.id === 'mountain' || baseArch.id === 'paint_beast') look.build = 'beefy';
+      if (baseArch.id === 'waterbug' || baseArch.id === 'point_god' || baseArch.id === 'ninja') look.build = 'slim';
       list.push({
         id: `npc_${tier.id}_${j}`,
         name: genNpcName(),
         tierId: tier.id,
-        archetypeId: arch.id,
-        archetypeLabel: arch.label,
-        archetypeDesc: arch.desc,
-        bias: arch.bias,
-        bodyMul: arch.bodyMul || 1,
+        archetypeId: eff.id,
+        archetypeBaseId: baseArch.id,
+        archetypeTraitId: trait.id,
+        archetypeLabel: eff.label,
+        archetypeDesc: eff.desc,
+        bias: eff.bias,
+        bodyMul: baseArch.bodyMul || 1,
         look,
       });
     }
