@@ -4661,11 +4661,47 @@ function renderFranchiseScreen(){
   const fa = document.getElementById('franchFreeAgency');
   if (fa) fa.onclick = () => renderFreeAgencyScreen(f);
   document.getElementById('franchReset').onclick = () => {
-    if (confirm('Reset franchise progress?')){
+    // 🆕 v2.11.1 — offer to archive to Hall of Fame instead of just deleting
+    if (f.season > 1 || (f.gameNum > 0)){
+      if (confirm('Retire to Hall of Fame? (Cancel = full delete)')){
+        archiveToHof(f);
+        try{ localStorage.removeItem(`wud:franchise:${currentProfileName()}`); }catch(e){}
+        showToast('🏛 RETIRED TO HALL OF FAME', 'level');
+        renderFranchiseScreen();
+        return;
+      }
+    }
+    if (confirm('Permanently reset franchise progress?')){
       try{ localStorage.removeItem(`wud:franchise:${currentProfileName()}`); }catch(e){}
       renderFranchiseScreen();
     }
   };
+}
+// 🆕 v2.11.1 — HALL OF FAME screen
+function renderHallOfFameScreen(){
+  const hof = loadHof();
+  if (!hof.length){
+    openModal('🏛 HALL OF FAME', `<div style="text-align:center;color:#aab;font-style:italic;padding:30px">No retired franchises yet. Build a legacy in 🏆 FRANCHISE — retire teams to immortalize them here.</div>`);
+    return;
+  }
+  const rows = hof.sort((a,b)=>b.titles - a.titles || b.seasons - a.seasons).map((h, i) => {
+    const lg = getLeague(h.leagueId);
+    const team = getTeam(h.leagueId, h.teamName);
+    const mvpRows = (h.mvps || []).map(m => `<div style="font-size:10px;color:#aaa;padding:2px 0">S${m.season}: ${m.mvp} (${m.wins}-${m.losses})</div>`).join('');
+    return `<div style="background:#0008;border:2px solid ${h.titles>0?'var(--gold)':'#ffd76e44'};border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="font-size:34px">${team?.mascot || '🏀'}</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:900;font-size:15px;letter-spacing:1px">${h.titles>0?'🏆 '.repeat(Math.min(h.titles,3)):''}${h.teamName}</div>
+          <div style="color:#aaa;font-size:11px">${lg?.name || h.leagueId} · ${h.seasons} seasons · ${h.titles} title${h.titles!==1?'s':''}</div>
+        </div>
+      </div>
+      ${mvpRows ? `<details style="margin-top:6px"><summary style="color:#4cf07a;font-size:10px;letter-spacing:2px;cursor:pointer">SEASON MVPs</summary>${mvpRows}</details>` : ''}
+    </div>`;
+  }).join('');
+  openModal(`🏛 HALL OF FAME · ${hof.length} legacy team${hof.length!==1?'s':''}`,
+    `<div style="font-size:13px;color:#fff;margin-bottom:10px">Sorted by titles · then seasons. Tap a card to expand MVPs.</div>
+     <div style="max-height:60vh;overflow-y:auto">${rows}</div>`);
 }
 function renderFranchiseTeamPicker(leagueId){
   const lg = getLeague(leagueId);
