@@ -1754,11 +1754,17 @@ function genNpcName(){
 }
 const NPC_ROSTER = (() => {
   const list = [];
-  // 8 NPCs per CPU tier to cover the full skill spectrum (29 tiers × 8 = 232 NPCs)
+  // 8 NPCs per CPU tier × 29 tiers = 232 base NPCs, expanded archetype variety w/ 25 archetypes
   for (let i = 0; i < CPU_TIERS.length; i++){
     const tier = CPU_TIERS[i];
     for (let j = 0; j < 8; j++){
       const arch = NPC_ARCHETYPES[(i*7 + j*3) % NPC_ARCHETYPES.length];
+      const look = genNpcLook(j);
+      // 🆕 v2.8.0 — archetype affects body size. Apply bodyMul to height for sprite scale.
+      look.height = (look.height || 1) * (arch.bodyMul || 1);
+      // Specific archetype tuning for build/look
+      if (arch.id === 'giant' || arch.id === 'mountain' || arch.id === 'paint_beast') look.build = 'beefy';
+      if (arch.id === 'waterbug' || arch.id === 'point_god') look.build = 'slim';
       list.push({
         id: `npc_${tier.id}_${j}`,
         name: genNpcName(),
@@ -1767,7 +1773,8 @@ const NPC_ROSTER = (() => {
         archetypeLabel: arch.label,
         archetypeDesc: arch.desc,
         bias: arch.bias,
-        look: genNpcLook(j),
+        bodyMul: arch.bodyMul || 1,
+        look,
       });
     }
   }
