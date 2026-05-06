@@ -51,8 +51,8 @@
   #tR{left:32vw;bottom:5vw;width:110px;height:110px;font-size:42px}
   #tJ{right:5vw;bottom:18vw;width:110px;height:110px;font-size:14px;background:#4cf07a44;border-color:#4cf07a;line-height:1.1}
   #tS{right:5vw;bottom:5vw;width:95px;height:95px;font-size:14px;background:#ff3b3b44;border-color:#ff3b3b}
-  /* Mobile menu adjustments */
-  @media (max-width: 720px){
+  /* Mobile menu adjustments — fires from media query AND from body.ui-mobile (JS-toggled) */
+  @media (max-width: 720px), (pointer: coarse){
     .panel{padding:14px;max-width:96vw}
     .title{font-size:32px}
     .btn{font-size:14px;padding:11px 12px;letter-spacing:1px}
@@ -68,6 +68,22 @@
     #scripture{max-width:240px;font-size:11px;padding:8px 10px}
     #coachLine{font-size:18px;letter-spacing:2px}
   }
+  /* 🆕 v2.16.0 — JS-toggled body class that forces mobile UI even on bigger touchscreens */
+  body.ui-mobile .panel{padding:14px;max-width:96vw}
+  body.ui-mobile .title{font-size:34px;line-height:1.05}
+  body.ui-mobile .btn{font-size:15px;padding:13px 14px;letter-spacing:1px;min-height:46px}
+  body.ui-mobile .row .btn{flex:1 1 100%;min-width:0}
+  body.ui-mobile .ccgrid{grid-template-columns:1fr;gap:10px}
+  body.ui-mobile .ccslot{max-height:none;overflow:visible}
+  body.ui-mobile #touch{display:flex !important}
+  body.ui-mobile #moves{display:none !important}
+  body.ui-mobile #liveStats{font-size:9px;min-width:160px;padding:6px 8px}
+  body.ui-mobile #verBadge{font-size:11px;padding:6px 12px;top:6px;right:6px}
+  body.ui-mobile #cashHud{font-size:12px}
+  body.ui-mobile #scoreL,body.ui-mobile #scoreR{font-size:28px;min-width:80px;padding:3px 8px}
+  /* Desktop can opt INTO desktop UI even on a touch-screen */
+  body.ui-desktop #touch{display:none !important}
+  body.ui-desktop #moves{display:block}
   /* Reveal overlay */
   #reveal{position:fixed;inset:0;display:none;place-items:center;background:radial-gradient(ellipse at 50% 50%, #000c 0%, #000f 100%);z-index:30}
   #reveal.on{display:grid;animation:flash 0.18s 8 alternate}
