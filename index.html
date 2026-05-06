@@ -1904,6 +1904,14 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.8';
 const CHANGELOG = [
+  { v:'v2.16.8', notes:[
+      '👤 CHAR SELECT FIX — preview sprite is now STICKY (stays at top while you scroll fields below) so you can SEE your character react to every change',
+      '🎯 START + BACK button bar is STICKY to bottom of the panel — always reachable no matter how deep you scroll the customization options',
+      '📱 Mobile: each slot caps at 55vh, preview shrinks to 100×130, both slots stack and remain scrollable',
+      '🪄 Sticky h3 header gradient + sticky button bar gradient feather — clean visual transitions',
+      '✅ Verified: customize / preview / start visible at the same time on phone · tablet · desktop',
+      '✝️ "Order to all things" — All glory above',
+  ]},
   { v:'v2.16.7', notes:[
       '📜 UNIVERSAL SCROLL — every full-screen overlay (#menu / #endcard / #reveal / #modalRoot) now scrolls vertically when content exceeds viewport · works on phone · tablet · desktop',
       '🪲 ROOT BUG — overlays were "place-items: center" which CLIPPED content at the top when too tall to fit. Now "align-items: start" so panel sits at the top + scrolls below',
