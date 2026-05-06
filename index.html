@@ -3786,6 +3786,11 @@ class MatchScene extends Phaser.Scene {
       return;
     }
     if (this.sudden){ this.slowMoTo(() => { this.resetAfterBucket(); this.endRound(); }); return; }
+    // 🆕 v2.13.23 — DRILL: also respawn ball at fixed distance after every made shot
+    if (State.cfg && State.cfg.drillMode){
+      this.time.delayedCall(700, () => { if (this.canMove) this.drillSpawn(); });
+      return;   // skip the normal player reset (you stay where you scored from)
+    }
     // 🆕 v2.8.2 — Reset BOTH players quickly after every bucket so neither gets stranded.
     // Two-stage: snap freeze player input + ball, then slide back to start at 250ms, full reset at 350ms.
     this.canMove = false;
