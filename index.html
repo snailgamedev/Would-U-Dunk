@@ -1391,8 +1391,34 @@ function rollRandomMode(){
   return Object.assign({ id:'random', name:'🎲 RANDOM RULES', desc:'rolled this match', extraCfg:{} }, pick);
 }
 
+/* ------------------- v2.7.0 GLOBALS — depth layers, score floor, base speed ------------------- */
+// One source of truth so layering is consistent across modes
+const DEPTH = {
+  BG_FAR: -13, BG_MID: -10, BG_NEAR: -8,
+  COURT: -6, FLOOR_PAINT: -3,
+  HOOP_BACK: 1, HOOP_BOARD: 2, HOOP_RIM: 3, HOOP_NET: 2,
+  EFFECT_BACK: 4, BALL_TRAIL: 5,
+  PLAYER: 10, BALL: 11,
+  EFFECT_FRONT: 35, CELEBRATION: 42, BURST: 60,
+  CHARGE_BAR: 70, ALT_TEXT: 80, BANNER: 90,
+  HUD_FIXED: 95,
+};
+// Score floor for cursed/inverted modes — clamps how negative you can go
+const MIN_SCORE = -50;
+const MAX_SCORE_RUNAWAY = 999;
+const clampScore = (n) => Math.max(MIN_SCORE, Math.min(MAX_SCORE_RUNAWAY, n|0));
+
+// Player base movement constants — CPU is FORBIDDEN from exceeding these unaided
+const PLAYER_BASE_ACCEL = 1500;     // matches handleHumanInput
+const PLAYER_BASE_JUMP  = 720;      // matches handleHumanInput
+// Cap CPU speed multiplier so CPU never moves faster than human at base. tier.moveMul still
+// affects accuracy/decisionmaking expectation but raw velocity is normalised.
+const CPU_SPEED_FAIRNESS_CAP = 1.0;
+// CPU jump frequency cap — old code used moveMul which made high-tier CPUs spam jumps
+const CPU_JUMP_RATE_CAP = 0.025;
+
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v2.6.4';
+const VERSION = 'v2.7.0';
 const CHANGELOG = [
   { v:'v2.6.4', notes:['🎚 MASTER VOLUME slider in settings — drag to adjust all sounds 0–100%','🔇 MUTE / UNMUTE button next to slider (preserves last volume on unmute)','🔊 SFX module rebuilt around a single master gain node — instant volume changes apply to every voice'] },
   { v:'v2.6.3', notes:['🎲 SURPRISE ME button on splash — random looks + random mode + max chaos in one click','🏐 OUT-OF-BOUNDS BEHIND GOAL — slow camera pan, zoom-in, banner, ball respawn','☄️ NO SKY LIMIT — ball can fly 4× higher; camera tracks + altitude readout + slow zoom-out shows the arc','📲 top-right version badge + auto-show "what\'s new" first time per version'] },
