@@ -164,12 +164,16 @@
   .row .btn{flex:1;min-width:140px}
   /* Char select */
   .ccgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
-  .ccslot{background:#0006;border:2px solid #ffd76e88;border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto}
+  .ccslot{background:#0006;border:2px solid #ffd76e88;border-radius:10px;padding:14px;max-height:65vh;overflow-y:auto;position:relative}
   .ccslot::-webkit-scrollbar{width:8px}
   .ccslot::-webkit-scrollbar-thumb{background:#ffd76e44;border-radius:4px}
-  .ccslot h3{margin:0 0 6px;color:var(--gold);letter-spacing:2px;font-size:14px;position:sticky;top:0;background:#0006;padding-bottom:4px;backdrop-filter:blur(6px);z-index:2}
+  .ccslot h3{margin:0 0 6px;color:var(--gold);letter-spacing:2px;font-size:14px;position:sticky;top:0;background:linear-gradient(180deg,#0a0e1f 0%,#0a0e1faa 80%,transparent 100%);padding:4px 6px 8px;backdrop-filter:blur(6px);z-index:3}
   .ccslot.locked{border-color:#4cf07a}
-  .preview{width:140px;height:180px;margin:0 auto 8px;image-rendering:pixelated;border-radius:10px;background:linear-gradient(180deg,#3b6ea8 0%,#3b6ea8 55%,#c97c3a 55%,#c97c3a 100%);box-shadow:inset 0 0 0 2px #ffd76e88, 0 4px 0 #000;display:block}
+  /* 🆕 v2.16.8 — preview is STICKY so it stays visible while you scroll customization fields */
+  .preview{width:140px;height:180px;margin:0 auto 8px;image-rendering:pixelated;border-radius:10px;background:linear-gradient(180deg,#3b6ea8 0%,#3b6ea8 55%,#c97c3a 55%,#c97c3a 100%);box-shadow:inset 0 0 0 2px #ffd76e88, 0 4px 0 #000;display:block;position:sticky;top:34px;z-index:2}
+  /* 🆕 v2.16.8 — sticky bottom action bar so START/BACK is always reachable */
+  .stickyActions{position:sticky;bottom:-14px;margin:14px -14px -14px;padding:10px 14px;background:linear-gradient(180deg,transparent 0%,#0b0d12cc 30%,#0b0d12 100%);border-top:1px solid #ffd76e44;z-index:5;display:flex;gap:8px;flex-wrap:wrap}
+  .stickyActions .btn{margin:0;flex:1}
   .field{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:11px}
   .field label{flex:0 0 70px;color:#ffd76e;text-align:right;letter-spacing:1px}
   .field .opts{display:flex;gap:3px;flex-wrap:wrap;flex:1}
