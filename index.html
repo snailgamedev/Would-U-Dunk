@@ -3451,7 +3451,66 @@ class MatchScene extends Phaser.Scene {
     this.cameras.main.flash(80, 80, 200, 255);
   }
 
+  // 🆕 v2.13.0 — POWER-UP STAR PICKUPS — random spawn, +25% accuracy 8s on pickup
+  spawnPowerUpStar(){
+    if (this._activeStar || !this.canMove) return;
+    const x = 200 + Math.random() * (COURT_W - 400);
+    const y = FLOOR_Y - 120 - Math.random() * 250;
+    const star = this.add.text(x, y, '⭐', {fontSize:'40px'}).setOrigin(0.5).setDepth(DEPTH.EFFECT_FRONT);
+    star.setData('isPowerStar', true);
+    this._activeStar = star;
+    // gentle bob + pulse
+    this.tweens.add({ targets: star, y: y - 14, duration: 700, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
+    this.tweens.add({ targets: star, scale: 1.25, duration: 500, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
+    // halo
+    const halo = this.add.circle(x, y, 30, 0xffd76e, 0.25).setDepth(DEPTH.EFFECT_FRONT - 1);
+    star.setData('halo', halo);
+    this.tweens.add({ targets: halo, scale: 1.6, alpha: 0.05, duration: 1000, yoyo:true, repeat:-1 });
+    // auto-despawn after 12s if not picked
+    this.time.delayedCall(12000, () => {
+      if (this._activeStar === star){
+        star.destroy(); halo.destroy(); this._activeStar = null;
+      }
+    });
+  }
+  applyPowerUp(player){
+    if (!player) return;
+    player._powerBoostUntil = this.time.now + 8000;
+    SFX.chime && SFX.chime();
+    SFX.crowdAhh && SFX.crowdAhh();
+    // popCoach toast
+    this.popCoach && this.popCoach('⭐ POWER UP! +25% acc 8s');
+    // gold aura
+    const aura = this.add.circle(player.x, player.y, 60, 0xffd76e, 0.4).setDepth(DEPTH.EFFECT_BACK);
+    player._powerAura = aura;
+    this.tweens.add({ targets: aura, scale: 1.4, alpha: 0.15, duration: 600, yoyo:true, repeat:6, onComplete:()=>{ aura.destroy(); player._powerAura = null; }});
+  }
+
   update(time, delta){
+    // 🆕 v2.13.0 — POWER-UP spawn cadence (every ~25s, w/ 50% probability)
+    if (this.canMove && (!this._lastStarSpawnAt || time - this._lastStarSpawnAt > 25000)){
+      this._lastStarSpawnAt = time;
+      if (Math.random() < 0.5) this.spawnPowerUpStar();
+    }
+    // pickup detection — proximity to active star
+    if (this._activeStar && this.canMove){
+      [this.p1, this.p2].forEach(pl => {
+        if (!pl || !this._activeStar) return;
+        const d = Phaser.Math.Distance.Between(pl.x, pl.y, this._activeStar.x, this._activeStar.y);
+        if (d < 50){
+          const halo = this._activeStar.getData('halo');
+          this._activeStar.destroy();
+          if (halo) halo.destroy();
+          this._activeStar = null;
+          this.applyPowerUp(pl);
+        }
+      });
+    }
+    // power-up aura follows player
+    [this.p1, this.p2].forEach(pl => {
+      if (pl && pl._powerAura){ pl._powerAura.x = pl.x; pl._powerAura.y = pl.y; }
+    });
+
     // 🆕 v2.8.0 — CONTINUOUS BALL SAFETY CHECK. Catches tunneling glitches (steal pushes ball through floor,
     // dunk warps ball below collision body, super-charged shots overshooting bounds).
     if (this.ball && !this.ball.getData('held')){
