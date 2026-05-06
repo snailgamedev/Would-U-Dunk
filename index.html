@@ -1887,6 +1887,13 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.6';
 const CHANGELOG = [
+  { v:'v2.16.6', notes:[
+      '🪲 DAILY OBJECTIVES TRACKING FIX — added missing hooks: dunks · wins · games · blocks (previously only buckets + long shots + exact-5-streak counted)',
+      '🔥 STREAK objectives now track CONTINUOUSLY — every bucket updates progress to your max-streak-so-far (was only firing at exactly 5)',
+      '🎯 All 10 objective types now actually fire and award cash + toast: buckets · dunks · wins · games · streak · long shot · blocks',
+      '✅ Tested: buckets ✓ dunks ✓ wins ✓ games ✓ streak ✓ long ✓ blocks ✓',
+      '✝️ "Faithful in little, faithful in much" · Luke 16:10',
+  ]},
   { v:'v2.16.5', notes:[
       '📚 CHRONICLE AUTO-UPDATES — "current era" tables now BUILD FROM the CHANGELOG array. Add a new version → it instantly appears in Chronicle without manual edits',
       '🤖 Bump-kind detection — major/minor/patch labels inferred from version diff (e.g. v2.16.4 → v2.16.5 = patch · v2.15.x → v2.16.0 = minor)',
