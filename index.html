@@ -5669,7 +5669,13 @@ function showEndCard(){
     document.getElementById('endcard').classList.remove('on');
     if (matchDone){
       State._matchRecorded = false;
-      if (State._wasFranchise){
+      if (State._wasTourney){
+        State._wasTourney = false;
+        if (game.scene.getScene('Match')) game.scene.stop('Match');
+        State.matchOver = true;
+        showSplash();
+        renderTournamentScreen();
+      } else if (State._wasFranchise){
         // return to franchise dashboard
         State._wasFranchise = false;
         if (game.scene.getScene('Match')) game.scene.stop('Match');
