@@ -3618,7 +3618,10 @@ class MatchScene extends Phaser.Scene {
     });
 
     // Inputs
-    this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P,TAB,Z');
+    this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P,TAB,Z,Q,R');
+    // 🆕 v2.19.0 — BASKETBALL MOVES: Q = CROSSOVER (burst dash), R = SPIN (360 + brief steal-immune)
+    this.input.keyboard.on('keydown-Q', () => this.crossoverMove(this.p1));
+    this.input.keyboard.on('keydown-R', () => this.spinMove(this.p1));
     // 🆕 v2.13.25 — Z toggles camera zoom (cycles 1× → 1.3× → 0.7× → 1×)
     this._userZoom = 1;
     this.input.keyboard.on('keydown-Z', () => {
