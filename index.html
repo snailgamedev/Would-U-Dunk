@@ -5000,6 +5000,53 @@ function renderCustomTeamBuilder(leagueId){
   };
 }
 /* ================================================================================================
+   🆕 v2.13.0 — COSMETICS SHOP SCREEN
+================================================================================================ */
+function renderShopScreen(){
+  const cash = loadCash();
+  const owned = loadOwned();
+  const cats = ['BALL', 'COURT', 'TRAIL', 'CELEB', 'BADGE'];
+  const sections = cats.map(cat => {
+    const items = SHOP_ITEMS.filter(i => i.cat === cat);
+    const equipped = loadEquipped(cat);
+    const rows = items.map(item => {
+      const isOwned = owned.includes(item.id);
+      const isEquipped = equipped === item.id;
+      return `<div data-shop="${item.id}" class="shopcard" style="background:${isEquipped?'#4cf07a22':isOwned?'#0008':'#0006'};border:2px solid ${isEquipped?'#4cf07a':isOwned?'#ffd76e88':'#ffd76e44'};border-radius:8px;padding:8px 10px;margin:4px 0;cursor:pointer;display:flex;align-items:center;gap:10px">
+        <div style="font-size:32px">${item.icon}</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:900;font-size:13px">${isEquipped?'✅ ':''}${isOwned&&!isEquipped?'🔓 ':''}${item.name}</div>
+          <div style="color:#aaa;font-size:10px">${item.desc}</div>
+        </div>
+        <div style="text-align:right">
+          ${isEquipped ? '<div style="color:#4cf07a;font-size:11px;letter-spacing:2px;font-weight:900">EQUIPPED</div>' :
+            isOwned ? '<button class="btn hot" data-equip="'+item.id+'" data-cat="'+cat+'" style="font-size:10px;padding:6px 10px;width:auto">EQUIP</button>' :
+            (cash >= item.price ? '<button class="btn hot" data-buy="'+item.id+'" style="font-size:10px;padding:6px 10px;width:auto">$'+item.price+'</button>' : '<div style="color:#ff8a8a;font-size:10px;letter-spacing:2px">$'+item.price+'</div>')}
+        </div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-top:12px"><div style="color:var(--gold);font-size:11px;letter-spacing:3px;font-weight:900;margin-bottom:4px">${cat === 'BALL'?'🏀':cat==='COURT'?'🏟':cat==='TRAIL'?'☄️':cat==='CELEB'?'🎉':'🏅'} ${cat}</div>${rows}</div>`;
+  }).join('');
+  openModal(`🛒 COSMETICS SHOP · 💰 $${cash}`,
+    `<div style="font-size:13px;color:#fff;margin-bottom:8px">Earn cash by scoring buckets ($5/pt). Purchases persist per profile.</div>
+     <div style="max-height:60vh;overflow-y:auto">${sections}</div>`);
+  // bind buy + equip
+  document.querySelectorAll('[data-buy]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const item = SHOP_ITEMS.find(s => s.id === b.dataset.buy);
+    const r = buyItem(item);
+    if (r.ok){ showToast(`🛒 Purchased ${item.name}`, 'level'); renderShopScreen(); }
+    else showToast(`⚠ ${r.msg}`, 'allpro');
+  });
+  document.querySelectorAll('[data-equip]').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    saveEquipped(b.dataset.cat, b.dataset.equip);
+    showToast(`✅ Equipped`, 'level');
+    renderShopScreen();
+  });
+}
+
+/* ================================================================================================
    🆕 v2.9.0 — TOURNAMENT BRACKET MODE — 8-team single elim · QF → SF → F
 ================================================================================================ */
 function loadTourney(){ try{ const r = localStorage.getItem(`wud:tourney:${currentProfileName()}`); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
