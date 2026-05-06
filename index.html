@@ -5483,8 +5483,29 @@ function showEndCard(){
     }
     State._franchiseActive = false;
     State._wasFranchise = true;
+    // 🆕 v2.9.0 — DEV XP for franchise games
+    const xp = (won ? 50 : 20) + (f && f.wins >= 7 ? 100 : 0);
+    awardDevXp(xp, 'franchise game');
   } else {
     State._wasFranchise = false;
+  }
+  // 🆕 v2.9.0 — TOURNAMENT update on match-done
+  if (matchDone && State._tourneyActive){
+    const t = loadTourney();
+    if (t){
+      const myPts = State.matchPoints?.[0] || 0;
+      const oppPts = State.matchPoints?.[1] || 0;
+      const won = myPts > oppPts;
+      advanceTourney(t, won);
+      saveTourney(t);
+      const xp = won ? 75 : 25;
+      const champXp = (t.champion === t.myTeam) ? 200 : 0;
+      awardDevXp(xp + champXp, 'tournament');
+    }
+    State._tourneyActive = false;
+    State._wasTourney = true;
+  } else {
+    State._wasTourney = false;
   }
   // career update on match-done
   if (matchDone && !State._matchRecorded){
