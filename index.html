@@ -4664,6 +4664,9 @@ function renderFranchiseScreen(){
   // 🆕 v2.11.0 — FREE AGENCY button
   const fa = document.getElementById('franchFreeAgency');
   if (fa) fa.onclick = () => renderFreeAgencyScreen(f);
+  // 🆕 v2.11.1 — HoF button on franchise dashboard
+  const hofB = document.getElementById('franchHofBtn');
+  if (hofB) hofB.onclick = renderHallOfFameScreen;
   document.getElementById('franchReset').onclick = () => {
     // 🆕 v2.11.1 — offer to archive to Hall of Fame instead of just deleting
     if (f.season > 1 || (f.gameNum > 0)){
