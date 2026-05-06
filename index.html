@@ -5045,6 +5045,24 @@ function showEndCard(){
     winner = State.wins[0] > State.wins[1] ? 'P1' : (State.wins[1] > State.wins[0] ? 'P2' : 'TIE');
   }
 
+  // 🆕 v2.8.0 — FRANCHISE update on match-done
+  if (matchDone && State._franchiseActive){
+    const f = loadFranchise();
+    if (f && f.gameNum < SEASON_LEN){
+      const myPts = State.matchPoints?.[0] || 0;
+      const oppPts = State.matchPoints?.[1] || 0;
+      const won = myPts > oppPts;
+      f.schedule[f.gameNum].played = true;
+      f.schedule[f.gameNum].won = won;
+      f.schedule[f.gameNum].myScore = myPts;
+      f.schedule[f.gameNum].oppScore = oppPts;
+      f.gameNum += 1;
+      if (won) f.wins += 1; else f.losses += 1;
+      f.lastResult = won ? 'W' : 'L';
+      saveFranchise(f);
+    }
+    State._franchiseActive = false;
+  }
   // career update on match-done
   if (matchDone && !State._matchRecorded){
     State._matchRecorded = true;
