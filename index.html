@@ -7949,6 +7949,8 @@ function showEndCard(){
     myMode.plays += 1;
     if (winner === 'P1'){
       Career.wins += 1; myMode.wins += 1; Career.currentStreak += 1; Career.currentLossStreak = 0;
+      // 🆕 v2.16.6 — daily-objective win hook
+      if (typeof trackDailyObjective === 'function') trackDailyObjective('wins', 1);
       if (Career.currentStreak > Career.longestStreak) Career.longestStreak = Career.currentStreak;
       // mark beaten CPU tiers (for tier_28 achievement)
       if (State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers){
