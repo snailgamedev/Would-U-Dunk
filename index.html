@@ -5767,6 +5767,22 @@ function dailyKey(){
 }
 function loadDailyBest(){ try { return JSON.parse(localStorage.getItem(`wud:daily:${currentProfileName()}`) || '{}'); } catch(e){ return {}; } }
 function saveDailyBest(obj){ try { localStorage.setItem(`wud:daily:${currentProfileName()}`, JSON.stringify(obj)); } catch(e){} }
+// 🆕 v2.13.19 — DAILY STREAK tracker
+function loadDailyStreak(){ try { return JSON.parse(localStorage.getItem(`wud:dailystreak:${currentProfileName()}`) || '{"count":0,"last":""}'); } catch(e){ return {count:0, last:''}; } }
+function saveDailyStreak(s){ try { localStorage.setItem(`wud:dailystreak:${currentProfileName()}`, JSON.stringify(s)); } catch(e){} }
+function tickDailyStreak(){
+  const today = dailyKey();
+  const s = loadDailyStreak();
+  if (s.last === today) return s; // already counted today
+  // check if yesterday
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  const yKey = `${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,'0')}-${String(yest.getDate()).padStart(2,'0')}`;
+  if (s.last === yKey) s.count = (s.count || 0) + 1;
+  else s.count = 1;
+  s.last = today;
+  saveDailyStreak(s);
+  return s;
+}
 function previewDailyChaos(){
   const today = new Date(); const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
   let s = seed;
