@@ -7460,6 +7460,7 @@ function showEndCard(){
       const xp = won ? 75 : 25;
       const champXp = (t.champion === t.myTeam) ? 200 : 0;
       awardDevXp(xp + champXp, 'tournament');
+      if (t.champion === t.myTeam) unlockAchievement('tourney_ring');   // 🆕 v2.14.0
     }
     State._tourneyActive = false;
     State._wasTourney = true;
