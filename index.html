@@ -3133,8 +3133,15 @@ class MatchScene extends Phaser.Scene {
     });
 
     // Inputs
-    this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P');
+    this.keys = this.input.keyboard.addKeys('A,D,W,E,LEFT,RIGHT,UP,DOWN,ESC,P,TAB');
     this.input.keyboard.on('keydown-E', () => this.onStealKey(this.p1));
+    // 🆕 v2.13.24 — TAB toggles live stats panel
+    this.input.keyboard.on('keydown-TAB', (e) => {
+      e.preventDefault && e.preventDefault();
+      const el = document.getElementById('liveStats');
+      if (!el) return;
+      el.style.display = (el.style.display === 'none' ? 'block' : 'none');
+    });
     // 🆕 v2.13.17 — EMOTE keys 1-5: 🔥 💀 🙏 😂 👋
     const EMOTES = ['🔥','💀','🙏','😂','👋'];
     EMOTES.forEach((emoji, i) => {
