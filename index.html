@@ -4797,11 +4797,27 @@ function showEndCard(){
         </div>
       </div>`;
   }
+  // 🆕 v2.7.2 — Series scoreboard + OOB stats line + championship overlay
+  const seriesPanel = isSeries
+    ? `<div style="margin-top:12px;padding:10px;background:#0008;border:2px solid #ffd76e;border-radius:8px;text-align:center">
+         <div style="color:#ffd76e;letter-spacing:3px;font-size:10px">🏆 NBA FINALS · BEST OF 7 · GAME ${State._seriesGameNum||1}</div>
+         <div style="color:#fff;font-size:24px;font-weight:900;margin-top:4px">${(State.seriesWins?.[0]||0)} — ${(State.seriesWins?.[1]||0)}</div>
+       </div>` : '';
+  const champPanel = seriesClinched
+    ? `<div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,#ffd76e22,#ff8a3c22);border:3px solid #ffd76e;border-radius:10px;text-align:center">
+         <div style="font-size:42px">🏆 👑 🏆</div>
+         <div style="color:#ffd76e;font-size:22px;font-weight:900;letter-spacing:3px;margin-top:6px">FINALS CHAMPION</div>
+         <div style="color:#fff;font-size:14px;margin-top:4px">"Run in such a way as to take the prize." — 1 Cor 9:24</div>
+       </div>` : '';
+  const oobLine = (State.oobCounts && (State.oobCounts[0] || State.oobCounts[1]))
+    ? `<div style="margin-top:8px;color:#ff8a3c;font-size:11px;letter-spacing:2px;text-align:center">OOB TURNOVERS · P1 ${State.oobCounts[0]||0} — P2 ${State.oobCounts[1]||0}</div>` : '';
   document.getElementById('endRounds').innerHTML =
-    seriesLine + mvpCard +
+    seriesLine + seriesPanel + mvpCard + oobLine + champPanel +
     (winVerse ? `<div style="margin-top:14px;color:#fff;font-style:italic;font-size:14px;line-height:1.4">"${winVerse.text}"<div style="color:#ffd76e;font-style:normal;font-size:11px;letter-spacing:3px;margin-top:4px;font-weight:900">${winVerse.ref}</div></div>` : '');
   const btnNext = document.getElementById('btnNextRound');
-  btnNext.textContent = matchDone ? 'PLAY AGAIN' : 'NEXT ROUND';
+  btnNext.textContent = matchDone
+    ? (seriesClinched ? 'NEW SERIES' : (isSeries ? `NEXT GAME (${State.seriesWins?.[0]||0}-${State.seriesWins?.[1]||0})` : 'PLAY AGAIN'))
+    : 'NEXT ROUND';
   btnNext.onclick = () => {
     document.getElementById('endcard').classList.remove('on');
     if (matchDone){ State._matchRecorded = false; startMatch(); }
