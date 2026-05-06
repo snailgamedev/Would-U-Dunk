@@ -7058,6 +7058,14 @@ function showSplash(){
       sv.style.padding = '10px 12px';
     }
   } catch(e){}
+  // 🆕 v2.16.4 — DRY counts: compute everything from source-of-truth + paint count badge
+  try {
+    const stats = computeStats();
+    const cb = document.getElementById('countBadge');
+    if (cb) cb.innerHTML = `🎯 <b>${stats.archetypes.toLocaleString()} ARCHETYPES</b> · 🌍 <b>${stats.leagues} LEAGUES</b> · 🏟 <b>${stats.teams}+ TEAMS</b><br>
+      ⚡ <b>${stats.modifiers} MODIFIERS</b> · 🤖 <b>${stats.cpuTiers} CPU TIERS</b> · 🏆 <b>${stats.achievements} ACHIEVEMENTS</b><br>
+      🏀 <b>${stats.modes} MODES · ${stats.shopItems} SHOP ITEMS · ${stats.npcs}+ NPCs</b>`;
+  } catch(e){}
   // 🆕 v2.13.29 — populate PLAYER OF THE WEEK card
   try {
     const potw = getPlayerOfTheWeek();
