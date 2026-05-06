@@ -4713,6 +4713,13 @@ class MatchScene extends Phaser.Scene {
   endRound(){
     this.canMove = false;
     SFX.whistle();
+    // 🆕 v2.13.7 — HALFTIME SHOW between rounds in BO3+ modes (only when more rounds remain)
+    const mode = MODE_BY_ID[State.modeId] || MODE_BY_ID['5x5'];
+    const isMidMatch = mode && mode.rounds && mode.rounds >= 3 && (State.roundIdx + 1) < mode.rounds;
+    if (isMidMatch && !this._halftimeShown){
+      this._halftimeShown = true;
+      this.showHalftime();
+    }
     // Always reset positions to start spots — extra safety
     this.resetAfterBucket();
     let w = State.scores[0] === State.scores[1] ? -1 : (State.scores[0] > State.scores[1] ? 0 : 1);
