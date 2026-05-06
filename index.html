@@ -3710,22 +3710,35 @@ class MatchScene extends Phaser.Scene {
         SFX.bounce();
         this.tweens.add({ targets:p, scaleY: p.scaleY*0.85, scaleX: p.scaleX*1.12, duration:80, yoyo:true });
       } else {
-        // 🆕 v2.7.0 — BLOCK BUFFED. Radius 80 → 130, less precise required to block
+        // 🆕 v2.8.2 — BLOCK BUFFED AGAIN. Radius 130 → 160. Visual flash + crowd ahh.
         const opp = (p===this.p1)?this.p2:this.p1;
         if (this.ball.getData('held') === opp){
           const d = Phaser.Math.Distance.Between(p.x,p.y,opp.x,opp.y);
-          if (d < 130){
-            this.detachBall();
-            this.ball.body.setVelocity((p.x<opp.x?-1:1)*220, -350);
-            State.blocksThisRound[p.idx] = (State.blocksThisRound[p.idx]||0) + 1;
-            if (State.matchStats?.[p.idx]) State.matchStats[p.idx].blocks += 1;
-            Career.blockedShots = (Career.blockedShots||0) + 1;
-            SFX.block();
-            this.popCoach && this.popCoach('🛡 BLOCKED!');
+          if (d < 160){
+            this.executeBlock(p, opp);
           }
         }
       }
     }
+  }
+
+  // 🆕 v2.8.2 — Standalone block executor used by both human + CPU paths
+  executeBlock(blocker, opp){
+    if (!blocker || !opp || this.ball.getData('held') !== opp) return;
+    if ((blocker._lastBlockAt || 0) + 250 > this.time.now) return;   // debounce
+    blocker._lastBlockAt = this.time.now;
+    this.detachBall();
+    this.ball.body.setVelocity((blocker.x < opp.x ? -1 : 1) * 260, -380);
+    this.ball.setData('lockUntil', this.time.now + 200);
+    State.blocksThisRound[blocker.idx] = (State.blocksThisRound[blocker.idx]||0) + 1;
+    if (State.matchStats?.[blocker.idx]) State.matchStats[blocker.idx].blocks += 1;
+    if (blocker.idx === 0) Career.blockedShots = (Career.blockedShots||0) + 1;
+    SFX.block && SFX.block();
+    SFX.crowdAhh && SFX.crowdAhh();
+    this.popCoach && this.popCoach('🛡 BLOCKED!');
+    // visual flash on the block point
+    const flash = this.add.circle(opp.x, opp.y - 30, 30, 0xffffff, 0.85).setStrokeStyle(4, 0xff3b3b).setDepth(DEPTH.EFFECT_FRONT);
+    this.tweens.add({ targets: flash, scale: 3, alpha: 0, duration: 350, onComplete: () => flash.destroy() });
   }
 
   handleRemoteInput(p){
