@@ -358,14 +358,32 @@
 <!-- In-game settings gear button -->
 <button id="gameSettings" title="Pause / Settings (ESC)">⚙</button>
 
-<!-- In-game controls + cooldown reference -->
-<div id="moves">
-  <h4>🎮 CONTROLS</h4>
-  <div class="move"><span class="key">A</span><span class="key">D</span> move</div>
-  <div class="move"><span class="key">W</span> tap=jump · hold=shoot</div>
-  <div class="move"><span class="key">E</span> steal <span class="cooldownBar"><span class="fill" id="stealCD"></span></span></div>
-  <div class="move" style="font-size:9px;color:#aab;margin-top:4px">in solo mode arrows work too</div>
+<!-- 🆕 v2.16.2 — In-game controls REVAMP. Compact, dismissible, auto-hides, "?" reopens -->
+<div id="moves" style="position:fixed;left:10px;bottom:10px;z-index:35;display:none">
+  <div style="background:linear-gradient(135deg,#0a0e1f 0%,#000c 100%);border:2px solid #ffd76e88;border-radius:10px;padding:10px 12px;backdrop-filter:blur(8px);min-width:200px;box-shadow:0 4px 14px #0009,inset 0 0 12px #ffd76e11;position:relative">
+    <button id="movesClose" style="position:absolute;top:4px;right:6px;background:transparent;border:none;color:#888;font-size:14px;cursor:pointer;padding:2px 6px;line-height:1" title="Hide (toggle with ?)">×</button>
+    <div style="color:#ffd76e;letter-spacing:3px;font-size:10px;font-weight:900;margin-bottom:6px">🎮 CONTROLS</div>
+    <div class="move" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#fff;font-family:monospace;margin:3px 0">
+      <span class="key" style="background:#222;color:#ffd76e;padding:2px 7px;border-radius:4px;border:1px solid #ffd76e44;font-weight:900;font-size:10px">A</span>
+      <span class="key" style="background:#222;color:#ffd76e;padding:2px 7px;border-radius:4px;border:1px solid #ffd76e44;font-weight:900;font-size:10px">D</span>
+      <span style="color:#aaa">move</span>
+    </div>
+    <div class="move" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#fff;font-family:monospace;margin:3px 0">
+      <span class="key" style="background:#222;color:#4cf07a;padding:2px 7px;border-radius:4px;border:1px solid #4cf07a44;font-weight:900;font-size:10px">W</span>
+      <span style="color:#aaa">tap = jump · hold = shoot</span>
+    </div>
+    <div class="move" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#fff;font-family:monospace;margin:3px 0">
+      <span class="key" style="background:#222;color:#ff8a8a;padding:2px 7px;border-radius:4px;border:1px solid #ff8a8a44;font-weight:900;font-size:10px">E</span>
+      <span style="color:#aaa">steal</span>
+      <span class="cooldownBar" style="flex:1;height:3px;background:#222;border-radius:2px;overflow:hidden;margin-left:4px"><span class="fill" id="stealCD" style="display:block;height:100%;background:#ff8a8a;width:0%;transition:width 0.1s"></span></span>
+    </div>
+    <div style="border-top:1px dashed #ffd76e22;margin-top:6px;padding-top:5px;font-size:9px;color:#888;line-height:1.5">
+      <b style="color:#ffd76e">1-5</b> emote · <b style="color:#ffd76e">TAB</b> stats · <b style="color:#ffd76e">Z</b> zoom · <b style="color:#ffd76e">ESC</b> pause
+    </div>
+  </div>
 </div>
+<!-- 🆕 v2.16.2 — floating "?" button to re-open controls anytime -->
+<button id="movesHelp" style="position:fixed;left:14px;bottom:14px;z-index:34;display:none;background:linear-gradient(135deg,#1a1a25,#0a0e1f);color:#ffd76e;border:2px solid #ffd76e;border-radius:50%;width:36px;height:36px;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 0 14px #ffd76e44,0 4px 10px #0009" title="Show controls">?</button>
 
 <!-- Pause menu (ESC / P during match) -->
 <div id="pause"><div class="panel">
