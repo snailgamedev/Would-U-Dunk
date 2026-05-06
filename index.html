@@ -2395,6 +2395,9 @@ class MatchScene extends Phaser.Scene {
     this.ball.setData('shotFromY', player.y);
     this.ball.setData('shotDist',  dist);
     this.ball.setData('apexY', this.ball.y);    // for top-to-bottom validity check
+    // 🆕 v2.7.1 — track last shooter so OOB can transfer possession to opponent
+    this.ball.setData('lastShooter', player);
+    this.ball.setData('lastTouchedAt', this.time.now);
     this.detachBall();
 
     // VARIABLE TARGET — pick a point on rim or backboard. Less rainbow, more direct.
