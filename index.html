@@ -4482,6 +4482,20 @@ async function startMatch(){
   if (State.mode === 'ONLINE' && Online.connected){
     Online.send({ type:'hello', from: Online.isHost?'host':'guest', look: State.looks[0] });
   }
+  // 🆕 v2.7.2 — SERIES mode preserves seriesWins across matches; reset only at start of fresh series
+  const isSeries = State.modeId === 'series';
+  if (isSeries && !State._seriesActive){
+    State.seriesWins = [0, 0];
+    State._seriesActive = true;
+    State._seriesGameNum = 1;
+  } else if (isSeries){
+    State._seriesGameNum = (State._seriesGameNum || 0) + 1;
+  } else {
+    // any non-series start clears series state
+    State._seriesActive = false;
+    State.seriesWins = [0, 0];
+    State._seriesGameNum = 0;
+  }
   State.wins = [0,0]; State.scores=[0,0]; State.roundIdx=0; State.matchOver=false;
   State._matchRecorded = false;
   State._targetWinner = null;
