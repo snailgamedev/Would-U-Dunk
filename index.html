@@ -4600,8 +4600,9 @@ function renderFranchiseScreen(){
       </details>
       ${champ ? `<div style="text-align:center;color:var(--gold);letter-spacing:3px;font-size:13px;margin-bottom:10px;font-weight:900">${champ}</div>` : ''}
       ${champBig}
+      ${(f.roster && f.roster.length) ? `<details style="background:#0008;border:1px solid #4f9eff44;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px"><summary style="color:#4f9eff;letter-spacing:2px;cursor:pointer;font-weight:900">👥 SIGNED ROSTER (${f.roster.length}/5) · +${(f.rosterBoost*100).toFixed(0)}% sim boost</summary>${f.roster.map(r => `<div style="padding:4px 0;color:#fff">${r.name} <span style="color:#aaa;font-size:10px">· ${r.archetypeLabel||r.tierId} · +${(r.boost*100).toFixed(0)}%</span></div>`).join('')}</details>` : ''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        ${seasonDone ? `<button class="btn hot" id="franchNewSeason" style="font-size:13px;padding:9px 14px;flex:1">⏭ NEW SEASON</button>` : `<button class="btn hot" id="franchPlayNext" style="font-size:14px;padding:11px;flex:1">🏀 PLAY NEXT GAME</button>`}
+        ${seasonDone ? `<button class="btn hot" id="franchFreeAgency" style="font-size:13px;padding:9px 14px;flex:1;background:linear-gradient(135deg,#4f9eff,#ffd76e)">📝 FREE AGENCY</button><button class="btn hot" id="franchNewSeason" style="font-size:13px;padding:9px 14px;flex:1">⏭ NEW SEASON</button>` : `<button class="btn hot" id="franchPlayNext" style="font-size:14px;padding:11px;flex:1">🏀 PLAY NEXT GAME</button>`}
         <button class="btn" id="franchReset" style="font-size:11px;padding:9px;flex:0 0 auto">🗑 RESET</button>
       </div>
     </div>`);
