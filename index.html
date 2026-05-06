@@ -3798,6 +3798,12 @@ class MatchScene extends Phaser.Scene {
     clearTimeout(this._coachT);
     this._coachT = setTimeout(() => el.classList.remove('on'), 1100);
   }
+  // 🆕 v2.13.17 — EMOTE bubble over player
+  popEmote(player, emoji){
+    if (!player) return;
+    const bubble = this.add.text(player.x, player.y - 90, emoji, {fontSize:'34px'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+    this.tweens.add({ targets: bubble, y: bubble.y - 50, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration: 1400, onComplete: () => bubble.destroy() });
+  }
   // 🆕 v2.13.15 — COACH AI TIPS — context-aware mid-game advice
   coachAdvice(){
     if (!Settings.coachLines) return;
