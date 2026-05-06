@@ -1440,6 +1440,40 @@ const TRASH_TALK = [
   'TRASH 🗑','SIT DOWN','FORGOT YOU WERE HERE','THIS A LAYUP LINE','ALL DAY','HOLY GHOST 🙏','PRAISE!',
 ];
 const HOLY_TRASH_TALK = ['ALL GLORY TO HIM','BLESSED!','GIVE GOD THE PRAISE','ANOINTED','CHOSEN','FAITHFUL'];
+// 🆕 v2.13.0 — ARCHETYPE LORE — short backstory line for each base archetype
+const ARCHETYPE_LORE = {
+  sniper:       'Born in a gym alone with 1000 swishes. Rim is a suggestion.',
+  slasher:      'Lives at the rim. Prayer hands are not optional.',
+  lockdown:     'Sleeps with a stopwatch. Sees your shot before you do.',
+  clown:        'Plays for the gif. The shot may go in. May not. May reverse.',
+  prophet:      'Reads the trajectory before the ball leaves your hands.',
+  streetballer: 'Refuses to wait for an open shot. Heat-checks at half-court.',
+  showtime:     'Crowd-funded talent. Will not pass on a dunk window.',
+  steady:       'Boring fundamentals. Boring buckets. Boring W.',
+  chaotic:      'Either drops 50 or fouls out in 4 minutes.',
+  closer:       '0:30 on the clock = ice in veins. Buzzer is the pulse.',
+  paint_beast:  'Eats blocks for breakfast. Lives in the post like rent\'s due.',
+  point_god:    'Sees the floor like it\'s a chess board. Already won three moves ago.',
+  microwave:    'Off the bench → in the zone in 30 seconds.',
+  glue_guy:     'Doesn\'t care about stats. Cares about wins. Always boxes out.',
+  enigma:       'Identity unstable. Could be anyone next possession.',
+  unicorn:      '7-feet of slasher + sniper + paint beast in one.',
+  general:      'Doesn\'t shoot — just makes everyone else\'s shots easier.',
+  junkyard_dog: 'Dives for every loose ball. Out of breath. Wins anyway.',
+  iceman:       'Body language said the game ended in the 1st quarter.',
+  giant:        'Cannot be moved. Cannot be jumped over. Cannot be denied.',
+  waterbug:     'Smaller than the ball. Faster than your eye.',
+  kamikaze:     'Will sacrifice possession for the steal. Coach hates it.',
+  mountain:     'Doesn\'t move much. Doesn\'t need to.',
+  teacher:      'Every bucket is a lesson. Class is in session.',
+  zone_buster:  'Punishes any team that stops moving. Always weaving.',
+  ninja:        'Silent. Quick. The ball just disappears.',
+  mirror:       'Whatever you do, they did first.',
+  shadow:       'You can\'t shake them. They are your shadow.',
+  oracle:       'Already knew you were going to read this. Knew the shot too.',
+  gambler:      'Either pickpockets you or fouls. Either way, the game speeds up.',
+};
+
 function pickTrashTalk(npc){
   // SAINT/HOLY archetypes use scripture-flavored lines
   if (npc && /holy|saint|angelic|reborn|monk|prophet/i.test(npc.archetypeId || '')){
