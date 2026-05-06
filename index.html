@@ -6206,8 +6206,8 @@ async function startMatch(){
   State._activeMode = null;
   State.usedDunk = false;
   State.matchStats = [
-    { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0 },
-    { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0 },
+    { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
+    { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
   ];
   State.dunksThisRound = [0, 0];
   State.bucketTimestamps = [[], []];
