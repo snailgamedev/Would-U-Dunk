@@ -97,10 +97,17 @@
   body.ui-mobile #timer{font-size:14px;padding:2px 6px}
   body.ui-mobile #round{font-size:9px;padding:2px 6px}
   /* Touch controls — shrink + reposition on small phones to avoid HUD overlap */
-  body.ui-mobile #tL{left:2vw;bottom:3vw;width:88px;height:88px;font-size:34px}
-  body.ui-mobile #tR{left:25vw;bottom:3vw;width:88px;height:88px;font-size:34px}
-  body.ui-mobile #tJ{right:2vw;bottom:14vw;width:88px;height:88px;font-size:12px}
-  body.ui-mobile #tS{right:2vw;bottom:3vw;width:78px;height:78px;font-size:12px}
+  body.ui-mobile #tL{left:3vw;bottom:3vw;width:78px;height:78px;font-size:30px}
+  body.ui-mobile #tR{left:calc(3vw + 88px);bottom:3vw;width:78px;height:78px;font-size:30px}
+  body.ui-mobile #tJ{right:3vw;bottom:calc(3vw + 88px);width:78px;height:78px;font-size:11px}
+  body.ui-mobile #tS{right:3vw;bottom:3vw;width:78px;height:78px;font-size:11px}
+  /* Even tinier on phones <380px */
+  @media (max-width: 380px) {
+    body.ui-mobile #tL,body.ui-mobile #tR,body.ui-mobile #tJ,body.ui-mobile #tS{width:64px;height:64px;font-size:24px}
+    body.ui-mobile #tR{left:calc(3vw + 72px)}
+    body.ui-mobile #tJ{bottom:calc(3vw + 72px)}
+    body.ui-mobile #tJ,body.ui-mobile #tS{font-size:10px}
+  }
   /* Modals — fit screen, scroll inside */
   body.ui-mobile #modalRoot{padding:8px}
   body.ui-mobile #modalRoot .modalCard{width:96vw;max-width:96vw;max-height:94vh}
