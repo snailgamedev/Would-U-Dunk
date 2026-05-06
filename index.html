@@ -3443,6 +3443,31 @@ class MatchScene extends Phaser.Scene {
       const tt = this.add.text(scorer.x, scorer.y - 100, `"${line}"`, {fontFamily:'monospace', fontSize:14, color:'#ff8a3c', stroke:'#000', strokeThickness:5, fontStyle:'italic'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
       this.tweens.add({ targets: tt, y: tt.y - 50, alpha:{from:1, to:0}, duration: 1700, onComplete:()=>tt.destroy() });
     }
+    // 🆕 v2.13.9 — STREAK REWARDS (escalating cash + visual hype) — only for player (idx 0)
+    if (scorerIdx === 0){
+      const streak = State.bucketStreak[0];
+      const streakBonuses = {
+        3:  { cash:25,  label:'3X HOT',          color:'#ff8a3c', shake:false, conf:0  },
+        5:  { cash:75,  label:'🔥 5X FIRE',      color:'#ff3b3b', shake:false, conf:0  },
+        7:  { cash:150, label:'🌟 LEGENDARY 7X', color:'#ffd76e', shake:true,  conf:12 },
+        10: { cash:500, label:'💎 GOAT-MODE 10X',color:'#ff66cc', shake:true,  conf:30 },
+      };
+      const bonus = streakBonuses[streak];
+      if (bonus){
+        awardCash(bonus.cash);
+        const popup = this.add.text(this.p1.x, this.p1.y - 160, `${bonus.label}  +$${bonus.cash}`, {fontFamily:'monospace', fontSize:20, color:bonus.color, stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+        this.tweens.add({ targets: popup, y: popup.y - 60, alpha:{from:1, to:0}, scale:{from:0.6, to:1.4}, duration:1700, onComplete:()=>popup.destroy() });
+        if (bonus.shake) this.cameras.main.shake(220, 0.012);
+        if (bonus.conf > 0){
+          for (let i = 0; i < bonus.conf; i++){
+            const c = [0xff3b3b, 0xffd76e, 0x4cf07a, 0x4f9eff, 0xff66cc][(Math.random()*5)|0];
+            const sp = this.add.rectangle(this.p1.x, this.p1.y - 60, 5, 7, c).setDepth(DEPTH.BURST);
+            this.tweens.add({ targets: sp, x: sp.x + (Math.random()-0.5)*200, y: sp.y - 100 - Math.random()*100, angle: 720, alpha: 0, duration: 1400 + Math.random()*400, onComplete: () => sp.destroy() });
+          }
+        }
+        SFX.crowdAhh && SFX.crowdAhh();
+      }
+    }
     // 🆕 v2.12.0 — ON FIRE overlay when scorer reaches 3+ streak
     if (State.bucketStreak[scorerIdx] >= 3){
       const scorer = scorerIdx === 0 ? this.p1 : this.p2;
