@@ -3335,6 +3335,17 @@ class MatchScene extends Phaser.Scene {
 
     // Start round (small countdown)
     this.canMove = false;
+    // 🆕 v2.15.0 — OPENING PRAYER overlay on the very first round (1.2s)
+    if (State.roundIdx === 0 && !State._openingPrayerShown){
+      State._openingPrayerShown = true;
+      const v = (typeof randomVerse === 'function') ? randomVerse() : { text:'In all things give thanks', ref:'1 Thes 5:18' };
+      const dim = this.add.rectangle(VIEW_W/2, VIEW_H/2, VIEW_W, VIEW_H, 0x000000, 0.55).setDepth(DEPTH.BANNER - 1).setScrollFactor(0).setAlpha(0);
+      const cross = this.add.text(VIEW_W/2, VIEW_H/2 - 60, '✝️', {fontSize:'56px'}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+      const ttl = this.add.text(VIEW_W/2, VIEW_H/2 + 8, 'OPENING PRAYER', {fontFamily:'monospace', fontSize:14, color:'#ffd76e', letterSpacing:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+      const verse = this.add.text(VIEW_W/2, VIEW_H/2 + 36, `"${v.text}" — ${v.ref}`, {fontFamily:'monospace', fontSize:12, color:'#ffffff', fontStyle:'italic', wordWrap:{width:VIEW_W*0.7}}).setOrigin(0.5).setDepth(DEPTH.BANNER).setScrollFactor(0).setAlpha(0);
+      this.tweens.add({ targets:[dim, cross, ttl, verse], alpha:1, duration:300 });
+      this.time.delayedCall(1400, () => { this.tweens.add({ targets:[dim, cross, ttl, verse], alpha:0, duration:250, onComplete:()=>{ dim.destroy(); cross.destroy(); ttl.destroy(); verse.destroy(); }}); });
+    }
     // 🆕 v2.13.27 — PRE-GAME WALK-IN — slide players from offscreen + name banners
     if (this.p1 && this.p1Start && this.p2 && this.p2Start){
       const targetP1 = { x: this.p1Start.x, y: this.p1Start.y };
