@@ -1833,6 +1833,14 @@ const CPU_JUMP_RATE_CAP = 0.025;
 /* ------------------- VERSION + CHANGELOG ------------------- */
 const VERSION = 'v2.16.2';
 const CHANGELOG = [
+  { v:'v2.16.2', notes:[
+      '🪲 BUG FIX — Settings now defensively PAUSES the active match on open. Closing settings keeps match paused — only RESUME or QUIT actually proceeds. No more silent background play',
+      '🏠 BUG FIX — exitMatch now does a full teardown: stops scene, hides HUD/pause/moves/gear/modal, resets all in-progress flags, normalizes camera + physics. Toast confirms "Match ended"',
+      '🎮 CONTROLS PANEL REVAMP — sleeker layout (gradient bg, color-coded keys), shows for only the first 3 matches per profile then auto-hides, ✕ dismiss button, "?" floating button to reopen anytime',
+      '📱 Controls panel + ? button hidden on mobile (touch overlay covers it)',
+      '⌨️ Added shortcut row: 1-5 emote · TAB stats · Z zoom · ESC pause — all visible at a glance',
+      '✝️ Glory above for clean state — "Order out of disorder" · 1 Cor 14:33',
+  ]},
   { v:'v2.16.1', notes:[
       '📚 VISUAL CHRONICLE — new splash button opens a rich rebuilt history of EVERY version (v0.1 → now)',
       '📐 Semver legend table · per-era tables w/ rationale · session totals · meta thought process',
