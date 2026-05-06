@@ -3283,7 +3283,9 @@ class MatchScene extends Phaser.Scene {
     vy += (Math.random() - 0.5) * noisePx * 0.35;
 
     // Chaos aim noise — bypassed when power-up active
-    const chaosAim = powered ? 0 : (State.cfg.aimChaos || 0);
+    const chaosAim = (powered || lucky) ? 0 : (State.cfg.aimChaos || 0);
+    // 🆕 v2.13.8 — FIRE power-up: +50% shot velocity
+    if (player._firePowerUntil && this.time.now < player._firePowerUntil){ vx *= 1.5; vy *= 1.5; }
     if (chaosAim){
       vx += (Math.random() - 0.5) * chaosAim * 400;
       vy += (Math.random() - 0.5) * chaosAim * 200;
