@@ -6152,16 +6152,19 @@ function renderShopScreen(){
       const visual = (cat === 'BALL')
         ? `<canvas data-ballpreview="${item.id}" width="48" height="48" style="border-radius:50%"></canvas>`
         : `<div style="font-size:32px;width:48px;height:48px;display:flex;align-items:center;justify-content:center">${item.icon}</div>`;
-      return `<div data-shop="${item.id}" class="shopcard" style="background:${isEquipped?'#4cf07a22':isOwned?'#0008':'#0006'};border:2px solid ${isEquipped?'#4cf07a':isOwned?'#ffd76e88':'#ffd76e44'};border-radius:8px;padding:8px 10px;margin:4px 0;cursor:pointer;display:flex;align-items:center;gap:10px">
+      const priceTag = onSale
+        ? `<span style="color:#888;text-decoration:line-through;font-size:9px">$${item.price}</span> $${salePrice}`
+        : `$${item.price}`;
+      return `<div data-shop="${item.id}" class="shopcard" style="background:${onSale?'#ff3b3b22':isEquipped?'#4cf07a22':isOwned?'#0008':'#0006'};border:2px solid ${onSale?'#ff3b3b':isEquipped?'#4cf07a':isOwned?'#ffd76e88':'#ffd76e44'};border-radius:8px;padding:8px 10px;margin:4px 0;cursor:pointer;display:flex;align-items:center;gap:10px">
         ${visual}
         <div style="flex:1">
-          <div style="color:#fff;font-weight:900;font-size:13px">${isEquipped?'✅ ':''}${isOwned&&!isEquipped?'🔓 ':''}${item.name}</div>
+          <div style="color:#fff;font-weight:900;font-size:13px">${onSale?'🔥 ':''}${isEquipped?'✅ ':''}${isOwned&&!isEquipped?'🔓 ':''}${item.name}${onSale?' <span style="color:#ff3b3b;font-size:9px;letter-spacing:2px">· 50% OFF TODAY</span>':''}</div>
           <div style="color:#aaa;font-size:10px">${item.desc}</div>
         </div>
         <div style="text-align:right">
           ${isEquipped ? '<div style="color:#4cf07a;font-size:11px;letter-spacing:2px;font-weight:900">EQUIPPED</div>' :
             isOwned ? '<button class="btn hot" data-equip="'+item.id+'" data-cat="'+cat+'" style="font-size:10px;padding:6px 10px;width:auto">EQUIP</button>' :
-            (cash >= item.price ? '<button class="btn hot" data-buy="'+item.id+'" style="font-size:10px;padding:6px 10px;width:auto">$'+item.price+'</button>' : '<div style="color:#ff8a8a;font-size:10px;letter-spacing:2px">$'+item.price+'</div>')}
+            (cash >= salePrice ? '<button class="btn hot" data-buy="'+item.id+'" style="font-size:10px;padding:6px 10px;width:auto">'+priceTag+'</button>' : '<div style="color:#ff8a8a;font-size:10px;letter-spacing:2px">'+priceTag+'</div>')}
         </div>
       </div>`;
     }).join('');
