@@ -3185,13 +3185,16 @@ class MatchScene extends Phaser.Scene {
     if (inAir) acc += 0.04;
     // AIM ASSIST disabled in online matches to keep MP fair. Aim Lock chaos modifier still applies.
     if ((Settings.aimAssist && State.mode !== 'ONLINE') || State.cfg.aimLock) acc = 0.99;
+    // 🆕 v2.13.1 — POWER-UP BOOST gives perfect aim while active (8s)
+    const powered = player._powerBoostUntil && this.time.now < player._powerBoostUntil;
+    if (powered) acc = 0.99;
     acc = Phaser.Math.Clamp(acc, 0.72, 0.99);
     const noisePx = (1 - acc) * 95;
     vx += (Math.random() - 0.5) * noisePx;
     vy += (Math.random() - 0.5) * noisePx * 0.35;
 
-    // Chaos aim noise
-    const chaosAim = State.cfg.aimChaos || 0;
+    // Chaos aim noise — bypassed when power-up active
+    const chaosAim = powered ? 0 : (State.cfg.aimChaos || 0);
     if (chaosAim){
       vx += (Math.random() - 0.5) * chaosAim * 400;
       vy += (Math.random() - 0.5) * chaosAim * 200;
