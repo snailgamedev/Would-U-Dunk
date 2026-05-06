@@ -4645,7 +4645,18 @@ function renderFranchiseScreen(){
   const next = document.getElementById('franchPlayNext');
   if (next) next.onclick = () => playFranchiseGame();
   const ns = document.getElementById('franchNewSeason');
-  if (ns) ns.onclick = () => { f.season += 1; f.gameNum = 0; f.wins = 0; f.losses = 0; f.schedule.forEach(g => { g.played=false; g.won=false; g.myScore=0; g.oppScore=0; }); saveFranchise(f); renderFranchiseScreen(); };
+  if (ns) ns.onclick = () => {
+    // 🆕 v2.11.1 — record SEASON MVP before resetting season state
+    const mvp = pickSeasonMvp(f);
+    if (!f.seasonMvps) f.seasonMvps = [];
+    f.seasonMvps.push({ season: f.season, mvp: mvp.name, archetype: mvp.archetype || '', wins: f.wins, losses: f.losses });
+    if (f.wins >= 7) f.titles = (f.titles || 0) + 1;
+    f.season += 1; f.gameNum = 0; f.wins = 0; f.losses = 0;
+    f.schedule.forEach(g => { g.played=false; g.won=false; g.myScore=0; g.oppScore=0; });
+    saveFranchise(f);
+    showToast(`🏆 SEASON ${f.season - 1} MVP · ${mvp.name}`, 'level');
+    renderFranchiseScreen();
+  };
   // 🆕 v2.11.0 — FREE AGENCY button
   const fa = document.getElementById('franchFreeAgency');
   if (fa) fa.onclick = () => renderFreeAgencyScreen(f);
