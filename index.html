@@ -6125,7 +6125,16 @@ async function startRound(){
     }
     rolls = State.rolls || ChaosEngine.rollChaos();
   } else {
-    rolls = ChaosEngine.rollChaos();
+    // 🆕 v2.13.2 — DAILY SEED — override Math.random with a date-seeded PRNG so everyone gets same roll today
+    if (mode.dailySeed){
+      const today = new Date(); const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+      let s = seed;
+      const orig = Math.random;
+      Math.random = () => { s = (s * 1664525 + 1013904223) | 0; return ((s >>> 0) / 0x100000000); };
+      try { rolls = ChaosEngine.rollChaos(); } finally { Math.random = orig; }
+    } else {
+      rolls = ChaosEngine.rollChaos();
+    }
     if (State.mode === 'ONLINE' && Online.isHost){
       // Host broadcasts the chaos roll BEFORE applying so guest rolls match
       // Send a stripped version (no functions)
