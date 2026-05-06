@@ -2467,13 +2467,16 @@ const SFX = (() => {
     saveSettings();
   }
   return {
-    bounce(){ tone(220, 0.14, 'square', 0.18); },
-    rim(){    tone(900, 0.06, 'square', 0.18); },
+    bounce(){ tone(220 + Math.random()*40, 0.14, 'square', 0.18); },                       // 🆕 v2.19.0 pitch variance
+    rim(){    tone(900 + Math.random()*100, 0.06, 'square', 0.18); },                        // 🆕 v2.19.0 variance
+    clank(){ tone(180, 0.08, 'square', 0.3, 0.5); setTimeout(()=>tone(140, 0.06, 'square', 0.25, 0.5), 50); },  // 🆕 v2.19.0 missed dunk clank
     swish(){
-      // realistic swoosh — descending whoosh plus net snap
-      noise(0.32, 0.18);
-      setTimeout(()=>tone(2400, 0.06, 'square', 0.08, 0.5), 80);
-      setTimeout(()=>tone(1800, 0.05, 'square', 0.06, 0.5), 130);
+      // 🆕 v2.19.0 — richer swoosh: layered noise + harmonic descent + net snap
+      noise(0.36, 0.20);
+      setTimeout(()=>tone(2600, 0.07, 'sine', 0.09, 0.5), 30);
+      setTimeout(()=>tone(2200, 0.06, 'square', 0.08, 0.5), 80);
+      setTimeout(()=>tone(1700, 0.05, 'square', 0.06, 0.5), 140);
+      setTimeout(()=>tone(1100, 0.04, 'sine', 0.05, 0.5), 200);
     },
     horn(){
       tone(523, 0.18, 'square', 0.25, 0.9);
