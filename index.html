@@ -2822,15 +2822,19 @@ const MUSIC = (() => {
     loss:    [{m:55,t:0,d:0.32,w:'sine',v:0.14},{m:51,t:0.20,d:0.32,w:'sine',v:0.14},{m:48,t:0.40,d:0.65,w:'sine',v:0.16}],
     levelup: [{m:60,t:0,d:0.10,w:'square',v:0.14},{m:64,t:0.06,d:0.10,w:'square',v:0.14},{m:67,t:0.12,d:0.10,w:'square',v:0.14},{m:72,t:0.18,d:0.32,w:'square',v:0.20}],
   };
+  // 🆕 v2.21.0 — STINGER REMIX: each call picks a random voicing variant (1 of 3 transpositions)
   function stinger(type){
     if (!Settings.music || !Settings.stingers) return;
     const c = getCtx(); if (!c) return;
     const cfg = STINGERS[type]; if (!cfg) return;
     const now = c.currentTime;
+    // 3 variants: original, +5 semitones, -3 semitones
+    const variants = [0, 5, -3, 7, -5];
+    const transpose = variants[(Math.random() * variants.length) | 0];
     cfg.forEach(n => {
       const o = c.createOscillator(); const g = c.createGain();
       o.type = n.w;
-      o.frequency.value = midiToFreq(n.m);
+      o.frequency.value = midiToFreq(n.m + transpose);
       g.gain.setValueAtTime(0, now + n.t);
       g.gain.linearRampToValueAtTime(n.v, now + n.t + 0.015);
       g.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
