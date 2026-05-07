@@ -7580,6 +7580,7 @@ function advanceTourney(t, myWon){
   }
 }
 function renderTournamentScreen(){
+  musicForScreen('tournament'); // 🆕 v2.21.0
   const t = loadTourney();
   if (!t){
     const leagueRows = LEAGUES.map(lg => `
