@@ -6458,6 +6458,42 @@ function renderSettingsScreen(){
       muteBtn.textContent = isMuted ? '🔊 MUTE' : '🔇 UNMUTE';
     };
   }
+  // 🆕 v2.20.0 — MUSIC controls
+  const musicSlider = document.getElementById('musicVolSlider');
+  const musicPct = document.getElementById('musicVolPct');
+  if (musicSlider){
+    musicSlider.oninput = (e) => {
+      const v = parseInt(e.target.value, 10) / 100;
+      if (typeof MUSIC !== 'undefined') MUSIC.setVolume(v);
+      if (musicPct) musicPct.textContent = `${e.target.value}%`;
+    };
+  }
+  const stingerSlider = document.getElementById('stingerVolSlider');
+  const stingerPct = document.getElementById('stingerVolPct');
+  if (stingerSlider){
+    stingerSlider.oninput = (e) => {
+      const v = parseInt(e.target.value, 10) / 100;
+      if (typeof MUSIC !== 'undefined') MUSIC.setStingerVolume(v);
+      if (stingerPct) stingerPct.textContent = `${e.target.value}%`;
+    };
+  }
+  const genreSel = document.getElementById('musicGenreSel');
+  if (genreSel){
+    genreSel.onchange = (e) => {
+      if (typeof MUSIC !== 'undefined'){
+        MUSIC.setGenre(e.target.value);
+        // reflect change immediately by restarting current track
+        const cur = MUSIC.current() || 'menu';
+        MUSIC.stop();
+        MUSIC.start(cur);
+      }
+    };
+  }
+  document.querySelectorAll('[data-music-test]').forEach(b => {
+    b.onclick = () => {
+      if (typeof MUSIC !== 'undefined') MUSIC.start(b.dataset.musicTest);
+    };
+  });
   document.getElementById('btnReset').onclick = () => {
     if (!confirm('Wipe ALL career progress (games, achievements, level, looks)? Cannot be undone.')) return;
     try {
