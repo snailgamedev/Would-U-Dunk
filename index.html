@@ -2973,12 +2973,19 @@ const MUSIC = (() => {
       sGain = mctx.createGain();
       sGain.gain.value = (Settings.stingerVolume != null ? Settings.stingerVolume : 0.55);
       sGain.connect(mctx.destination);
+      // 🆕 v2.23.0 — dedicated PAD bus runs through a gentle lowpass so chord pads sit behind melody
+      padGain = mctx.createGain();
+      padGain.gain.value = 0.45;
+      const lp = mctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.6;
+      padGain.connect(lp); lp.connect(mGain);
     }
     if (mctx && mctx.state === 'suspended') mctx.resume();
     return mctx;
   }
   const midiToFreq = m => 440 * Math.pow(2, (m-69)/12);
-  function note(freq, dur, type, vol, when, attack=0.008){
+  // 🆕 v2.23.0 — note() now supports vibrato (vib=true) and reverb tail (rev=true)
+  function note(freq, dur, type, vol, when, attack=0.008, opts){
     const c = mctx; if (!c) return;
     const t0 = c.currentTime + when;
     const o = c.createOscillator(); const g = c.createGain();
@@ -2988,38 +2995,147 @@ const MUSIC = (() => {
     g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
     o.connect(g); g.connect(mGain || c.destination);
     o.start(t0); o.stop(t0 + dur + 0.05);
+    // VIBRATO via low-frequency oscillator on detune
+    if (opts && opts.vib){
+      const lfo = c.createOscillator(); const lg = c.createGain();
+      lfo.type = 'sine'; lfo.frequency.value = opts.vibRate || 5.5;
+      lg.gain.value = opts.vibDepth || 14; // cents
+      lfo.connect(lg); lg.connect(o.detune);
+      lfo.start(t0); lfo.stop(t0 + dur + 0.05);
+    }
+    // REVERB TAIL — a delayed, quieter copy fades after the note (cheap stereo space sim)
+    if (opts && opts.rev){
+      const o2 = c.createOscillator(); const g2 = c.createGain();
+      o2.type = type; o2.frequency.value = freq;
+      const rt = t0 + 0.09;
+      g2.gain.setValueAtTime(0, rt);
+      g2.gain.linearRampToValueAtTime(vol * intensity * 0.32, rt + 0.02);
+      g2.gain.exponentialRampToValueAtTime(0.001, rt + dur * 0.9);
+      o2.connect(g2); g2.connect(mGain || c.destination);
+      o2.start(rt); o2.stop(rt + dur);
+    }
   }
-  function kick(when){
+  // 🆕 v2.23.0 — CHORD PAD: long sustained triad/7th, sits under melody on padGain bus
+  function chordPad(midiRoot, quality, dur, when){
+    const c = mctx; if (!c || !padGain) return;
+    const intervals = CHORD_QUALITY[quality] || CHORD_QUALITY.major;
+    const t0 = c.currentTime + when;
+    intervals.forEach((iv, i) => {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = (i % 2 === 0) ? 'triangle' : 'sine';
+      // detuned unison — slight cents offset for thickness
+      o.frequency.value = midiToFreq(midiRoot - 12 + iv);
+      o.detune.value = (i - intervals.length/2) * 6;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.06 * intensity, t0 + 0.15);
+      g.gain.linearRampToValueAtTime(0.04 * intensity, t0 + dur * 0.5);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      o.connect(g); g.connect(padGain);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    });
+  }
+  function kick(when, vol){
     const c = mctx; if (!c) return;
     const t0 = c.currentTime + when;
     const o = c.createOscillator(); const g = c.createGain();
-    o.type='sine'; o.frequency.setValueAtTime(140, t0);
-    o.frequency.exponentialRampToValueAtTime(45, t0+0.12);
-    g.gain.setValueAtTime(0.32 * intensity, t0);
+    o.type='sine'; o.frequency.setValueAtTime(150, t0);
+    o.frequency.exponentialRampToValueAtTime(42, t0+0.12);
+    g.gain.setValueAtTime((vol||0.34) * intensity, t0);
     g.gain.exponentialRampToValueAtTime(0.001, t0+0.2);
     o.connect(g); g.connect(mGain || c.destination);
     o.start(t0); o.stop(t0+0.22);
+    // CLICK transient — triangle blip at the attack
+    const o2 = c.createOscillator(); const g2 = c.createGain();
+    o2.type='triangle'; o2.frequency.value = 1100;
+    g2.gain.setValueAtTime(0.10 * intensity, t0);
+    g2.gain.exponentialRampToValueAtTime(0.001, t0+0.018);
+    o2.connect(g2); g2.connect(mGain || c.destination);
+    o2.start(t0); o2.stop(t0+0.025);
   }
-  function snare(when){
+  function snare(when, vol){
     const c = mctx; if (!c) return;
     const t0 = c.currentTime + when;
-    const buf = c.createBuffer(1, c.sampleRate * 0.13, c.sampleRate);
+    const buf = c.createBuffer(1, c.sampleRate * 0.16, c.sampleRate);
     const d = buf.getChannelData(0);
     for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
     const src = c.createBufferSource(); src.buffer = buf;
-    const g = c.createGain(); g.gain.value = 0.16 * intensity;
-    src.connect(g); g.connect(mGain || c.destination);
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.9;
+    const g = c.createGain(); g.gain.value = (vol||0.18) * intensity;
+    src.connect(bp); bp.connect(g); g.connect(mGain || c.destination);
     src.start(t0);
+    // body — short tonal thump
+    const o = c.createOscillator(); const og = c.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(220, t0);
+    o.frequency.exponentialRampToValueAtTime(140, t0+0.08);
+    og.gain.setValueAtTime(0.10 * intensity, t0);
+    og.gain.exponentialRampToValueAtTime(0.001, t0+0.10);
+    o.connect(og); og.connect(mGain || c.destination);
+    o.start(t0); o.stop(t0+0.12);
   }
-  function hat(when){
+  function hat(when, open){
     const c = mctx; if (!c) return;
     const t0 = c.currentTime + when;
-    const buf = c.createBuffer(1, c.sampleRate * 0.04, c.sampleRate);
+    const len = open ? 0.12 : 0.035;
+    const buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate);
     const d = buf.getChannelData(0);
-    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
     const src = c.createBufferSource(); src.buffer = buf;
-    const g = c.createGain(); g.gain.value = 0.05 * intensity;
-    src.connect(g); g.connect(mGain || c.destination);
+    const hp = c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 7000;
+    const g = c.createGain(); g.gain.value = (open ? 0.06 : 0.05) * intensity;
+    src.connect(hp); hp.connect(g); g.connect(mGain || c.destination);
+    src.start(t0);
+  }
+  // 🆕 v2.23.0 — CLAP: 4 short noise bursts ~10ms apart for that handclap stack
+  function clap(when){
+    const c = mctx; if (!c) return;
+    [0, 0.012, 0.024, 0.038].forEach(off => {
+      const t0 = c.currentTime + when + off;
+      const buf = c.createBuffer(1, c.sampleRate * 0.06, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1500; bp.Q.value = 1.4;
+      const g = c.createGain(); g.gain.value = 0.06 * intensity * (off === 0 ? 1 : 0.6);
+      src.connect(bp); bp.connect(g); g.connect(mGain || c.destination);
+      src.start(t0);
+    });
+  }
+  // 🆕 v2.23.0 — TOM: pitched drum
+  function tom(when, midi, vol){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(midiToFreq(midi||50), t0);
+    o.frequency.exponentialRampToValueAtTime(midiToFreq((midi||50)-7), t0+0.18);
+    g.gain.setValueAtTime((vol||0.20) * intensity, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0+0.22);
+    o.connect(g); g.connect(mGain || c.destination);
+    o.start(t0); o.stop(t0+0.24);
+  }
+  // 🆕 v2.23.0 — SHAKER: very short whitenoise pulse
+  function shaker(when){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const buf = c.createBuffer(1, c.sampleRate * 0.025, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const hp = c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 5000;
+    const g = c.createGain(); g.gain.value = 0.03 * intensity;
+    src.connect(hp); hp.connect(g); g.connect(mGain || c.destination);
+    src.start(t0);
+  }
+  // 🆕 v2.23.0 — CRASH cymbal — bright, longer noise sweep
+  function crash(when){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const buf = c.createBuffer(1, c.sampleRate * 0.85, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.5);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const hp = c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 4000;
+    const g = c.createGain(); g.gain.value = 0.07 * intensity;
+    src.connect(hp); hp.connect(g); g.connect(mGain || c.destination);
     src.start(t0);
   }
   // Genre→melody-wave map (user-toggleable in settings)
