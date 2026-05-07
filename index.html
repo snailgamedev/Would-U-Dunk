@@ -661,6 +661,24 @@ function loadSettings(){
 function saveSettings(){ try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(Settings)); }catch(e){} }
 const Settings = loadSettings();
 
+// 🆕 v2.25.0 — AUTO NIGHT MODE: after 21:00 local, comfort + dim flip on automatically.
+// (User can opt out by toggling autoNightMode off.)
+(function applyNightMode(){
+  if (Settings.autoNightMode === false) return;
+  const h = new Date().getHours();
+  if (h >= 21 || h < 6){
+    Settings.musicComfort = true;
+    Settings.screenDim = true;
+  }
+})();
+// 🆕 v2.25.0 — apply screen dim now and on every settings change
+function applyScreenDim(){
+  const el = document.getElementById('dimOverlay');
+  if (!el) return;
+  el.style.opacity = Settings.screenDim ? '0.18' : '0';
+}
+setTimeout(applyScreenDim, 50);
+
 const COURT_W = 2400, COURT_H = 720;
 const VIEW_W = 960,  VIEW_H = 540;
 const FLOOR_Y = COURT_H - 80;
