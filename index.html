@@ -6883,6 +6883,7 @@ function renderChronicleScreen(){
 }
 
 function renderUpdatesScreen(){
+  musicForScreen('updates'); // 🆕 v2.21.0
   const rows = CHANGELOG.map((c, i) => `
     <div style="background:#0008;border:1px solid ${i===0?'var(--gold)':'#ffd76e44'};border-radius:8px;padding:10px 14px;margin-bottom:8px">
       <div style="color:${i===0?'var(--hot)':'var(--gold)'};font-weight:900;letter-spacing:3px;font-size:14px;margin-bottom:6px">
