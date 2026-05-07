@@ -6735,6 +6735,7 @@ function renderProfileScreen(){
 
 // 🆕 v2.16.1 — VISUAL CHRONICLE (rich version history with semver rationale + meta thought)
 function renderChronicleScreen(){
+  musicForScreen('chronicle'); // 🆕 v2.21.0
   const T = (head, rows) => `<table style="width:100%;border-collapse:collapse;font-size:11px;color:#fff;margin-bottom:10px">
     <thead><tr style="color:#ffd76e;letter-spacing:2px;font-size:9px;border-bottom:1px solid #ffd76e44">${head.map(h=>`<th style="text-align:left;padding:5px 8px">${h}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(r => `<tr style="border-bottom:1px solid #ffd76e22">${r.map((c,i)=>`<td style="padding:5px 8px;${i===0?'color:var(--gold);font-weight:900;white-space:nowrap':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
