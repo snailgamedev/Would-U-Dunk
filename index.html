@@ -2835,10 +2835,96 @@ const MUSIC = (() => {
       o.stop(now + n.t + n.d + 0.1);
     });
   }
+  // 🆕 v2.21.0 — DUCKING: temporarily lower music gain so coach lines / scripture pops cut through
+  let _duckTimer = null;
+  function duck(amount=0.4, ms=900){
+    if (!mGain) return;
+    const target = (Settings.musicVolume != null ? Settings.musicVolume : 0.35) * amount;
+    const restore = (Settings.musicVolume != null ? Settings.musicVolume : 0.35);
+    try {
+      const c = mctx;
+      mGain.gain.cancelScheduledValues(c.currentTime);
+      mGain.gain.linearRampToValueAtTime(target, c.currentTime + 0.08);
+      if (_duckTimer) clearTimeout(_duckTimer);
+      _duckTimer = setTimeout(() => {
+        try { mGain.gain.linearRampToValueAtTime(restore, c.currentTime + 0.18); } catch(e){}
+      }, ms);
+    } catch(e){}
+  }
+  // 🆕 v2.21.0 — WALK-OUT RIFFS: per-archetype 4-note motif on character reveal
+  const WALKOUTS = {
+    sniper:       { notes:[67,72,76,79], wave:'square',   spacing:0.08, vol:0.16 },
+    slasher:      { notes:[60,64,67,72], wave:'sawtooth', spacing:0.06, vol:0.18 },
+    lockdown:     { notes:[55,55,62,55], wave:'square',   spacing:0.10, vol:0.16 },
+    clown:        { notes:[60,72,55,67], wave:'square',   spacing:0.08, vol:0.14 },
+    prophet:      { notes:[60,64,67,72], wave:'triangle', spacing:0.14, vol:0.16 },
+    streetballer: { notes:[60,63,67,70], wave:'sawtooth', spacing:0.07, vol:0.18 },
+    showtime:     { notes:[60,67,72,79], wave:'square',   spacing:0.09, vol:0.18 },
+    steady:       { notes:[60,64,67,64], wave:'triangle', spacing:0.12, vol:0.14 },
+    chaotic:      { notes:[55,72,60,79], wave:'sawtooth', spacing:0.06, vol:0.20 },
+    closer:       { notes:[48,55,60,67], wave:'sine',     spacing:0.18, vol:0.16 },
+    paint_beast:  { notes:[40,43,47,50], wave:'sawtooth', spacing:0.10, vol:0.20 },
+    point_god:    { notes:[60,64,67,71], wave:'triangle', spacing:0.10, vol:0.16 },
+    microwave:    { notes:[67,72,76,84], wave:'square',   spacing:0.05, vol:0.18 },
+    glue_guy:     { notes:[60,62,64,65], wave:'triangle', spacing:0.10, vol:0.14 },
+    enigma:       { notes:[60,55,72,67], wave:'sawtooth', spacing:0.09, vol:0.16 },
+    unicorn:      { notes:[67,71,74,79], wave:'triangle', spacing:0.08, vol:0.18 },
+    general:      { notes:[55,60,64,67], wave:'square',   spacing:0.10, vol:0.16 },
+  };
+  function walkout(archetypeId){
+    if (!Settings.music || !Settings.stingers) return;
+    const c = getCtx(); if (!c) return;
+    const w = WALKOUTS[archetypeId] || WALKOUTS.steady;
+    const now = c.currentTime;
+    w.notes.forEach((m, i) => {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = w.wave;
+      o.frequency.value = midiToFreq(m);
+      const t0 = now + i * w.spacing;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(w.vol, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+      o.connect(g); g.connect(sGain || c.destination);
+      o.start(t0); o.stop(t0 + 0.22);
+    });
+  }
+  // 🆕 v2.21.0 — INTRO FANFARE: 3-second praise opening on first launch
+  function fanfare(){
+    if (!Settings.music) return;
+    const c = getCtx(); if (!c) return;
+    const now = c.currentTime;
+    // Major-tonic ascending arpeggio + held resolution chord
+    const notes = [{m:60,t:0,d:0.18},{m:64,t:0.16,d:0.18},{m:67,t:0.32,d:0.18},{m:72,t:0.48,d:0.32},
+                   {m:67,t:0.84,d:0.6,v:0.14},{m:71,t:0.84,d:0.6,v:0.14},{m:74,t:0.84,d:0.6,v:0.14},{m:79,t:0.84,d:0.9,v:0.18}];
+    notes.forEach(n => {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = 'triangle'; o.frequency.value = midiToFreq(n.m);
+      const t0 = now + n.t;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(n.v || 0.18, t0 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + (n.d || 0.3));
+      o.connect(g); g.connect(sGain || c.destination);
+      o.start(t0); o.stop(t0 + (n.d || 0.3) + 0.1);
+    });
+  }
+  // 🆕 v2.21.0 — PRAISE RADIO: 12s worship interlude
+  function radioInterlude(ms=12000){
+    if (!Settings.music) return;
+    const prev = trackName;
+    start('radio');
+    setTimeout(() => { try { start(prev || 'menu'); } catch(e){} }, ms);
+  }
   return { start, stop, setVolume, setStingerVolume, setIntensity, setGenre, getGenre, stinger,
+           duck, walkout, fanfare, radioInterlude,
            current: () => trackName, isPlaying: () => mActive,
            tracks: () => Object.keys(TRACKS) };
 })();
+
+// 🆕 v2.21.0 — universal screen→track router. Call from any render*() function.
+function musicForScreen(name){
+  if (typeof MUSIC === 'undefined') return;
+  try { MUSIC.setIntensity(0.9); MUSIC.start(name); } catch(e){}
+}
 
 /* ------------------- DEFAULTS / SAVE ------------------- */
 const SKIN_COLORS    = [0xfbe3c8, 0xf2d4a8, 0xe0b487, 0xc4956a, 0x9b6a3a, 0x6e4520, 0x4f3219, 0x2a160a];
