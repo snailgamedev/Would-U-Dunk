@@ -1405,6 +1405,7 @@ function awardXp(amount){
   saveCareer();
   if (Career.level > before){
     SFX.levelUp();
+    if (typeof MUSIC !== 'undefined') MUSIC.stinger('levelup'); // 🆕 v2.20.0
     showToast(`LEVEL ${Career.level}! 🔥`, 'level');
     if (Career.level >= 50 && before < 50){
       showToast(`ALL PRO UNLOCKED · CPUs 2× HARDER`, 'allpro');
