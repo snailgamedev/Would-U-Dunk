@@ -6673,6 +6673,7 @@ function renderHowToPlayScreen(){
 }
 
 function renderProfileScreen(){
+  musicForScreen('profile'); // 🆕 v2.21.0
   const list = listProfiles();
   const cur = currentProfileName();
   const rows = list.length === 0
