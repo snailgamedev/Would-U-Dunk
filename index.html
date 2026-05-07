@@ -2906,36 +2906,62 @@ const MUSIC = (() => {
     add9:     [0,4,7,14],
     minadd9:  [0,3,7,14],
   };
+  // 🆕 v2.23.0 — TRACK FIELDS:
+  //   bpm, scale, root, prog, drums, mel
+  //   chord  — chord-quality used by pad layer (default 'major' / 'minor' from scale)
+  //   pad    — bool, whether to layer chord pad
+  //   arp    — bool, whether melody arpeggiates the current chord
+  //   swing  — 0..0.3, 16th-note swing offset
+  //   counter — bool, octave-up sparser counter-melody
+  //   shake  — bool, shaker percussion every 16th
+  //   crash  — bool, crash on bar 1 of every 4
+  //   feel   — 'straight' | 'triplet' (subdivision)
   const TRACKS = {
-    // CORE 7 (v2.20.0)
-    menu:        { bpm:96,  scale:'pentMaj', root:60, prog:[0,5,3,4],      drums:'soft',     mel:'sparkle' },
-    gameplay:    { bpm:120, scale:'pentMin', root:55, prog:[0,3,5,4],      drums:'driving',  mel:'pulse' },
-    halftime:    { bpm:80,  scale:'major',   root:62, prog:[0,3,4,0],      drums:'chill',    mel:'pad' },
-    victory:     { bpm:130, scale:'major',   root:65, prog:[0,4,5,0],      drums:'anthem',   mel:'fanfare' },
-    praise:      { bpm:72,  scale:'gospel',  root:60, prog:[0,3,4,5,0,3],  drums:'worship',  mel:'choir' },
-    tense:       { bpm:140, scale:'minor',   root:50, prog:[0,5,3,5],      drums:'frantic',  mel:'tense' },
-    finals:      { bpm:128, scale:'pentMin', root:48, prog:[0,3,5,4],      drums:'epic',     mel:'epic' },
-    // 🆕 v2.21.0 — PER-SCREEN tracks
-    shop:        { bpm:104, scale:'pentMaj', root:62, prog:[0,5,7,3],      drums:'driving',  mel:'sparkle' }, // funky boutique
-    tournament:  { bpm:138, scale:'minor',   root:52, prog:[0,7,5,3],      drums:'epic',     mel:'epic' },    // battle horns
-    franchise:   { bpm:118, scale:'major',   root:60, prog:[0,4,5,3],      drums:'anthem',   mel:'fanfare' }, // sports anthem
-    hof:         { bpm:64,  scale:'major',   root:55, prog:[0,3,5,7,4,0],  drums:'worship',  mel:'choir' },   // hall-of-fame grandeur
-    chronicle:   { bpm:90,  scale:'dorian',  root:55, prog:[0,3,5,7],      drums:'chill',    mel:'pad' },     // epic history scroll
-    gospel:      { bpm:60,  scale:'gospel',  root:60, prog:[0,3,5,4,0,3,4,5], drums:'worship', mel:'choir' }, // sacred / reverent
-    daily:       { bpm:124, scale:'pentMaj', root:60, prog:[0,4,5,3],      drums:'driving',  mel:'pulse' },   // adventure pop
-    rules:       { bpm:100, scale:'pentMaj', root:58, prog:[0,5,3,4],      drums:'soft',     mel:'sparkle' }, // tinker workshop
-    profile:     { bpm:88,  scale:'major',   root:60, prog:[0,5,3,4,0,3],  drums:'soft',     mel:'pad' },     // warm acoustic
-    leaderboard: { bpm:96,  scale:'pentMin', root:55, prog:[0,3,5,3],      drums:'chill',    mel:'pad' },     // chill stats
-    howto:       { bpm:108, scale:'pentMaj', root:62, prog:[0,3,4,5],      drums:'soft',     mel:'sparkle' }, // happy tutorial
-    about:       { bpm:84,  scale:'pentMaj', root:60, prog:[0,5,3,4,0],    drums:'chill',    mel:'pad' },     // nostalgic chimes
-    updates:     { bpm:114, scale:'pentMaj', root:60, prog:[0,5,3,4],      drums:'driving',  mel:'pulse' },   // news upbeat
-    modeselect:  { bpm:110, scale:'pentMaj', root:60, prog:[0,4,5,0],      drums:'driving',  mel:'pulse' },   // anthem lobby
-    charselect:  { bpm:102, scale:'pentMin', root:55, prog:[0,3,5,4],      drums:'chill',    mel:'pulse' },   // jazzy preview
-    online:      { bpm:128, scale:'pentMin', root:55, prog:[0,5,3,7],      drums:'driving',  mel:'pulse' },   // electronic
-    horse:       { bpm:96,  scale:'pentMaj', root:62, prog:[0,3,5,4],      drums:'soft',     mel:'sparkle' }, // playful
-    practice:    { bpm:104, scale:'pentMaj', root:60, prog:[0,5,7,4],      drums:'soft',     mel:'pulse' },   // relaxed gym
-    radio:       { bpm:68,  scale:'gospel',  root:62, prog:[0,3,4,5],      drums:'worship',  mel:'choir' },   // 12s praise interlude
-    custom:      { bpm:108, scale:'_custom', root:60, prog:[0,3,5,4],      drums:'driving',  mel:'pulse' },   // 🆕 v2.21.0 user-designed scale
+    // CORE 7 — refreshed
+    menu:        { bpm:98,  scale:'pentMaj', root:60, prog:[0,5,3,4],         drums:'soft',     mel:'sparkle', chord:'add9',    pad:true, arp:true,  swing:0.10, counter:true,  shake:true,  crash:true  },
+    gameplay:    { bpm:124, scale:'pentMin', root:55, prog:[0,3,5,4,0,3,7,4], drums:'driving',  mel:'pulse',   chord:'min7',    pad:true, arp:false, swing:0.06, counter:false, shake:true,  crash:true  },
+    halftime:    { bpm:78,  scale:'major',   root:62, prog:[0,3,4,5,0,3,4,0], drums:'chill',    mel:'pad',     chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    victory:     { bpm:132, scale:'major',   root:65, prog:[0,4,5,3,0,4,5,0], drums:'anthem',   mel:'fanfare', chord:'major',   pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  },
+    praise:      { bpm:72,  scale:'gospel',  root:60, prog:[0,3,4,5,0,3,5,4], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    tense:       { bpm:144, scale:'phrygian',root:50, prog:[0,5,3,5,0,7,3,5], drums:'frantic',  mel:'tense',   chord:'minor',   pad:true, arp:false, swing:0.0,  counter:false, shake:true,  crash:false },
+    finals:      { bpm:128, scale:'harmMin', root:48, prog:[0,3,5,4,0,7,5,4], drums:'epic',     mel:'epic',    chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  },
+    // PER-SCREEN tracks (v2.21.0) — beefed up
+    shop:        { bpm:106, scale:'mixo',    root:62, prog:[0,5,7,3,0,3,5,4], drums:'driving',  mel:'sparkle', chord:'dom7',    pad:true, arp:true,  swing:0.18, counter:true,  shake:true,  crash:true  },
+    tournament:  { bpm:140, scale:'minor',   root:52, prog:[0,7,5,3,0,5,7,3], drums:'epic',     mel:'epic',    chord:'minor',   pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  },
+    franchise:   { bpm:120, scale:'major',   root:60, prog:[0,4,5,3,0,5,4,0], drums:'anthem',   mel:'fanfare', chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  },
+    hof:         { bpm:62,  scale:'major',   root:55, prog:[0,3,5,7,4,0,3,5], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    chronicle:   { bpm:90,  scale:'dorian',  root:55, prog:[0,3,5,7,4,0,3,5], drums:'chill',    mel:'pad',     chord:'minadd9', pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    gospel:      { bpm:60,  scale:'gospel',  root:60, prog:[0,3,5,4,0,3,4,5], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    daily:       { bpm:126, scale:'lydian',  root:60, prog:[0,4,5,3,0,5,4,3], drums:'driving',  mel:'pulse',   chord:'maj7',    pad:true, arp:true,  swing:0.10, counter:true,  shake:true,  crash:true  },
+    rules:       { bpm:102, scale:'pentMaj', root:58, prog:[0,5,3,4],         drums:'soft',     mel:'sparkle', chord:'add9',    pad:true, arp:true,  swing:0.12, counter:true,  shake:true,  crash:false },
+    profile:     { bpm:86,  scale:'major',   root:60, prog:[0,5,3,4,0,3,5,4], drums:'soft',     mel:'pad',     chord:'maj7',    pad:true, arp:true,  swing:0.10, counter:true,  shake:false, crash:false },
+    leaderboard: { bpm:96,  scale:'pentMin', root:55, prog:[0,3,5,3],         drums:'chill',    mel:'pad',     chord:'min7',    pad:true, arp:false, swing:0.0,  counter:true,  shake:false, crash:false },
+    howto:       { bpm:108, scale:'pentMaj', root:62, prog:[0,3,4,5],         drums:'soft',     mel:'sparkle', chord:'add9',    pad:true, arp:true,  swing:0.14, counter:true,  shake:true,  crash:false },
+    about:       { bpm:82,  scale:'pentMaj', root:60, prog:[0,5,3,4,0,3,4,5], drums:'chill',    mel:'pad',     chord:'add9',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    updates:     { bpm:116, scale:'pentMaj', root:60, prog:[0,5,3,4,0,4,5,3], drums:'driving',  mel:'pulse',   chord:'maj7',    pad:true, arp:false, swing:0.10, counter:true,  shake:true,  crash:true  },
+    modeselect:  { bpm:112, scale:'pentMaj', root:60, prog:[0,4,5,0,0,5,4,3], drums:'driving',  mel:'pulse',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  },
+    charselect:  { bpm:104, scale:'dorian',  root:55, prog:[0,3,5,4,0,5,3,4], drums:'chill',    mel:'pulse',   chord:'min7',    pad:true, arp:true,  swing:0.16, counter:true,  shake:true,  crash:false },
+    online:      { bpm:130, scale:'pentMin', root:55, prog:[0,5,3,7,0,3,7,5], drums:'driving',  mel:'pulse',   chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  },
+    horse:       { bpm:96,  scale:'pentMaj', root:62, prog:[0,3,5,4],         drums:'soft',     mel:'sparkle', chord:'add9',    pad:true, arp:true,  swing:0.16, counter:true,  shake:true,  crash:false },
+    practice:    { bpm:104, scale:'pentMaj', root:60, prog:[0,5,7,4,0,4,5,3], drums:'soft',     mel:'pulse',   chord:'add9',    pad:true, arp:true,  swing:0.10, counter:true,  shake:false, crash:false },
+    radio:       { bpm:68,  scale:'gospel',  root:62, prog:[0,3,4,5,0,3,5,4], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false },
+    custom:      { bpm:108, scale:'_custom', root:60, prog:[0,3,5,4],         drums:'driving',  mel:'pulse',   chord:'minor',   pad:true, arp:true,  swing:0.06, counter:true,  shake:true,  crash:true  },
+    // 🆕 v2.23.0 — NEW TRACKS
+    superchaos:  { bpm:160, scale:'phrygian',root:48, prog:[0,7,3,5,0,5,7,3], drums:'frantic',  mel:'tense',   chord:'minor',   pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // SUPER CHAOS reveal
+    clutch:      { bpm:148, scale:'harmMin', root:50, prog:[0,5,3,5,0,7,5,3], drums:'frantic',  mel:'tense',   chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // last 30s
+    overtime:    { bpm:152, scale:'minor',   root:48, prog:[0,5,7,3,0,7,5,3], drums:'epic',     mel:'epic',    chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // OT
+    pause:       { bpm:54,  scale:'major',   root:60, prog:[0,5,3,4],         drums:'soft',     mel:'pad',     chord:'maj7',    pad:true, arp:false, swing:0.0,  counter:false, shake:false, crash:false }, // pause menu
+    loss:        { bpm:60,  scale:'minor',   root:55, prog:[0,3,5,3,0,5,3,0], drums:'soft',     mel:'pad',     chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false }, // game over loss
+    unlock:      { bpm:118, scale:'lydian',  root:60, prog:[0,4,5,7],         drums:'driving',  mel:'fanfare', chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  }, // unlock celebration
+    intermission:{ bpm:88,  scale:'major',   root:62, prog:[0,5,3,4,0,3,4,0], drums:'chill',    mel:'sparkle', chord:'maj7',    pad:true, arp:true,  swing:0.10, counter:true,  shake:true,  crash:false }, // 15s intermission
+    revealchaos: { bpm:120, scale:'pentMin', root:55, prog:[0,5,3,7,0,3,7,5], drums:'driving',  mel:'pulse',   chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // chaos reveal
+    streetball:  { bpm:96,  scale:'blues',   root:55, prog:[0,3,5,7,0,5,3,4], drums:'driving',  mel:'pulse',   chord:'dom7',    pad:true, arp:true,  swing:0.20, counter:true,  shake:true,  crash:false }, // blacktop blues
+    arena:       { bpm:128, scale:'mixo',    root:55, prog:[0,4,5,3,0,5,4,0], drums:'anthem',   mel:'fanfare', chord:'dom7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // arena rock
+    boss:        { bpm:136, scale:'phrygian',root:48, prog:[0,7,5,3,0,5,3,7], drums:'epic',     mel:'epic',    chord:'minor',   pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:true  }, // boss-archetype
+    lofi:        { bpm:74,  scale:'dorian',  root:60, prog:[0,3,5,4,0,5,3,4], drums:'chill',    mel:'pad',     chord:'min7',    pad:true, arp:true,  swing:0.16, counter:true,  shake:true,  crash:false }, // lofi study
+    funk:        { bpm:108, scale:'mixo',    root:55, prog:[0,5,3,5,0,3,5,3], drums:'driving',  mel:'pulse',   chord:'dom7',    pad:true, arp:true,  swing:0.18, counter:true,  shake:true,  crash:true  }, // funky funk
+    trapbeat:    { bpm:140, scale:'minor',   root:50, prog:[0,3,5,3,0,5,3,0], drums:'driving',  mel:'pulse',   chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // trap
+    organ:       { bpm:80,  scale:'gospel',  root:60, prog:[0,3,5,4,0,5,3,4], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false }, // sunday morning organ
   };
   function getCtx(){
     if (!Settings.music) return null;
