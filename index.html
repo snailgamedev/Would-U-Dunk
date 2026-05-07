@@ -7403,6 +7403,7 @@ function previewDailyChaos(){
   return rolls;
 }
 function renderDailyChallengeScreen(){
+  musicForScreen('daily'); // 🆕 v2.21.0
   const key = dailyKey();
   const best = loadDailyBest();
   const todayBest = best[key] || null;
