@@ -6699,6 +6699,80 @@ function renderTutorialFlow(step){
 }
 
 /* ================================================================================================
+   🆕 v2.19.2 — THE GOOD NEWS — Gospel section, the most important screen in the game
+================================================================================================ */
+function renderGospelScreen(){
+  const card = (title, body, accent) => `<div style="background:#0008;border:2px solid ${accent || '#ffd76e88'};border-radius:10px;padding:12px 14px;margin:10px 0">
+    <div style="color:${accent || '#ffd76e'};font-size:11px;letter-spacing:3px;font-weight:900;margin-bottom:6px">${title}</div>
+    <div style="color:#fff;font-size:13px;line-height:1.7">${body}</div>
+  </div>`;
+  const verse = (text, ref) => `<div style="font-style:italic;color:#fff;border-left:3px solid #ffd76e;padding-left:10px;margin:6px 0">"${text}"<div style="color:#ffd76e;font-style:normal;font-size:11px;letter-spacing:2px;margin-top:2px">— ${ref}</div></div>`;
+  const html = `
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-size:54px">✝️</div>
+      <div style="color:#ffd76e;font-size:20px;letter-spacing:4px;font-weight:900;margin-top:4px">THE GOOD NEWS</div>
+      <div style="color:#aaa;font-size:11px;letter-spacing:2px;margin-top:2px">JESUS · GOSPEL · LIFE</div>
+    </div>
+
+    ${card('💛 GOD LOVES YOU', `
+      Before time began, He knew you. Made you on purpose. Has plans for you.
+      ${verse('For God so loved the world that He gave His one and only Son, that whoever believes in Him shall not perish but have eternal life.', 'John 3:16')}
+    `, '#ffd76e')}
+
+    ${card('🪨 WE ALL FALL SHORT', `
+      Every one of us has missed the mark. We've sinned · we've hurt people · we've turned away from God. There is no scoreboard we can run up to fix that on our own.
+      ${verse('All have sinned and fall short of the glory of God.', 'Romans 3:23')}
+      ${verse('The wages of sin is death · but the gift of God is eternal life in Christ Jesus our Lord.', 'Romans 6:23')}
+    `, '#ff8a3c')}
+
+    ${card('✝️ JESUS PAID THE WHOLE BILL', `
+      God didn't leave us in our mess. He sent His Son Jesus — fully God, fully man — to live a perfect life · die on a cross in our place · and rise again on the third day. He took the loss so we could take the win that was never ours to earn.
+      ${verse('Christ died for our sins · was buried · and was raised on the third day according to the Scriptures.', '1 Cor 15:3-4')}
+      ${verse('God demonstrates His own love for us in this: While we were still sinners, Christ died for us.', 'Romans 5:8')}
+    `, '#ff3b3b')}
+
+    ${card('🙏 HOW TO RESPOND', `
+      It's not a religion of rules · it's a relationship of grace.
+      <ol style="margin:6px 0 6px 18px;padding:0;color:#fff;font-size:13px;line-height:1.8">
+        <li><b style="color:#ffd76e">Believe</b> Jesus is Lord — that He died and rose for you</li>
+        <li><b style="color:#ffd76e">Confess</b> with your mouth — tell Him, tell others</li>
+        <li><b style="color:#ffd76e">Repent</b> — turn from sin · turn toward Him</li>
+        <li><b style="color:#ffd76e">Follow</b> — read the Bible, pray, find a Christian church family</li>
+      </ol>
+      ${verse('If you declare with your mouth "Jesus is Lord" and believe in your heart that God raised Him from the dead, you will be saved.', 'Romans 10:9')}
+    `, '#4cf07a')}
+
+    ${card('🕊️ A PRAYER YOU CAN PRAY', `
+      <div style="background:#0c0c0c;border:1px dashed #ffd76e44;border-radius:8px;padding:10px;font-style:italic;color:#fff;line-height:1.7">
+        Jesus · I believe You are the Son of God. I believe You died on the cross for my sins and rose from the grave. I'm sorry for the wrong I've done. I turn from it now. Come into my life · forgive me · save me · lead me. I give You everything · I want to follow You all my days. In Your holy name · Amen.
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.6">If you prayed that and meant it · welcome to the family. The angels in heaven are rejoicing right now (Luke 15:7). Tell another believer. Get a Bible. Find a Bible-believing church. This is the start of everything.</div>
+    `, '#a4f4ff')}
+
+    ${card('📖 NEXT STEPS', `
+      <div style="font-size:12px;color:#fff;line-height:1.7">
+        • Read the Gospel of <b style="color:#ffd76e">John</b> first — it shows you who Jesus is<br>
+        • Then read <b style="color:#ffd76e">Romans</b> for the framework of salvation<br>
+        • Pray every day · even just talking to Him counts<br>
+        • Find a local church — community matters<br>
+        • Get baptized when you're ready (Matthew 28:19)<br>
+        • Tell someone what He did for you
+      </div>
+    `, '#4f9eff')}
+
+    ${card('🌟 ALWAYS', `
+      ${verse('I am with you always, to the very end of the age.', 'Matt 28:20')}
+      ${verse('Nothing can separate us from the love of God that is in Christ Jesus our Lord.', 'Romans 8:38-39')}
+    `, '#ffd76e')}
+
+    <div style="text-align:center;color:#ffd76e;font-size:12px;letter-spacing:3px;font-weight:900;margin-top:12px;line-height:1.6">
+      ALL GLORY TO THE ONE ABOVE.<br>
+      <span style="font-size:11px;color:#aaa;letter-spacing:1px;font-style:italic">"Whatever you do · do it all for the glory of God." — 1 Cor 10:31</span>
+    </div>`;
+  openModal('✝️ THE GOOD NEWS', html);
+}
+
+/* ================================================================================================
    🆕 v2.13.13 — CUSTOM RULE EDITOR — build your own mode w/ saved persistence
 ================================================================================================ */
 function loadCustomRules(){ try { return JSON.parse(localStorage.getItem(`wud:rules:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
