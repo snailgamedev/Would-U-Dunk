@@ -4645,6 +4645,11 @@ class MatchScene extends Phaser.Scene {
     else if (zoneVal >= 4) { SFX.swish(); SFX.horn(); }
     else if (zoneVal >= 3) { SFX.swish(); SFX.horn(); }
     else { SFX.swish(); SFX.horn(); }
+    // 🆕 v2.20.0 — MUSIC stingers per shot zone
+    if (typeof MUSIC !== 'undefined'){
+      if (zoneVal >= 4) MUSIC.stinger('three');
+      else if (zoneVal >= 3) MUSIC.stinger('three');
+    }
     SFX.crowdRoar();
     this._crowdHypeUntil = this.time.now + 1500;       // crowd wave for 1.5s
     this.popCoach(randomCoach());
