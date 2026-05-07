@@ -3166,49 +3166,111 @@ const MUSIC = (() => {
       const stepInBar = step % 16;
       const barIdx = Math.floor(step / 16) % T.prog.length;
       const chordRoot = T.root + T.prog[barIdx];
+      bar = Math.floor(step / 16);
       // 🆕 v2.21.0 — custom scale support
       const scale = (T.scale === '_custom' && Array.isArray(Settings.customScale))
         ? Settings.customScale
         : (SCALES[T.scale] || SCALES.major);
-      const dt = nextNoteTime - c.currentTime;
-      // melody — every 2 sub-steps, with mood-driven variance
-      if (stepInBar % 2 === 0){
+      // 🆕 v2.23.0 — SWING: nudge OFF-beats slightly later (a la jazz/funk feel)
+      const swing = T.swing || 0;
+      const swingOffset = (stepInBar % 2 === 1) ? sub * swing : 0;
+      const dt = (nextNoteTime - c.currentTime) + swingOffset;
+      // 🆕 v2.23.0 — SONG STRUCTURE — 8-bar phrases:
+      //   bars 0-1 = INTRO (drums + pad only) · 2-5 = VERSE · 6-7 = CHORUS (full)
+      //   bars 8-9 = BRIDGE (quiet) · then loop. Lets every track breathe.
+      const phrase = bar % 8;
+      const isIntro   = phrase < 2;
+      const isVerse   = phrase >= 2 && phrase < 6;
+      const isChorus  = phrase >= 6;
+      const isBridge  = (bar % 16) >= 8 && (bar % 16) < 10;
+      const energy    = isBridge ? 0.55 : (isIntro ? 0.7 : (isChorus ? 1.15 : 1.0));
+
+      // CHORD PAD — once per bar (downbeat). Long sustain = full bar.
+      if (T.pad && stepInBar === 0 && lastChordPlayedAtBar !== bar){
+        lastChordPlayedAtBar = bar;
+        const padDur = beat * 4 * 0.95;
+        chordPad(chordRoot, T.chord || 'major', padDur, dt);
+      }
+
+      // MELODY — every 2 sub-steps; arpeggiate the chord on arp tracks
+      if (stepInBar % 2 === 0 && !isBridge){
         const seed = (step * 0.7) + (barIdx * 1.1);
-        const idx = Math.abs(Math.floor((Math.sin(seed) + Math.sin(seed*2.3)*0.5) * 3) + 4) % scale.length;
-        const oct = (T.mel === 'epic' || T.mel === 'fanfare') ? 12 : 0;
-        const m = chordRoot + scale[idx] + oct;
-        note(midiToFreq(m), 0.18 + (T.mel === 'pad' ? 0.4 : 0), melodyWave(), 0.045, dt, 0.005);
+        let m;
+        if (T.arp){
+          const intervals = CHORD_QUALITY[T.chord || 'major'];
+          const arpIdx = (Math.floor(stepInBar / 2)) % intervals.length;
+          const oct = (T.mel === 'epic' || T.mel === 'fanfare') ? 12 : 0;
+          m = chordRoot + intervals[arpIdx] + oct;
+        } else {
+          const idx = Math.abs(Math.floor((Math.sin(seed) + Math.sin(seed*2.3)*0.5) * 3) + 4) % scale.length;
+          const oct = (T.mel === 'epic' || T.mel === 'fanfare') ? 12 : 0;
+          m = chordRoot + scale[idx] + oct;
+        }
+        const wantVib = (T.mel === 'choir' || T.mel === 'pad' || T.mel === 'fanfare');
+        const wantRev = (T.mel === 'choir' || T.mel === 'pad' || T.mel === 'sparkle');
+        note(midiToFreq(m), 0.18 + (T.mel === 'pad' ? 0.4 : 0), melodyWave(),
+             0.045 * energy, dt, 0.005,
+             { vib: wantVib, vibRate: 5.5, vibDepth: 12, rev: wantRev });
         // harmony for fanfare/choir
         if (T.mel === 'fanfare' || T.mel === 'choir'){
-          note(midiToFreq(m + 4), 0.16, melodyWave(), 0.03, dt, 0.005);
+          note(midiToFreq(m + 4), 0.16, melodyWave(), 0.03 * energy, dt, 0.005, { vib: true });
+        }
+        // 🆕 v2.23.0 — COUNTER-MELODY: octave-up sparser voice on chorus
+        if (T.counter && isChorus && stepInBar % 4 === 0){
+          note(midiToFreq(m + 12), 0.22, 'triangle', 0.028, dt + sub*0.15, 0.005, { rev: true });
         }
       }
-      // bass — every beat, octave hop on bar 2
-      if (stepInBar % 4 === 0){
-        const bm = chordRoot - 24 + (stepInBar === 8 ? 7 : 0);
-        note(midiToFreq(bm), 0.32, bassWave(), 0.06, dt, 0.005);
+
+      // BASS — every beat, walking variation in chorus
+      if (stepInBar % 4 === 0 && !isBridge){
+        const bm = chordRoot - 24 + (stepInBar === 8 ? 7 : 0)
+                 + (isChorus && stepInBar === 12 ? 5 : 0);
+        note(midiToFreq(bm), 0.32, bassWave(), 0.06 * energy, dt, 0.005);
+        // octave double in chorus for thickness
+        if (isChorus) note(midiToFreq(bm + 12), 0.18, bassWave(), 0.025, dt, 0.005);
       }
-      // drums by track
-      const d = T.drums;
-      if (d === 'driving'){
-        if (stepInBar % 4 === 0) kick(dt);
-        if (stepInBar % 8 === 4) snare(dt);
-        if (stepInBar % 2 === 0) hat(dt);
-      } else if (d === 'epic' || d === 'anthem'){
-        if (stepInBar === 0 || stepInBar === 6) kick(dt);
-        if (stepInBar === 4 || stepInBar === 12) snare(dt);
-        if (stepInBar % 2 === 0) hat(dt);
-      } else if (d === 'frantic'){
-        if (stepInBar % 2 === 0) kick(dt);
-        if (stepInBar % 4 === 2) snare(dt);
-        hat(dt);
-      } else if (d === 'worship'){
-        if (stepInBar === 0 || stepInBar === 8) kick(dt);
-        if (stepInBar === 4 || stepInBar === 12) snare(dt);
-      } else if (d === 'soft' || d === 'chill'){
-        if (stepInBar === 0) kick(dt);
-        if (stepInBar === 8) hat(dt);
+
+      // 🆕 v2.23.0 — DRUM FILL on the last beat of every 4th bar (rolling toms)
+      const isFillBar = (bar % 4 === 3) && stepInBar >= 12 && !isBridge;
+      if (isFillBar){
+        const tomNote = 50 + (stepInBar - 12) * 2;
+        if (stepInBar % 1 === 0) tom(dt, tomNote, 0.18);
+      } else {
+        const d = T.drums;
+        if (d === 'driving'){
+          if (stepInBar % 4 === 0) kick(dt, 0.34 * energy);
+          if (stepInBar % 8 === 4) { snare(dt, 0.18 * energy); if (isChorus) clap(dt); }
+          if (stepInBar % 2 === 0) hat(dt, false);
+          if (stepInBar % 8 === 6) hat(dt, true);
+        } else if (d === 'epic' || d === 'anthem'){
+          if (stepInBar === 0 || stepInBar === 6) kick(dt, 0.36 * energy);
+          if (stepInBar === 4 || stepInBar === 12) { snare(dt, 0.20 * energy); clap(dt); }
+          if (stepInBar % 2 === 0) hat(dt, false);
+          if (isChorus && stepInBar === 8) tom(dt, 47, 0.16);
+        } else if (d === 'frantic'){
+          if (stepInBar % 2 === 0) kick(dt, 0.32 * energy);
+          if (stepInBar % 4 === 2) snare(dt, 0.18 * energy);
+          hat(dt, false);
+          if (isChorus) shaker(dt);
+        } else if (d === 'worship'){
+          if (stepInBar === 0 || stepInBar === 8) kick(dt, 0.28 * energy);
+          if (stepInBar === 4 || stepInBar === 12) { snare(dt, 0.14 * energy); clap(dt); }
+          if (stepInBar % 4 === 2) hat(dt, true);
+        } else if (d === 'soft' || d === 'chill'){
+          if (stepInBar === 0) kick(dt, 0.22 * energy);
+          if (stepInBar === 8) { snare(dt, 0.10 * energy); hat(dt, true); }
+          if (T.shake && stepInBar % 2 === 1) shaker(dt);
+        }
       }
+
+      // 🆕 v2.23.0 — SHAKER 16ths (non-frantic tracks that opt-in)
+      if (T.shake && !isBridge && (T.drums !== 'frantic') && stepInBar % 2 === 1){
+        shaker(dt);
+      }
+
+      // 🆕 v2.23.0 — CRASH cymbal on the bar 1 of each 4-bar block (chorus only)
+      if (T.crash && isChorus && stepInBar === 0 && (bar % 4 === 0)) crash(dt);
+
       nextNoteTime += sub;
       step++;
     }
