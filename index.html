@@ -7634,6 +7634,10 @@ function showSplash(){
   menuEl.classList.remove('hide');
   menuEl.innerHTML = splashHTML;
   document.getElementById('splashLvlBar').innerHTML = renderSplashLvlBar();
+  // 🆕 v2.20.0 — MUSIC: start menu loop on splash (deferred until first user gesture)
+  if (typeof MUSIC !== 'undefined'){
+    try { MUSIC.setIntensity(0.85); MUSIC.start('menu'); } catch(e){}
+  }
   // Verse of the Day
   const v = verseOfTheDay();
   const splashVerse = document.getElementById('splashVerse');
