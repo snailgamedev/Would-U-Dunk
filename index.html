@@ -3661,9 +3661,30 @@ const MUSIC = (() => {
 })();
 
 // 🆕 v2.21.0 — universal screen→track router. Call from any render*() function.
+// 🆕 v2.25.0 — SIBLING SHUFFLE: 10% chance to swap to a same-vibe sibling on re-entry,
+// so even repeat visits feel fresh. Sleep mode overrides everything.
+const SIBLINGS = {
+  menu:        ['menu','about','daily','modeselect'],
+  shop:        ['shop','funk','arena','streetball'],
+  leaderboard: ['leaderboard','lofi','profile','chronicle'],
+  charselect:  ['charselect','lofi','jazzy','practice'],
+  practice:    ['practice','lofi','horse','rules'],
+  hof:         ['hof','organ','gospel','praise'],
+  about:       ['about','lofi','profile','chronicle'],
+  rules:       ['rules','howto','practice'],
+};
 function musicForScreen(name){
   if (typeof MUSIC === 'undefined') return;
-  try { MUSIC.setIntensity(0.9); MUSIC.start(name); } catch(e){}
+  try {
+    if (Settings.musicSleep){ MUSIC.start('sleep'); return; }
+    let pick = name;
+    if (Settings.siblingShuffle !== false && SIBLINGS[name] && Math.random() < 0.10){
+      const opts = SIBLINGS[name].filter(t => t !== MUSIC.current());
+      if (opts.length) pick = opts[(Math.random() * opts.length) | 0];
+    }
+    MUSIC.setIntensity(0.9);
+    MUSIC.start(pick);
+  } catch(e){}
 }
 
 /* ------------------- DEFAULTS / SAVE ------------------- */
