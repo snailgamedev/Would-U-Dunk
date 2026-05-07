@@ -5591,6 +5591,7 @@ class MatchScene extends Phaser.Scene {
 
     // 🆕 v2.8.0 — CONTINUOUS BALL SAFETY CHECK. Catches tunneling glitches (steal pushes ball through floor,
     // dunk warps ball below collision body, super-charged shots overshooting bounds).
+    // 🆕 v2.23.0 — FLOATING-BALL FIX: detect ball stuck near the sky/ceiling and force-pull it back.
     if (this.ball && !this.ball.getData('held')){
       // floor safety
       if (this.ball.y > FLOOR_Y + 5){
@@ -5600,6 +5601,38 @@ class MatchScene extends Phaser.Scene {
       // ceiling safety (only when sky-OOB hasn't already triggered)
       if (this.SKY_CEILING != null && this.ball.y < this.SKY_CEILING - 200){
         this.ball.y = this.SKY_CEILING - 100;
+      }
+      // 🆕 v2.23.0 — STUCK-FLOATING DETECTOR
+      // If the ball is high above the floor AND moving very slowly vertically for > 1.5s,
+      // something has trapped it (cumulative magnet/wind, lost gravity, anti-grav residue).
+      // Force gravity back on, kill upward velocity, and apply a gentle downward kick.
+      if (!State.cfg.ballGravFlip && this.ball.body){
+        const altPx = FLOOR_Y - this.ball.y;
+        const vy = this.ball.body.velocity.y;
+        const vx = this.ball.body.velocity.x;
+        const slow = Math.abs(vy) < 40 && Math.abs(vx) < 80;
+        const high = altPx > 700;                  // well above any normal arc
+        if (high && slow){
+          this._ballStuckSince = this._ballStuckSince || time;
+          if (time - this._ballStuckSince > 1500){
+            this.ball.body.setAllowGravity(true);
+            this.ball.body.setGravityY(0);          // back to world default
+            this.ball.body.setAccelerationY(0);
+            this.ball.body.setVelocityY(Math.max(220, -vy + 220));
+            this._ballStuckSince = 0;
+          }
+        } else {
+          this._ballStuckSince = 0;
+        }
+        // HARD CEILING — never let ball pass above 90% of SKY_CEILING during normal play.
+        // (sky-OOB cinematic uses its own bound of SKY_CEILING + 80.)
+        if (this.SKY_CEILING != null){
+          const hardCap = this.SKY_CEILING + 60;
+          if (this.ball.y < hardCap){
+            this.ball.y = hardCap + 4;
+            if (vy < 0) this.ball.body.setVelocityY(Math.abs(vy) * 0.5 + 120);
+          }
+        }
       }
       // X bounds safety — if ball gets stuck way past world bounds
       if (this.OOB_PAD != null){
