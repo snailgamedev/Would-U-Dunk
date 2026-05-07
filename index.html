@@ -6428,6 +6428,7 @@ function renderAchievementsScreen(){
     </div>${sections}`);
 }
 function renderSettingsScreen(){
+  musicForScreen('rules'); // 🆕 v2.21.0 settings = workshop
   // 🆕 v2.16.2 — defensively pause the active match while settings is open
   try {
     const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
