@@ -3013,22 +3013,52 @@ const MUSIC = (() => {
     if (!Settings.music) return null;
     if (!mctx){ try{ mctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
     if (mctx && !mGain){
+      // 🆕 v2.24.0 — VIBE / COMFORT MASTER CHAIN
+      // Audio path:  mGain → masterLowpass → softCompressor → destination
+      //   masterLowpass: gentle 8 kHz cap (6.5 kHz when comfort mode is ON)
+      //                  — tames piercing highs that cause eye-strain & headaches
+      //   softCompressor: -22 dB threshold, slow attack, fast release
+      //                   — pulls peaks down so nothing spikes; the "bop" stays steady
+      //   PAD bus has its own deeper lowpass (1.8 kHz) so chord pads sit behind melody.
       mGain = mctx.createGain();
-      mGain.gain.value = (Settings.musicVolume != null ? Settings.musicVolume : 0.35);
-      mGain.connect(mctx.destination);
+      mGain.gain.value = (Settings.musicVolume != null ? Settings.musicVolume : 0.30);
+      const masterLP = mctx.createBiquadFilter();
+      masterLP.type = 'lowpass';
+      masterLP.frequency.value = (Settings.musicComfort !== false) ? 6500 : 8500;
+      masterLP.Q.value = 0.5;
+      // soft "glue" compressor to smooth dynamics without pumping perception
+      const comp = mctx.createDynamicsCompressor();
+      comp.threshold.value = -22;
+      comp.knee.value = 24;
+      comp.ratio.value = 3;
+      comp.attack.value = 0.012;
+      comp.release.value = 0.18;
+      mGain.connect(masterLP); masterLP.connect(comp); comp.connect(mctx.destination);
+      _masterLP = masterLP;
       sGain = mctx.createGain();
-      sGain.gain.value = (Settings.stingerVolume != null ? Settings.stingerVolume : 0.55);
-      sGain.connect(mctx.destination);
+      sGain.gain.value = (Settings.stingerVolume != null ? Settings.stingerVolume : 0.45);
+      // stingers pass through the same compressor for cohesion
+      sGain.connect(comp);
       // 🆕 v2.23.0 — dedicated PAD bus runs through a gentle lowpass so chord pads sit behind melody
+      // 🆕 v2.24.0 — pads now feed a "_pumpGain" so the kick can SIDE-CHAIN duck them (the BOP)
       padGain = mctx.createGain();
       padGain.gain.value = 0.45;
+      _pumpGain = mctx.createGain();
+      _pumpGain.gain.value = 1.0;
       const lp = mctx.createBiquadFilter();
       lp.type = 'lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.6;
-      padGain.connect(lp); lp.connect(mGain);
+      padGain.connect(lp); lp.connect(_pumpGain); _pumpGain.connect(mGain);
     }
     if (mctx && mctx.state === 'suspended') mctx.resume();
     return mctx;
   }
+  // 🆕 v2.24.0 — set master cutoff live (toggle when user flips comfort mode)
+  function setComfort(on){
+    Settings.musicComfort = !!on;
+    if (_masterLP) _masterLP.frequency.value = on ? 6500 : 8500;
+    saveSettings();
+  }
+  function getComfort(){ return Settings.musicComfort !== false; }
   const midiToFreq = m => 440 * Math.pow(2, (m-69)/12);
   // 🆕 v2.23.0 — note() now supports vibrato (vib=true) and reverb tail (rev=true)
   function note(freq, dur, type, vol, when, attack=0.008, opts){
