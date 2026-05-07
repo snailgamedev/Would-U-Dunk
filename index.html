@@ -2736,7 +2736,10 @@ const MUSIC = (() => {
       const stepInBar = step % 16;
       const barIdx = Math.floor(step / 16) % T.prog.length;
       const chordRoot = T.root + T.prog[barIdx];
-      const scale = SCALES[T.scale];
+      // 🆕 v2.21.0 — custom scale support
+      const scale = (T.scale === '_custom' && Array.isArray(Settings.customScale))
+        ? Settings.customScale
+        : (SCALES[T.scale] || SCALES.major);
       const dt = nextNoteTime - c.currentTime;
       // melody — every 2 sub-steps, with mood-driven variance
       if (stepInBar % 2 === 0){
