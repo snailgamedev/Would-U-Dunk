@@ -5786,6 +5786,8 @@ class MatchScene extends Phaser.Scene {
     else if (cfg.slantX) this.ball.body.setAccelerationX(cfg.slantX);
     else this.ball.body.setAccelerationX(0);
     // BALL MAGNET — gentle pull toward nearest hoop when in flight
+    // 🆕 v2.23.0 — magnet now FADES OUT when ball is far above the rim, so it can't drag the
+    // ball straight up to the ceiling once it overshoots. Cap upward magnet contribution.
     if (cfg.ballMagnet && !this.ball.getData('held')){
       const left  = Math.hypot(this.ball.x - this.hoopL.x, this.ball.y - this.hoopL.y);
       const right = Math.hypot(this.ball.x - this.hoopR.x, this.ball.y - this.hoopR.y);
@@ -5793,8 +5795,13 @@ class MatchScene extends Phaser.Scene {
       const dxm = target.x - this.ball.x, dym = target.y - this.ball.y;
       const len = Math.hypot(dxm, dym) || 1;
       const f = 220 * cfg.ballMagnet;
-      this.ball.body.acceleration.x += (dxm/len) * f;
-      this.ball.body.acceleration.y += (dym/len) * f;
+      // fade above the rim — when ball is 300px+ above the hoop, magnet weakens fast
+      const aboveHoop = Math.max(0, target.y - this.ball.y);
+      const fade = aboveHoop > 300 ? Math.max(0, 1 - (aboveHoop - 300) / 600) : 1;
+      this.ball.body.acceleration.x += (dxm/len) * f * fade;
+      // never let the magnet pull UP — only sideways or down
+      const upPull = (dym/len) * f * fade;
+      this.ball.body.acceleration.y += Math.max(0, upPull);
     }
     // JELLY GRAVITY — oscillating world gravity
     if (cfg.jellyGrav){
