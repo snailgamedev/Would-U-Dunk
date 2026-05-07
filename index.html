@@ -3036,6 +3036,8 @@ const MUSIC = (() => {
     funk:        { bpm:108, scale:'mixo',    root:55, prog:[0,5,3,5,0,3,5,3], drums:'driving',  mel:'pulse',   chord:'dom7',    pad:true, arp:true,  swing:0.18, counter:true,  shake:true,  crash:true  }, // funky funk
     trapbeat:    { bpm:140, scale:'minor',   root:50, prog:[0,3,5,3,0,5,3,0], drums:'driving',  mel:'pulse',   chord:'min7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:true,  crash:true  }, // trap
     organ:       { bpm:80,  scale:'gospel',  root:60, prog:[0,3,5,4,0,5,3,4], drums:'worship',  mel:'choir',   chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:true,  shake:false, crash:false }, // sunday morning organ
+    // 🆕 v2.25.0 — SLEEP MODE: ultra-slow chord pad + harp arps, NO drums
+    sleep:       { bpm:38,  scale:'major',   root:55, prog:[0,3,5,7,0,5,3,7], drums:'none',     mel:'pad',     chord:'maj7',    pad:true, arp:true,  swing:0.0,  counter:false, shake:false, crash:false },
   };
   function getCtx(){
     if (!Settings.music) return null;
