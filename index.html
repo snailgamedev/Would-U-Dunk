@@ -5522,19 +5522,55 @@ class MatchScene extends Phaser.Scene {
     }
     SFX.crowdRoar && SFX.crowdRoar();
     SFX.chime && SFX.chime();
-    // 🆕 v2.20.0 — halftime music (CHURCH CHOIR act = praise track, all others = halftime track)
+    // 🆕 v2.23.0 — HALFTIME EXTENDED to 15s with SKIP button + intermission music
+    const HALFTIME_MS = 15000;
+    let _halfPrev = null;
     if (typeof MUSIC !== 'undefined'){
       try {
-        const _prev = MUSIC.current();
+        _halfPrev = MUSIC.current();
         const isChoir = (act.label || '').includes('CHURCH CHOIR');
-        MUSIC.start(isChoir ? 'praise' : 'halftime');
-        // resume gameplay music after the show ends
-        setTimeout(() => { try { MUSIC.start(_prev || 'gameplay'); } catch(e){} }, 2400);
+        MUSIC.start(isChoir ? 'praise' : 'intermission');
       } catch(e){}
     }
-    this.time.delayedCall(2200, () => {
+    // 🆕 v2.23.0 — SKIP button (DOM overlay; visible above Phaser canvas)
+    let halfSkip = document.getElementById('halftimeSkipBtn');
+    let halfCount = document.getElementById('halftimeCountdown');
+    if (!halfSkip){
+      halfSkip = document.createElement('button');
+      halfSkip.id = 'halftimeSkipBtn';
+      halfSkip.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#ff8a3c,#ff3b3b);color:#fff;border:2px solid #ffd76e;padding:10px 20px;font-family:monospace;font-size:14px;font-weight:900;letter-spacing:3px;border-radius:10px;cursor:pointer;box-shadow:0 4px 0 #000,0 0 20px #ff3b3b88;text-transform:uppercase';
+      document.body.appendChild(halfSkip);
+    }
+    if (!halfCount){
+      halfCount = document.createElement('div');
+      halfCount.id = 'halftimeCountdown';
+      halfCount.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:9999;background:#000c;color:#ffd76e;border:2px solid #ffd76e;padding:10px 16px;font-family:monospace;font-size:14px;font-weight:900;letter-spacing:2px;border-radius:10px';
+      document.body.appendChild(halfCount);
+    }
+    halfSkip.style.display = 'block';
+    halfCount.style.display = 'block';
+    const startedAt = Date.now();
+    let halfDone = false;
+    const finish = () => {
+      if (halfDone) return; halfDone = true;
       this.tweens.add({ targets: [dim, icon, label], alpha: 0, duration: 250, onComplete: () => { dim.destroy(); icon.destroy(); label.destroy(); }});
-    });
+      if (halfSkip) halfSkip.style.display = 'none';
+      if (halfCount) halfCount.style.display = 'none';
+      clearInterval(tickId);
+      if (typeof MUSIC !== 'undefined' && _halfPrev){
+        try { MUSIC.start(_halfPrev); } catch(e){}
+      }
+    };
+    const tick = () => {
+      const left = Math.max(0, HALFTIME_MS - (Date.now() - startedAt));
+      const s = Math.ceil(left / 1000);
+      halfSkip.textContent = `⏭ SKIP (${s}s)`;
+      halfCount.textContent = `⏱ HALFTIME · ${s}s`;
+      if (left <= 0) finish();
+    };
+    tick();
+    const tickId = setInterval(tick, 200);
+    halfSkip.onclick = finish;
   }
   // 🆕 v2.13.4 — quick slow-mo highlight on big shots WITHOUT ending the round
   bigShotHighlight(label){
