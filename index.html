@@ -6512,7 +6512,20 @@ function renderSettingsScreen(){
         <span class="sd" style="font-size:9px">PRAISE = worship-flavored chord palette · AUTO = matches the moment</span>
       </label>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-        ${['menu','gameplay','halftime','victory','praise','tense','finals'].map(t => `<button class="btn" data-music-test="${t}" style="font-size:10px;padding:6px 8px;width:auto;letter-spacing:1px;background:#0008;border:1px solid #ffd76e44">▶ ${t.toUpperCase()}</button>`).join('')}
+        ${['menu','gameplay','halftime','victory','praise','tense','finals','shop','tournament','franchise','hof','chronicle','gospel','daily','rules','profile','leaderboard','howto','about','updates','modeselect','charselect','online','horse','practice','radio'].map(t => `<button class="btn" data-music-test="${t}" style="font-size:10px;padding:6px 8px;width:auto;letter-spacing:1px;background:#0008;border:1px solid #ffd76e44">▶ ${t.toUpperCase()}</button>`).join('')}
+      </div>
+      <div style="margin-top:10px;padding:8px;background:#0006;border-radius:6px;border:1px solid #ffd76e22">
+        <div style="color:var(--gold);font-size:9px;letter-spacing:2px;font-weight:900;margin-bottom:6px">🎼 CUSTOM SCALE DESIGNER · v2.21.0</div>
+        <div style="font-size:9px;color:#aaa;margin-bottom:6px">Toggle 7 notes (semitones from root). Engine uses your custom set when "CUSTOM" track is picked.</div>
+        <div id="scaleNotes" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+        <div style="margin-top:6px;display:flex;gap:6px">
+          <button class="btn" id="btnCustomScale" style="font-size:10px;padding:5px 8px;width:auto">▶ TEST CUSTOM</button>
+          <button class="btn" id="btnResetScale" style="font-size:10px;padding:5px 8px;width:auto">↺ RESET</button>
+        </div>
+      </div>
+      <div style="margin-top:6px;padding:8px;background:#0006;border-radius:6px;border:1px solid #ffd76e22">
+        <div style="color:var(--gold);font-size:9px;letter-spacing:2px;font-weight:900;margin-bottom:4px">🪗 PRAISE RADIO</div>
+        <button class="btn hot" id="btnRadioFromSettings" style="font-size:11px;padding:6px;width:100%;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#1a0e02;font-weight:900">▶ PLAY 12s INTERLUDE</button>
       </div>
     `)}
     ${section('🎬 DISPLAY', `
