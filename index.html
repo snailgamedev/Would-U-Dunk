@@ -7040,6 +7040,7 @@ function renderFranchiseScreen(){
 // 🆕 v2.11.1 — HALL OF FAME screen
 function renderHallOfFameScreen(){
   musicForScreen('hof'); // 🆕 v2.21.0
+  if (typeof MUSIC !== 'undefined') MUSIC.stinger('chosen');
   const hof = loadHof();
   if (!hof.length){
     openModal('🏛 HALL OF FAME', `<div style="text-align:center;color:#aab;font-style:italic;padding:30px">No retired franchises yet. Build a legacy in 🏆 FRANCHISE — retire teams to immortalize them here.</div>`);
