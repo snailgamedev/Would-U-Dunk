@@ -7933,6 +7933,22 @@ function showSplash(){
   // 🆕 v2.19.2 — GOSPEL button
   const btnGospel = document.getElementById('btnGospel');
   if (btnGospel) btnGospel.onclick = renderGospelScreen;
+  // 🆕 v2.21.0 — PRAISE RADIO button
+  const btnPraise = document.getElementById('btnPraiseRadio');
+  if (btnPraise) btnPraise.onclick = () => {
+    if (typeof MUSIC !== 'undefined'){
+      MUSIC.radioInterlude(12000);
+      const verses = [
+        '"Sing to the LORD a new song" — Psalm 96:1',
+        '"Let everything that has breath praise the LORD" — Psalm 150:6',
+        '"Make a joyful noise unto the LORD" — Psalm 100:1',
+        '"My heart is steadfast, O God; I will sing and make music" — Psalm 57:7',
+        '"Praise Him with the sound of the trumpet" — Psalm 150:3',
+      ];
+      const v = verses[(Math.random()*verses.length)|0];
+      if (typeof showToast === 'function') showToast(`🪗 PRAISE RADIO · 12s · ${v}`, 'level');
+    }
+  };
   // 🆕 v2.14.0 — centralized achievement audit
   if (typeof auditRecentAchievements === 'function') auditRecentAchievements();
   // 🆕 v2.16.0 — DEVICE MODE picker (first visit) + body class application
