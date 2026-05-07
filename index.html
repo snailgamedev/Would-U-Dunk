@@ -4888,6 +4888,16 @@ class MatchScene extends Phaser.Scene {
     }
     SFX.crowdRoar && SFX.crowdRoar();
     SFX.chime && SFX.chime();
+    // 🆕 v2.20.0 — halftime music (CHURCH CHOIR act = praise track, all others = halftime track)
+    if (typeof MUSIC !== 'undefined'){
+      try {
+        const _prev = MUSIC.current();
+        const isChoir = (act.label || '').includes('CHURCH CHOIR');
+        MUSIC.start(isChoir ? 'praise' : 'halftime');
+        // resume gameplay music after the show ends
+        setTimeout(() => { try { MUSIC.start(_prev || 'gameplay'); } catch(e){} }, 2400);
+      } catch(e){}
+    }
     this.time.delayedCall(2200, () => {
       this.tweens.add({ targets: [dim, icon, label], alpha: 0, duration: 250, onComplete: () => { dim.destroy(); icon.destroy(); label.destroy(); }});
     });
