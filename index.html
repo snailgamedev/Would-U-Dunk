@@ -7254,6 +7254,7 @@ function renderGospelScreen(){
 function loadCustomRules(){ try { return JSON.parse(localStorage.getItem(`wud:rules:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
 function saveCustomRules(arr){ try { localStorage.setItem(`wud:rules:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
 function renderCustomRuleEditor(){
+  musicForScreen('rules'); // 🆕 v2.21.0
   const saved = loadCustomRules();
   const savedRows = saved.map((r, i) => `<div data-rule-idx="${i}" style="background:#0008;border:1px solid #ffd76e44;border-radius:8px;padding:8px 10px;margin:4px 0;display:flex;align-items:center;gap:8px;cursor:pointer">
     <div style="font-size:22px">⚔️</div>
