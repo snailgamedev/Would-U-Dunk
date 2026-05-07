@@ -8121,6 +8121,7 @@ function startSurpriseMatch(){
   }, 1400);
 }
 function showModeSelect(){
+  musicForScreen('modeselect'); // 🆕 v2.21.0
   const lv = levelFromXp(Career.xp);
   const allPro = lv.level >= 50;
   // Format is fixed at 5×5. Chaos modifiers + CPU tier still roll per round.
