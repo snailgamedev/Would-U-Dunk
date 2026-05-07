@@ -4508,6 +4508,7 @@ class MatchScene extends Phaser.Scene {
         unlockAchievement('buzzer_beater_v2');   // 🆕 v2.14.0
       }
       SFX.crowdAhh && SFX.crowdAhh();
+      if (typeof MUSIC !== 'undefined') MUSIC.stinger('buzzer'); // 🆕 v2.20.0
     }
     // 🆕 v2.13.4 — BIG SHOT highlight (3+ pts triggers a slow-mo film-bar replay frame)
     if (points >= 3) this.bigShotHighlight(zoneLabel || '+' + points);
