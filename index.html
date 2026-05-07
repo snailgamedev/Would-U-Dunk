@@ -6153,6 +6153,20 @@ function refreshHUD(){
   if (mode.random) mode = State._activeMode || mode;
   const isTarget = !!mode.target;
   const isMulti  = !!(mode.target && mode.rounds);
+  // 🆕 v2.20.0 — MOOD-REACTIVE music intensity (close game = boost, blowout = cool)
+  if (typeof MUSIC !== 'undefined' && Settings.moodReactive){
+    try {
+      const a = State.matchPoints?.[0] || 0;
+      const b = State.matchPoints?.[1] || 0;
+      const total = a + b;
+      const margin = Math.abs(a - b);
+      let mood = 1.0;
+      if (total >= 6 && margin <= 2) mood = 1.35;            // close game = lean in
+      else if (margin >= 14) mood = 0.75;                    // blowout = relax
+      else if (total >= 4) mood = 1.10;                      // mid-game = warm
+      MUSIC.setIntensity(mood);
+    } catch(e){}
+  }
   document.getElementById('round').textContent = isMulti
     ? `RD ${State.roundIdx+1}/${mode.rounds} · TO ${mode.target} · WINS ${State.wins[0]}-${State.wins[1]}`
     : isTarget
