@@ -2946,6 +2946,8 @@ const SFX = (() => {
 const MUSIC = (() => {
   let mctx = null, mGain = null, sGain = null, padGain = null;
   let _masterLP = null, _pumpGain = null;   // 🆕 v2.24.0 comfort + side-chain pump
+  let _convolver = null, _wetGain = null;   // 🆕 v2.25.0 headphone reverb send
+  let _padPanL = null, _padPanR = null;     // 🆕 v2.25.0 binaural pad split
   let mActive = false;
   let trackName = null;
   let tickHandle = null;
