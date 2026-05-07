@@ -3228,10 +3228,18 @@ const MUSIC = (() => {
   }
   // Genre→melody-wave map (user-toggleable in settings)
   const GENRE_WAVES = { synthwave:'square', chiptune:'square', hiphop:'sawtooth', orchestral:'triangle', lofi:'sine', praise:'triangle', auto:null };
+  // 🆕 v2.24.0 — COMFORT mode forces gentle waveforms (no harsh saw/square anywhere)
+  // Square + sawtooth have lots of high-frequency partials that cause eye-strain & headaches.
+  // Triangle has 1/n² rolloff, sine has only the fundamental — both are velvet on the ear.
   function melodyWave(){
+    if (Settings.musicComfort !== false){
+      const t = TRACKS[trackName];
+      if (!t) return 'triangle';
+      // Comfort: only triangle + sine. Sparkle/fanfare/epic still cut through with triangle.
+      return (t.mel === 'pad' || t.mel === 'choir') ? 'sine' : 'triangle';
+    }
     const g = Settings.musicGenre || 'auto';
     if (g === 'auto'){
-      // auto = match-track-appropriate
       const t = TRACKS[trackName];
       if (!t) return 'triangle';
       return ({sparkle:'triangle', pulse:'square', pad:'sine', fanfare:'square', choir:'triangle', tense:'sawtooth', epic:'square'})[t.mel] || 'triangle';
@@ -3239,6 +3247,7 @@ const MUSIC = (() => {
     return GENRE_WAVES[g] || 'triangle';
   }
   function bassWave(){
+    if (Settings.musicComfort !== false) return 'sine';   // round, warm sub-bass
     const g = Settings.musicGenre || 'auto';
     if (g === 'lofi') return 'sine';
     if (g === 'orchestral' || g === 'praise') return 'triangle';
