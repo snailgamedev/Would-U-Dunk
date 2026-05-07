@@ -3284,7 +3284,7 @@ const MUSIC = (() => {
     mActive = true;
     const c = getCtx(); if (!c) return;
     nextNoteTime = c.currentTime + 0.05;
-    step = 0;
+    step = 0; bar = 0; lastChordPlayedAtBar = -1;
     scheduleStep();
   }
   function stop(){
