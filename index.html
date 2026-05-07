@@ -7530,6 +7530,45 @@ function renderSettingsScreen(){
       if (typeof MUSIC !== 'undefined') MUSIC.start(b.dataset.musicTest);
     };
   });
+  // 🆕 v2.25.0 — LOWPASS slider live-binds to MUSIC.setLowpassHz
+  const lpSlider = document.getElementById('lpHzSlider');
+  const lpVal = document.getElementById('lpHzVal');
+  if (lpSlider && lpVal){
+    lpSlider.oninput = () => {
+      const hz = parseInt(lpSlider.value, 10);
+      lpVal.textContent = hz + ' Hz';
+      if (typeof MUSIC !== 'undefined' && MUSIC.setLowpassHz) MUSIC.setLowpassHz(hz);
+    };
+  }
+  // 🆕 v2.25.0 — A/B taste test: 5-second toggle of comfort mode for live comparison
+  const abBtn = document.getElementById('abComfortBtn');
+  const abReadout = document.getElementById('abReadout');
+  if (abBtn){
+    abBtn.onclick = () => {
+      if (typeof MUSIC === 'undefined') return;
+      const original = !!Settings.musicComfort;
+      const flipped = !original;
+      MUSIC.setComfort(flipped);
+      abReadout.textContent = `🎧 Now playing ${flipped ? 'COMFORT ON' : 'COMFORT OFF'} for 5 seconds…`;
+      abBtn.disabled = true;
+      setTimeout(() => {
+        MUSIC.setComfort(original);
+        abReadout.textContent = `↩ Restored to ${original ? 'COMFORT ON' : 'COMFORT OFF'}`;
+        abBtn.disabled = false;
+      }, 5000);
+    };
+  }
+  // 🆕 v2.25.0 — wire new music toggles into MUSIC API + sibling effects
+  const wireToggle = (key, fn) => {
+    const cb = document.querySelector(`[data-set="${key}"]`);
+    if (cb) cb.addEventListener('change', () => fn(cb.checked));
+  };
+  if (typeof MUSIC !== 'undefined'){
+    wireToggle('musicHeadphone', v => MUSIC.setHeadphone && MUSIC.setHeadphone(v));
+    wireToggle('musicSleep',     v => { MUSIC.setSleep && MUSIC.setSleep(v); if (v && MUSIC.start) MUSIC.start('sleep'); });
+    wireToggle('musicBinaural',  v => MUSIC.setBinaural && MUSIC.setBinaural(v));
+  }
+  wireToggle('screenDim', () => applyScreenDim());
   // 🆕 v2.21.0 — Custom scale designer
   const scaleNotesEl = document.getElementById('scaleNotes');
   if (scaleNotesEl){
