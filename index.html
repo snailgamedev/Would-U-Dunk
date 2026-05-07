@@ -9270,7 +9270,50 @@ function showReveal(rolls){
   }
   document.getElementById('revealCpu').innerHTML = npcLine + loadoutLine;
   r.classList.add('on');
-  return new Promise(res => setTimeout(() => { r.classList.remove('on'); res(); }, 3000));
+  // 🆕 v2.23.0 — switch to the chaos reveal track for the 15s window
+  if (typeof MUSIC !== 'undefined'){
+    try { MUSIC.start(rolls.superChaos ? 'superchaos' : 'revealchaos'); } catch(e){}
+  }
+  return new Promise(res => {
+    const DURATION_MS = 15000;
+    const startedAt = Date.now();
+    let resolved = false;
+    let skipBtn = document.getElementById('revealSkipBtn');
+    let countEl = document.getElementById('revealCountdown');
+    if (!skipBtn){
+      skipBtn = document.createElement('button');
+      skipBtn.id = 'revealSkipBtn';
+      skipBtn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#ff8a3c,#ff3b3b);color:#fff;border:2px solid #ffd76e;padding:10px 20px;font-family:monospace;font-size:14px;font-weight:900;letter-spacing:3px;border-radius:10px;cursor:pointer;box-shadow:0 4px 0 #000,0 0 20px #ff3b3b88;text-transform:uppercase';
+      document.body.appendChild(skipBtn);
+    }
+    if (!countEl){
+      countEl = document.createElement('div');
+      countEl.id = 'revealCountdown';
+      countEl.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:9999;background:#000c;color:#ffd76e;border:2px solid #ffd76e;padding:10px 16px;font-family:monospace;font-size:14px;font-weight:900;letter-spacing:2px;border-radius:10px';
+      document.body.appendChild(countEl);
+    }
+    skipBtn.style.display = 'block';
+    countEl.style.display = 'block';
+    const cleanup = () => {
+      if (resolved) return;
+      resolved = true;
+      r.classList.remove('on');
+      if (skipBtn) skipBtn.style.display = 'none';
+      if (countEl) countEl.style.display = 'none';
+      clearInterval(tickId);
+      res();
+    };
+    const updateLabel = () => {
+      const left = Math.max(0, DURATION_MS - (Date.now() - startedAt));
+      const s = Math.ceil(left / 1000);
+      skipBtn.textContent = `⏭ SKIP (${s}s)`;
+      countEl.textContent = `⏱ INTERMISSION · ${s}s`;
+      if (left <= 0) cleanup();
+    };
+    updateLabel();
+    const tickId = setInterval(updateLabel, 200);
+    skipBtn.onclick = cleanup;
+  });
 }
 
 /* ------------------- MATCH FLOW ------------------- */
