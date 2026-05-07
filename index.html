@@ -7348,11 +7348,30 @@ function renderSettingsScreen(){
       ${toggle('crowdRoar',     '👏 CROWD NOISE',        'oohs/ahhs/buzzer · v2.8.2')}
       ${toggle('sneakerSqueak', '👟 SNEAKER SQUEAK',     'audio chirp on direction change')}
     `)}
-    ${section('🎶 MUSIC · v2.24.0 THE CONCERT HALL · VIBE MODE', `
+    ${section('🎶 MUSIC · v2.25.0 VIBE LAB', `
       ${toggle('music',         '🎵 MUSIC ENGINE',       'procedural background music · "Sing a new song" Ps 96:1')}
       ${toggle('musicComfort',  '😌 COMFORT VIBE',       'soothes piercing highs · prevents headache/eye-strain · keeps the BOP')}
+      ${toggle('musicHeadphone','🎧 HEADPHONE MODE',     'wider stereo + reverb tail — best with cans')}
+      ${toggle('musicSleep',    '🛏 SLEEP MODE',         'no drums · slow chord pads · for chillin / studyin / sleepin')}
+      ${toggle('musicBinaural', '🧘 BINAURAL DETUNE',    '~6 Hz L/R pad split · gentle relaxation effect')}
+      ${toggle('screenDim',     '💡 SCREEN DIM',         'darkens the screen 18% — paired w/ comfort for tired eyes')}
+      ${toggle('autoNightMode', '🌙 AUTO NIGHT MODE',    'after 9pm local · auto-engage comfort + dim')}
+      ${toggle('siblingShuffle','🔁 TRACK SHUFFLE',      '10% chance to pick a sibling track on screen re-entry · keeps it fresh')}
       ${toggle('stingers',      '🎺 DRAMA STINGERS',     'one-shot chord stabs on dunks/threes/buzzers')}
       ${toggle('moodReactive',  '🌡️ MOOD-REACTIVE',     'music swells in clutch · cools in blowouts')}
+      <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="sk">🔊 LOWPASS CUTOFF</span>
+          <span id="lpHzVal" style="color:var(--gold);font-weight:900;font-size:14px">${Math.round((Settings.musicLowpassHz != null ? Settings.musicLowpassHz : 6500))} Hz</span>
+        </div>
+        <input type="range" min="3000" max="12000" step="250" value="${Math.round((Settings.musicLowpassHz != null ? Settings.musicLowpassHz : 6500))}" id="lpHzSlider" style="accent-color:#ffd76e">
+        <span class="sd" style="font-size:9px">lower = warmer / softer · higher = brighter / sharper · only active when COMFORT VIBE is on</span>
+      </label>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="abComfortBtn" style="flex:1;font-size:11px;padding:8px;background:linear-gradient(135deg,#9b59b6,#ff8a3c);border-color:#ffd76e;letter-spacing:1px">📏 A/B 5-SEC TASTE TEST</button>
+      </div>
+      <div id="abReadout" style="font-size:9px;color:#aaa;margin-top:4px;letter-spacing:1px;min-height:14px"></div>
+
       <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span class="sk">🎚 MUSIC VOLUME</span>
