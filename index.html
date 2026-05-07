@@ -7865,6 +7865,38 @@ function setupTouch(){
 const menuEl = document.getElementById('menu');
 const splashHTML = document.getElementById('splash').outerHTML;
 
+// 🆕 v2.21.0 — VISUALIZER bars behind splash, BPM-synced via setInterval
+function startSplashVisualizer(){
+  // remove any prior bars
+  const old = document.getElementById('splashViz');
+  if (old) old.remove();
+  if (!Settings.music) return;
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  const viz = document.createElement('div');
+  viz.id = 'splashViz';
+  viz.style.cssText = 'position:absolute;left:0;right:0;bottom:0;height:60px;display:flex;gap:3px;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0.45;z-index:0;padding:0 10px';
+  const N = 24;
+  for (let i = 0; i < N; i++){
+    const b = document.createElement('div');
+    b.style.cssText = `flex:1;max-width:14px;height:6px;background:linear-gradient(180deg,#ffd76e,#ff8a3c);border-radius:3px 3px 0 0;transition:height 80ms ease-out`;
+    viz.appendChild(b);
+  }
+  splash.style.position = 'relative';
+  splash.appendChild(viz);
+  if (window._wudVizTimer) clearInterval(window._wudVizTimer);
+  window._wudVizTimer = setInterval(() => {
+    if (!document.body.contains(viz)){ clearInterval(window._wudVizTimer); return; }
+    if (!Settings.music){ viz.style.opacity = '0'; return; }
+    viz.style.opacity = '0.45';
+    const bars = viz.children;
+    for (let i = 0; i < bars.length; i++){
+      const phase = (Date.now() / 200) + i * 0.4;
+      const h = 6 + Math.abs(Math.sin(phase)) * 50 + Math.random() * 8;
+      bars[i].style.height = `${h}px`;
+    }
+  }, 90);
+}
 function renderSplashLvlBar(){
   const lv = levelFromXp(Career.xp);
   const pct = Math.round((lv.into / lv.span) * 100);
