@@ -1558,6 +1558,7 @@ function unlockAchievement(id){
   saveCareer();
   awardXp(50);
   SFX.achievement();
+  if (typeof MUSIC !== 'undefined') MUSIC.stinger('chosen'); // 🆕 v2.20.0
   showToast(`${ACH_BY_ID[id].icon} ${ACH_BY_ID[id].name}`, 'ach');
   return true;
 }
