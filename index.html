@@ -7757,6 +7757,7 @@ function renderShareGameScreen(){
 }
 
 function renderAboutScreen(){
+  musicForScreen('about'); // 🆕 v2.21.0
   const got = Object.keys(Career.achievements||{}).length;
   const html = `
     <div style="text-align:center">
