@@ -6134,6 +6134,8 @@ class MatchScene extends Phaser.Scene {
     const moves = document.getElementById('moves'); if (moves) moves.classList.remove('on');
     const gear = document.getElementById('gameSettings'); if (gear) gear.classList.remove('on');
     if (typeof closeModal === 'function') closeModal();
+    // 🆕 v2.20.0 — return to menu music when leaving a match
+    if (typeof MUSIC !== 'undefined'){ try { MUSIC.setIntensity(0.85); MUSIC.start('menu'); } catch(e){} }
     this.scene.stop();
     showSplash();
     // confirm to user that match really ended
