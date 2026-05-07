@@ -3121,13 +3121,24 @@ const MUSIC = (() => {
     g.gain.exponentialRampToValueAtTime(0.001, t0+0.2);
     o.connect(g); g.connect(mGain || c.destination);
     o.start(t0); o.stop(t0+0.22);
-    // CLICK transient — triangle blip at the attack
+    // CLICK transient — quieter and softer in comfort mode
     const o2 = c.createOscillator(); const g2 = c.createGain();
-    o2.type='triangle'; o2.frequency.value = 1100;
-    g2.gain.setValueAtTime(0.10 * intensity, t0);
+    o2.type='triangle'; o2.frequency.value = (Settings.musicComfort !== false) ? 720 : 1100;
+    const clickVol = (Settings.musicComfort !== false) ? 0.06 : 0.10;
+    g2.gain.setValueAtTime(clickVol * intensity, t0);
     g2.gain.exponentialRampToValueAtTime(0.001, t0+0.018);
     o2.connect(g2); g2.connect(mGain || c.destination);
     o2.start(t0); o2.stop(t0+0.025);
+    // 🆕 v2.24.0 — SIDE-CHAIN PUMP: pad bus dips to 0.62 on the kick, swings back to 1.0
+    // over ~140 ms. That's the universal "head-nod" feel.
+    if (_pumpGain){
+      try {
+        _pumpGain.gain.cancelScheduledValues(t0);
+        _pumpGain.gain.setValueAtTime(1.0, t0);
+        _pumpGain.gain.linearRampToValueAtTime(0.62, t0 + 0.012);
+        _pumpGain.gain.linearRampToValueAtTime(1.0,  t0 + 0.16);
+      } catch(e){}
+    }
   }
   function snare(when, vol){
     const c = mctx; if (!c) return;
