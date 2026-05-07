@@ -3062,13 +3062,15 @@ const MUSIC = (() => {
   function getComfort(){ return Settings.musicComfort !== false; }
   const midiToFreq = m => 440 * Math.pow(2, (m-69)/12);
   // 🆕 v2.23.0 — note() now supports vibrato (vib=true) and reverb tail (rev=true)
+  // 🆕 v2.24.0 — comfort mode adds +12 ms attack ramp (no clicky transients = no headache spikes)
   function note(freq, dur, type, vol, when, attack=0.008, opts){
     const c = mctx; if (!c) return;
     const t0 = c.currentTime + when;
     const o = c.createOscillator(); const g = c.createGain();
     o.type = type; o.frequency.value = freq;
+    const softAttack = (Settings.musicComfort !== false) ? attack + 0.012 : attack;
     g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(vol * intensity, t0 + attack);
+    g.gain.linearRampToValueAtTime(vol * intensity, t0 + softAttack);
     g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
     o.connect(g); g.connect(mGain || c.destination);
     o.start(t0); o.stop(t0 + dur + 0.05);
