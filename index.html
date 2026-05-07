@@ -8573,6 +8573,24 @@ async function startRound(){
 }
 
 function showEndCard(){
+  // 🆕 v2.20.0 — MUSIC: pick victory/loss/halftime track based on result
+  if (typeof MUSIC !== 'undefined'){
+    try {
+      const myPts = State.matchPoints?.[0] || 0;
+      const oppPts = State.matchPoints?.[1] || 0;
+      const _mode = MODE_BY_ID[State.modeId] || MODE_BY_ID['5x5'];
+      const _rounds = _mode.rounds || 1;
+      const _winsToTake = Math.ceil(_rounds/2);
+      const _matchDone = (!!_mode.target && _mode.target && State._targetWinner != null) ||
+                         (State.wins[0] >= _winsToTake || State.wins[1] >= _winsToTake || State.roundIdx >= _rounds);
+      if (_matchDone){
+        if (myPts > oppPts){ MUSIC.stinger('victory'); MUSIC.start('victory'); }
+        else { MUSIC.stinger('loss'); MUSIC.start('halftime'); }
+      } else {
+        MUSIC.start('halftime');
+      }
+    } catch(e){}
+  }
   let mode = MODE_BY_ID[State.modeId] || MODE_BY_ID['5x5'];
   if (mode.random) mode = State._activeMode || mode;
   const isTarget = !!mode.target;
