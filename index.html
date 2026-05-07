@@ -2198,8 +2198,22 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v2.22.0';
+const VERSION = 'v2.23.0';
 const CHANGELOG = [
+  { v:'v2.23.0', notes:[
+      '🪲 CEILING-STICK FIX — ball can no longer get stuck floating up at the sky. New stuck-detector (1.5s of slow vertical motion above 700px = force gravity reset + downward kick). Hard cap clamps Y near SKY_CEILING+60.',
+      '🧲 MAGNET FADE — magnet pull now weakens when ball is high above the rim, never pulls UP — prevents the magnet from yanking the ball into the rafters.',
+      '🎶 THE CONCERT HALL — music engine v2: chord pads (lowpass-filtered triad/7th sustain), arpeggios, vibrato melodies, octave-up counter-melody, claps, toms, shaker, crash cymbals, drum fills every 4 bars.',
+      '🎼 SONG STRUCTURE — every track now cycles intro→verse→chorus→bridge across 8 bars. Bridges drop quiet, choruses bring the counter-melody + crash. No more loop-fatigue.',
+      '🎷 SWING + 4 NEW SCALES — lydian · mixolydian · phrygian · harmonic minor. Swing groove on funk/lofi/horse/charselect for that lopsided pocket.',
+      '🎵 14 NEW TRACKS — superchaos · clutch · overtime · pause · loss · unlock · intermission · revealchaos · streetball · arena · boss · lofi · funk · trapbeat · organ · lydian-pop daily · mixo arena.',
+      '✨ 5 NEW STINGERS — airball · fadeaway · posterize · halftime · overtime. Each stinger still picks 1 of 5 transposed voicings.',
+      '⏱ INTERMISSIONS 3s → 15s — chaos reveal AND halftime show now sit for 15 seconds with full music + chord pads playing through.',
+      '⏭ SKIP BUTTON — every intermission has a gold ⏭ SKIP button bottom-right and ⏱ countdown bottom-left. Tap to bail anytime.',
+      '🧹 ANTI-CLUTTER PASS — HUD streak labels collapsed to "🔥 X" instead of "P1 STREAK X" + bar; chaos segments hidden when mods row is filled (info dedup); mods row capped at 6 visible with "+N" overflow; tighter spacing + non-overlap on score/round/cash.',
+      '🪞 NO MORE OVERLAPPING — secondary touch buttons + liveStats z-index reordered, intermission/skip buttons sit on z:9999 above Phaser canvas, halftime+reveal buttons cleaned up on close.',
+      '✝️ "He hath made every thing beautiful in his time" · Ecclesiastes 3:11',
+  ]},
   { v:'v2.22.0', notes:[
       '📖 SCRIPTURE EXPLOSION — 220+ new Bible verses added · total now 243+',
       '📜 OLD TESTAMENT — Genesis · Exodus · Leviticus · Numbers · Deuteronomy · Joshua · Judges · Ruth · Samuel · Kings · Chronicles · Nehemiah · Job · Psalms · Proverbs · Ecclesiastes · Song · Isaiah · Jeremiah · Lamentations · Ezekiel · Daniel · Hosea · Joel · Micah · Habakkuk · Zephaniah · Zechariah · Malachi',
