@@ -7881,8 +7881,20 @@ function showSplash(){
   document.getElementById('splashLvlBar').innerHTML = renderSplashLvlBar();
   // 🆕 v2.20.0 — MUSIC: start menu loop on splash (deferred until first user gesture)
   if (typeof MUSIC !== 'undefined'){
-    try { MUSIC.setIntensity(0.85); MUSIC.start('menu'); } catch(e){}
+    try {
+      MUSIC.setIntensity(0.85);
+      // 🆕 v2.21.0 — INTRO FANFARE on very first launch (per browser session)
+      if (!window._wudFanfareDone){
+        window._wudFanfareDone = true;
+        MUSIC.fanfare();
+        setTimeout(() => { try { MUSIC.start('menu'); } catch(e){} }, 1900);
+      } else {
+        MUSIC.start('menu');
+      }
+    } catch(e){}
   }
+  // 🆕 v2.21.0 — VISUALIZER bars behind splash (CSS-driven, audio-synced via menu BPM)
+  if (typeof startSplashVisualizer === 'function') startSplashVisualizer();
   // Verse of the Day
   const v = verseOfTheDay();
   const splashVerse = document.getElementById('splashVerse');
