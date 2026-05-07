@@ -4364,6 +4364,7 @@ class MatchScene extends Phaser.Scene {
     if (player.idx === 0 && (State.looks[0].height || 1) <= 0.85) checkAchievements({ dunkAtMinHeight:true });
     State._lastBucketWasDunk = (player.idx === 0);
     SFX.shoot(); SFX.crowdRoar(); SFX.whistle();    // dunk whistle for hype
+    if (typeof MUSIC !== 'undefined') MUSIC.stinger('dunk'); // 🆕 v2.20.0 dunk stab
     this._crowdHypeUntil = this.time.now + 1800;     // big crowd wave
     this.popCrowdCheer(target.x);
     const ball = this.ball;
