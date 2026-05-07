@@ -7177,6 +7177,7 @@ function renderTutorialFlow(step){
    🆕 v2.19.2 — THE GOOD NEWS — Gospel section, the most important screen in the game
 ================================================================================================ */
 function renderGospelScreen(){
+  musicForScreen('gospel'); // 🆕 v2.21.0 reverent
   const card = (title, body, accent) => `<div style="background:#0008;border:2px solid ${accent || '#ffd76e88'};border-radius:10px;padding:12px 14px;margin:10px 0">
     <div style="color:${accent || '#ffd76e'};font-size:11px;letter-spacing:3px;font-weight:900;margin-bottom:6px">${title}</div>
     <div style="color:#fff;font-size:13px;line-height:1.7">${body}</div>
