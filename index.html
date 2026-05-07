@@ -3556,6 +3556,7 @@ const MUSIC = (() => {
   }
   return { start, stop, setVolume, setStingerVolume, setIntensity, setGenre, getGenre, stinger,
            duck, walkout, fanfare, radioInterlude,
+           setComfort, getComfort,                     // 🆕 v2.24.0
            current: () => trackName, isPlaying: () => mActive,
            tracks: () => Object.keys(TRACKS) };
 })();
