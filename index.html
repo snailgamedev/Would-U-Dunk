@@ -6352,6 +6352,35 @@ function renderSettingsScreen(){
       ${toggle('crowdRoar',     '👏 CROWD NOISE',        'oohs/ahhs/buzzer · v2.8.2')}
       ${toggle('sneakerSqueak', '👟 SNEAKER SQUEAK',     'audio chirp on direction change')}
     `)}
+    ${section('🎶 MUSIC · v2.20.0 THE ORCHESTRA', `
+      ${toggle('music',         '🎵 MUSIC ENGINE',       'procedural background music · "Sing a new song" Ps 96:1')}
+      ${toggle('stingers',      '🎺 DRAMA STINGERS',     'one-shot chord stabs on dunks/threes/buzzers')}
+      ${toggle('moodReactive',  '🌡️ MOOD-REACTIVE',     'music swells in clutch · cools in blowouts')}
+      <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="sk">🎚 MUSIC VOLUME</span>
+          <span id="musicVolPct" style="color:var(--gold);font-weight:900;font-size:14px">${Math.round((Settings.musicVolume != null ? Settings.musicVolume : 0.35) * 100)}%</span>
+        </div>
+        <input type="range" min="0" max="100" value="${Math.round((Settings.musicVolume != null ? Settings.musicVolume : 0.35) * 100)}" id="musicVolSlider" style="accent-color:#ffd76e">
+      </label>
+      <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="sk">🎚 STINGER VOLUME</span>
+          <span id="stingerVolPct" style="color:var(--gold);font-weight:900;font-size:14px">${Math.round((Settings.stingerVolume != null ? Settings.stingerVolume : 0.55) * 100)}%</span>
+        </div>
+        <input type="range" min="0" max="100" value="${Math.round((Settings.stingerVolume != null ? Settings.stingerVolume : 0.55) * 100)}" id="stingerVolSlider" style="accent-color:#ffd76e">
+      </label>
+      <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
+        <span class="sk">🎼 GENRE</span>
+        <select id="musicGenreSel" style="padding:6px 8px;background:#0008;color:#ffd76e;border:1px solid #ffd76e44;border-radius:6px;font-weight:900;letter-spacing:2px">
+          ${['auto','synthwave','chiptune','hiphop','orchestral','lofi','praise'].map(g => `<option value="${g}" ${(Settings.musicGenre||'auto')===g?'selected':''}>${g.toUpperCase()}</option>`).join('')}
+        </select>
+        <span class="sd" style="font-size:9px">PRAISE = worship-flavored chord palette · AUTO = matches the moment</span>
+      </label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        ${['menu','gameplay','halftime','victory','praise','tense','finals'].map(t => `<button class="btn" data-music-test="${t}" style="font-size:10px;padding:6px 8px;width:auto;letter-spacing:1px;background:#0008;border:1px solid #ffd76e44">▶ ${t.toUpperCase()}</button>`).join('')}
+      </div>
+    `)}
     ${section('🎬 DISPLAY', `
       ${toggle('cameraShake',   '📷 CAMERA SHAKE',       'screen shake on dunks/big moments')}
       ${toggle('cometTrail',    '☄️ BALL COMET TRAIL',  'afterimages while ball is in flight')}
