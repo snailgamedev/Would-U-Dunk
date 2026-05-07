@@ -8607,12 +8607,24 @@ function showReveal(rolls){
 
 /* ------------------- MATCH FLOW ------------------- */
 async function startMatch(){
-  // 🆕 v2.20.0 — MUSIC: switch to gameplay/finals/tense based on context
+  // 🆕 v2.21.0 — MUSIC: per-mode track selection
   if (typeof MUSIC !== 'undefined'){
     try {
       const isFinals = State.modeId === 'series' && (State._seriesGameNum || 1) >= 5;
+      const isOnline = State.mode === 'ONLINE';
+      const isHorse = State.modeId === 'horse';
+      const isPractice = State.modeId === 'practice' || State._isPracticeLeague;
+      const isTourney = State._tourneyActive;
+      const isFranch = State._franchiseActive;
+      let track = 'gameplay';
+      if (isFinals) track = 'finals';
+      else if (isTourney) track = 'tournament';
+      else if (isFranch) track = 'franchise';
+      else if (isOnline) track = 'online';
+      else if (isHorse) track = 'horse';
+      else if (isPractice) track = 'practice';
       MUSIC.setIntensity(1.0);
-      MUSIC.start(isFinals ? 'finals' : 'gameplay');
+      MUSIC.start(track);
     } catch(e){}
   }
   // ONLINE — re-sync look in case it changed during char select
