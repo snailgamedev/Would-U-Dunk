@@ -6927,14 +6927,15 @@ function refreshHUD(){
     : isTarget
       ? `FIRST TO ${mode.target} · ${State.matchPoints[0]}-${State.matchPoints[1]}`
       : `ROUND ${State.roundIdx+1} / ${mode.rounds} · WINS ${State.wins[0]}-${State.wins[1]}`;
-  // heat meter
+  // heat meter — 🆕 v2.23.0 declutter: just emoji + count (no "STREAK" word, no synonym noise)
   for (let i=0;i<2;i++){
     const el = document.getElementById('heatP'+(i+1));
     if (!el) continue;
     const s = State.bucketStreak[i] || 0;
     const lvl = s >= 5 ? 3 : s >= 3 ? 2 : s >= 1 ? 1 : 0;
     el.className = 'heat' + (lvl ? ' lvl'+lvl : '');
-    el.querySelector('.label').textContent = `P${i+1} STREAK ${s}` + (lvl===3?' 🔥🔥🔥':lvl===2?' 🔥🔥':lvl===1?' 🔥':'');
+    const flame = lvl===3?'🔥🔥🔥':lvl===2?'🔥🔥':lvl===1?'🔥':'·';
+    el.querySelector('.label').textContent = `P${i+1} ${flame} ${s}`;
     el.querySelector('.f').style.width = Math.min(100, s*20) + '%';
   }
   const modsEl = document.getElementById('mods');
