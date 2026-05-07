@@ -2920,6 +2920,7 @@ const SFX = (() => {
 ============================================================ */
 const MUSIC = (() => {
   let mctx = null, mGain = null, sGain = null, padGain = null;
+  let _masterLP = null, _pumpGain = null;   // 🆕 v2.24.0 comfort + side-chain pump
   let mActive = false;
   let trackName = null;
   let tickHandle = null;
