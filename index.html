@@ -3424,9 +3424,13 @@ const MUSIC = (() => {
         hat(dt, false);
       }
 
+      // 🆕 v2.25.0 — SLEEP MODE: skip ALL percussion globally + halve melody volume
+      const sleepMode = !!Settings.musicSleep || T.drums === 'none';
       // 🆕 v2.23.0 — DRUM FILL on the last beat of every 4th bar (rolling toms)
-      const isFillBar = (bar % 4 === 3) && stepInBar >= 12 && !isBridge;
-      if (isFillBar){
+      const isFillBar = !sleepMode && (bar % 4 === 3) && stepInBar >= 12 && !isBridge;
+      if (sleepMode){
+        // no drums in sleep mode — pure pad + arp
+      } else if (isFillBar){
         const tomNote = 50 + (stepInBar - 12) * 2;
         if (stepInBar % 1 === 0) tom(dt, tomNote, 0.18);
       } else {
