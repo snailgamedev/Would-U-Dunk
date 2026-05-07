@@ -3350,7 +3350,8 @@ const MUSIC = (() => {
       }
       // 🆕 v2.24.0 — GHOST-HAT 16ths in chorus for tracks that don't already have a hat pattern.
       // Adds that quiet "tss-tss-tss" shimmer behind the kick/snare.
-      if (isChorus && stepInBar % 2 === 1 && !isBridge && !isFillBar
+      const _isFillNow = (bar % 4 === 3) && stepInBar >= 12;
+      if (isChorus && stepInBar % 2 === 1 && !isBridge && !_isFillNow
           && (T.drums === 'soft' || T.drums === 'chill' || T.drums === 'worship')){
         hat(dt, false);
       }
