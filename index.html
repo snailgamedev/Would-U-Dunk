@@ -6938,14 +6938,25 @@ function refreshHUD(){
     el.querySelector('.label').textContent = `P${i+1} ${flame} ${s}`;
     el.querySelector('.f').style.width = Math.min(100, s*20) + '%';
   }
+  // 🆕 v2.23.0 — cap visible mods at 6 to prevent HUD overflow; show "+N" overflow pill
   const modsEl = document.getElementById('mods');
   modsEl.innerHTML = '';
-  State.rolls.mods.forEach(({mod,cat}) => {
+  const allMods = State.rolls.mods || [];
+  const VISIBLE = 6;
+  allMods.slice(0, VISIBLE).forEach(({mod,cat}) => {
     const p = document.createElement('span');
     p.className = 'pill' + (State.rolls.superChaos ? ' super' : '');
     p.textContent = mod.name;
     modsEl.appendChild(p);
   });
+  if (allMods.length > VISIBLE){
+    const more = document.createElement('span');
+    more.className = 'pill';
+    more.style.cssText = 'background:#ffd76e22;color:#ffd76e;border-color:#ffd76e';
+    more.textContent = `+${allMods.length - VISIBLE}`;
+    modsEl.appendChild(more);
+  }
+  // chaos segment bar still rendered for parity — but CSS hides it (info dedup)
   const bar = document.getElementById('chaosbar');
   bar.innerHTML = '';
   for (let i=0;i<6;i++){
