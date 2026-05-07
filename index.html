@@ -4202,6 +4202,7 @@ class MatchScene extends Phaser.Scene {
       const d = Phaser.Math.Distance.Between(player.x, player.y, opp.x, opp.y);
       if (d < reach){
         SFX.stealConnect();
+        if (typeof MUSIC !== 'undefined') MUSIC.stinger('steal'); // 🆕 v2.20.0
         this.detachBall();
         const aim = (State.cfg.aimChaos||0);
         const angle = (player.facing>0?0:Math.PI) + (Math.random()-0.5)*aim;
