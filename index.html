@@ -3404,7 +3404,11 @@ const MUSIC = (() => {
     if (sGain) sGain.gain.value = Settings.stingerVolume;
     saveSettings();
   }
-  function setIntensity(v){ intensity = Math.max(0.4, Math.min(2.0, v)); }
+  // 🆕 v2.24.0 — comfort mode caps the ceiling so a clutch moment can't blast the user
+  function setIntensity(v){
+    const max = (Settings.musicComfort !== false) ? 1.15 : 2.0;
+    intensity = Math.max(0.4, Math.min(max, v));
+  }
   function setGenre(g){ Settings.musicGenre = g; saveSettings(); }
   function getGenre(){ return Settings.musicGenre || 'auto'; }
   // STINGERS — one-shot dramatic chord stabs for big moments
