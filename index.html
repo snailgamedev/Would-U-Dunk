@@ -8364,6 +8364,14 @@ function showReveal(rolls){
 
 /* ------------------- MATCH FLOW ------------------- */
 async function startMatch(){
+  // 🆕 v2.20.0 — MUSIC: switch to gameplay/finals/tense based on context
+  if (typeof MUSIC !== 'undefined'){
+    try {
+      const isFinals = State.modeId === 'series' && (State._seriesGameNum || 1) >= 5;
+      MUSIC.setIntensity(1.0);
+      MUSIC.start(isFinals ? 'finals' : 'gameplay');
+    } catch(e){}
+  }
   // ONLINE — re-sync look in case it changed during char select
   if (State.mode === 'ONLINE' && Online.connected){
     Online.send({ type:'hello', from: Online.isHost?'host':'guest', look: State.looks[0] });
