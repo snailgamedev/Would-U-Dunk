@@ -3149,15 +3149,19 @@ const MUSIC = (() => {
     const d = buf.getChannelData(0);
     for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
     const src = c.createBufferSource(); src.buffer = buf;
-    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.9;
-    const g = c.createGain(); g.gain.value = (vol||0.18) * intensity;
+    const bp = c.createBiquadFilter(); bp.type='bandpass';
+    // 🆕 v2.24.0 — gentler bandpass center in comfort mode, lower Q = wider/softer
+    bp.frequency.value = (Settings.musicComfort !== false) ? 1300 : 1800;
+    bp.Q.value = (Settings.musicComfort !== false) ? 0.7 : 0.9;
+    const volMul = (Settings.musicComfort !== false) ? 0.78 : 1.0;
+    const g = c.createGain(); g.gain.value = (vol||0.18) * intensity * volMul;
     src.connect(bp); bp.connect(g); g.connect(mGain || c.destination);
     src.start(t0);
     // body — short tonal thump
     const o = c.createOscillator(); const og = c.createGain();
     o.type='triangle'; o.frequency.setValueAtTime(220, t0);
     o.frequency.exponentialRampToValueAtTime(140, t0+0.08);
-    og.gain.setValueAtTime(0.10 * intensity, t0);
+    og.gain.setValueAtTime(0.10 * intensity * volMul, t0);
     og.gain.exponentialRampToValueAtTime(0.001, t0+0.10);
     o.connect(og); og.connect(mGain || c.destination);
     o.start(t0); o.stop(t0+0.12);
