@@ -3150,21 +3150,32 @@ const MUSIC = (() => {
     }
   }
   // 🆕 v2.23.0 — CHORD PAD: long sustained triad/7th, sits under melody on padGain bus
+  // 🆕 v2.25.0 — BINAURAL: when on, voices alternate L/R panners with ~6 Hz detune offset
   function chordPad(midiRoot, quality, dur, when){
     const c = mctx; if (!c || !padGain) return;
     const intervals = CHORD_QUALITY[quality] || CHORD_QUALITY.major;
     const t0 = c.currentTime + when;
+    const binaural = !!Settings.musicBinaural && _padPanL && _padPanR;
     intervals.forEach((iv, i) => {
       const o = c.createOscillator(); const g = c.createGain();
       o.type = (i % 2 === 0) ? 'triangle' : 'sine';
-      // detuned unison — slight cents offset for thickness
       o.frequency.value = midiToFreq(midiRoot - 12 + iv);
-      o.detune.value = (i - intervals.length/2) * 6;
+      // detune for thickness (and binaural offset if enabled)
+      const baseDetune = (i - intervals.length/2) * 6;
+      const binauralOff = binaural ? ((i % 2 === 0) ? -3 : 3) : 0;  // ~6 cents L/R split (~6 Hz on low pad)
+      o.detune.value = baseDetune + binauralOff;
       g.gain.setValueAtTime(0, t0);
       g.gain.linearRampToValueAtTime(0.06 * intensity, t0 + 0.15);
       g.gain.linearRampToValueAtTime(0.04 * intensity, t0 + dur * 0.5);
       g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
-      o.connect(g); g.connect(padGain);
+      o.connect(g);
+      if (binaural){
+        const pan = (i % 2 === 0) ? _padPanL : _padPanR;
+        pan.connect(padGain);  // ensure connected
+        g.connect(pan);
+      } else {
+        g.connect(padGain);
+      }
       o.start(t0); o.stop(t0 + dur + 0.05);
     });
   }
