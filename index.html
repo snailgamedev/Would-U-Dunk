@@ -3342,6 +3342,18 @@ const MUSIC = (() => {
         // octave double in chorus for thickness
         if (isChorus) note(midiToFreq(bm + 12), 0.18, bassWave(), 0.025, dt, 0.005);
       }
+      // 🆕 v2.24.0 — SYNCOPATED BASS GHOST on the "and" of beat 2 (step 6) in chorus.
+      // That off-beat push is the secret sauce for "this is a BOP".
+      if (isChorus && stepInBar === 6 && !isBridge){
+        const ghostBm = chordRoot - 24 + 5;
+        note(midiToFreq(ghostBm), 0.18, bassWave(), 0.045 * energy, dt, 0.005);
+      }
+      // 🆕 v2.24.0 — GHOST-HAT 16ths in chorus for tracks that don't already have a hat pattern.
+      // Adds that quiet "tss-tss-tss" shimmer behind the kick/snare.
+      if (isChorus && stepInBar % 2 === 1 && !isBridge && !isFillBar
+          && (T.drums === 'soft' || T.drums === 'chill' || T.drums === 'worship')){
+        hat(dt, false);
+      }
 
       // 🆕 v2.23.0 — DRUM FILL on the last beat of every 4th bar (rolling toms)
       const isFillBar = (bar % 4 === 3) && stepInBar >= 12 && !isBridge;
