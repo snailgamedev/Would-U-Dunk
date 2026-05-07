@@ -7274,6 +7274,17 @@ function setupTouch(){
   bind('tR', ()=>touchState.right=true, ()=>touchState.right=false);
   bind('tJ', ()=>{ touchState.jumpQueued=true; });
   bind('tS', ()=>{ const sc=game.scene.getScene('Match'); if(sc) sc.onStealKey(sc.p1); });
+  // 🆕 v2.19.1 — basketball moves + emote + stats on touch
+  bind('tCx', ()=>{ const sc=game.scene.getScene('Match'); if(sc && sc.crossoverMove) sc.crossoverMove(sc.p1); });
+  bind('tSp', ()=>{ const sc=game.scene.getScene('Match'); if(sc && sc.spinMove) sc.spinMove(sc.p1); });
+  bind('tEm', ()=>{
+    const sc=game.scene.getScene('Match'); if(!sc || !sc.popEmote) return;
+    const EMS=['🔥','💀','🙏','😂','👋'];
+    const e=EMS[(Math.random()*EMS.length)|0];
+    sc.popEmote(sc.p1, e);
+    if (typeof Online !== 'undefined' && State.mode === 'ONLINE' && Online.connected) Online.send({type:'emote', emoji:e});
+  });
+  bind('tSt', ()=>{ const el=document.getElementById('liveStats'); if(el) el.style.display = (el.style.display==='none'?'block':'none'); });
 }
 
 /* ------------------- DOM MENUS ------------------- */
