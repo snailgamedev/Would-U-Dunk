@@ -3063,19 +3063,47 @@ const MUSIC = (() => {
       comp.release.value = 0.18;
       mGain.connect(masterLP); masterLP.connect(comp); comp.connect(mctx.destination);
       _masterLP = masterLP;
+      // apply user-set cutoff if available
+      if (typeof Settings.musicLowpassHz === 'number'){
+        _masterLP.frequency.value = Math.max(3000, Math.min(12000, Settings.musicLowpassHz));
+      }
       sGain = mctx.createGain();
       sGain.gain.value = (Settings.stingerVolume != null ? Settings.stingerVolume : 0.45);
       // stingers pass through the same compressor for cohesion
       sGain.connect(comp);
       // 🆕 v2.23.0 — dedicated PAD bus runs through a gentle lowpass so chord pads sit behind melody
       // 🆕 v2.24.0 — pads now feed a "_pumpGain" so the kick can SIDE-CHAIN duck them (the BOP)
+      // 🆕 v2.25.0 — pads also split into L/R panners for binaural detune mode
       padGain = mctx.createGain();
       padGain.gain.value = 0.45;
       _pumpGain = mctx.createGain();
       _pumpGain.gain.value = 1.0;
       const lp = mctx.createBiquadFilter();
       lp.type = 'lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.6;
+      _padPanL = mctx.createStereoPanner ? mctx.createStereoPanner() : null;
+      _padPanR = mctx.createStereoPanner ? mctx.createStereoPanner() : null;
+      if (_padPanL && _padPanR){
+        _padPanL.pan.value = -0.5; _padPanR.pan.value = 0.5;
+      }
       padGain.connect(lp); lp.connect(_pumpGain); _pumpGain.connect(mGain);
+      // 🆕 v2.25.0 — HEADPHONE convolver reverb send (synthesized impulse, no asset needed)
+      try {
+        _convolver = mctx.createConvolver();
+        const ir = mctx.createBuffer(2, mctx.sampleRate * 1.6, mctx.sampleRate);
+        for (let ch = 0; ch < 2; ch++){
+          const d = ir.getChannelData(ch);
+          for (let i = 0; i < d.length; i++){
+            d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.4);
+          }
+        }
+        _convolver.buffer = ir;
+        _wetGain = mctx.createGain();
+        _wetGain.gain.value = Settings.musicHeadphone ? 0.32 : 0.0;
+        _convolver.connect(_wetGain); _wetGain.connect(mGain);
+        // route a slice of the dry signal into the reverb
+        const send = mctx.createGain(); send.gain.value = 0.5;
+        mGain.connect(send); send.connect(_convolver);
+      } catch(e){}
     }
     if (mctx && mctx.state === 'suspended') mctx.resume();
     return mctx;
