@@ -7289,7 +7289,14 @@ function renderSettingsScreen(){
   openModal('⚙ SETTINGS', html);
   // bind toggles
   document.querySelectorAll('[data-set]').forEach(cb => {
-    cb.onchange = () => { Settings[cb.dataset.set] = cb.checked; saveSettings(); };
+    cb.onchange = () => {
+      Settings[cb.dataset.set] = cb.checked;
+      saveSettings();
+      // 🆕 v2.24.0 — comfort toggle re-applies the master lowpass live
+      if (cb.dataset.set === 'musicComfort' && typeof MUSIC !== 'undefined' && MUSIC.setComfort){
+        try { MUSIC.setComfort(cb.checked); } catch(e){}
+      }
+    };
   });
   // 🆕 v2.13.11 — Stadium tier upgrade buttons
   document.querySelectorAll('[data-stadium]').forEach(b => {
