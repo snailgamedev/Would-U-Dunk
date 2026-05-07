@@ -8522,6 +8522,10 @@ function refreshSlot(slot){
 
 /* ------------------- REVEAL ------------------- */
 function showReveal(rolls){
+  // 🆕 v2.21.0 — walk-out riff for the FIRST opponent's archetype
+  if (typeof MUSIC !== 'undefined' && rolls?.cpuTiers?.[0]?._npc?.archetypeBaseId){
+    try { MUSIC.walkout(rolls.cpuTiers[0]._npc.archetypeBaseId); } catch(e){}
+  }
   const r = document.getElementById('reveal');
   document.getElementById('revealTitle').textContent = rolls.superChaos ? 'SUPER CHAOS!!! 💀' : 'CHAOS LOCKED IN';
   document.getElementById('revealSub').textContent =
