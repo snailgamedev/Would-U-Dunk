@@ -4884,6 +4884,7 @@ class MatchScene extends Phaser.Scene {
     if (!Settings.scripturePops) return;
     const v = randomVerse();
     SFX.chime();
+    if (typeof MUSIC !== 'undefined') MUSIC.duck(0.35, 1400); // 🆕 v2.21.0 ducks for scripture
     showScripturePopup(`${v.text} — ${v.ref}`);
   }
 
@@ -4893,6 +4894,7 @@ class MatchScene extends Phaser.Scene {
     if (!el) return;
     el.textContent = text;
     el.classList.add('on');
+    if (typeof MUSIC !== 'undefined') MUSIC.duck(0.55, 900); // 🆕 v2.21.0 ducks for coach lines
     clearTimeout(this._coachT);
     this._coachT = setTimeout(() => el.classList.remove('on'), 1100);
   }
