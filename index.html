@@ -2647,6 +2647,7 @@ const MUSIC = (() => {
     horse:       { bpm:96,  scale:'pentMaj', root:62, prog:[0,3,5,4],      drums:'soft',     mel:'sparkle' }, // playful
     practice:    { bpm:104, scale:'pentMaj', root:60, prog:[0,5,7,4],      drums:'soft',     mel:'pulse' },   // relaxed gym
     radio:       { bpm:68,  scale:'gospel',  root:62, prog:[0,3,4,5],      drums:'worship',  mel:'choir' },   // 12s praise interlude
+    custom:      { bpm:108, scale:'_custom', root:60, prog:[0,3,5,4],      drums:'driving',  mel:'pulse' },   // 🆕 v2.21.0 user-designed scale
   };
   function getCtx(){
     if (!Settings.music) return null;
