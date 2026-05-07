@@ -6641,6 +6641,45 @@ function renderSettingsScreen(){
       if (typeof MUSIC !== 'undefined') MUSIC.start(b.dataset.musicTest);
     };
   });
+  // 🆕 v2.21.0 — Custom scale designer
+  const scaleNotesEl = document.getElementById('scaleNotes');
+  if (scaleNotesEl){
+    const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','C+'];
+    const cur = Settings.customScale || [0,2,4,5,7,9,11,12];
+    const renderScale = () => {
+      scaleNotesEl.innerHTML = '';
+      for (let i = 0; i <= 12; i++){
+        const sel = (Settings.customScale || cur).includes(i);
+        const span = document.createElement('span');
+        span.textContent = NOTE_NAMES[i];
+        span.style.cssText = `display:inline-block;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:900;letter-spacing:1px;background:${sel?'#ffd76e':'#222'};color:${sel?'#1a0e02':'#aaa'};border:1px solid #ffd76e44`;
+        span.onclick = () => {
+          let s = Settings.customScale || cur.slice();
+          if (s.includes(i)) s = s.filter(x => x !== i);
+          else s = [...s, i].sort((a,b)=>a-b);
+          if (s.length < 3) s = [0,4,7]; // safety
+          Settings.customScale = s;
+          saveSettings();
+          renderScale();
+        };
+        scaleNotesEl.appendChild(span);
+      }
+    };
+    renderScale();
+    document.getElementById('btnCustomScale').onclick = () => {
+      if (typeof MUSIC === 'undefined') return;
+      MUSIC.start('custom');
+    };
+    document.getElementById('btnResetScale').onclick = () => {
+      Settings.customScale = [0,2,4,5,7,9,11,12];
+      saveSettings();
+      renderScale();
+    };
+  }
+  const radioBtn = document.getElementById('btnRadioFromSettings');
+  if (radioBtn) radioBtn.onclick = () => {
+    if (typeof MUSIC !== 'undefined') MUSIC.radioInterlude(12000);
+  };
   document.getElementById('btnReset').onclick = () => {
     if (!confirm('Wipe ALL career progress (games, achievements, level, looks)? Cannot be undone.')) return;
     try {
