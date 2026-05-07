@@ -3271,9 +3271,16 @@ const MUSIC = (() => {
       const chordRoot = T.root + T.prog[barIdx];
       bar = Math.floor(step / 16);
       // 🆕 v2.21.0 — custom scale support
-      const scale = (T.scale === '_custom' && Array.isArray(Settings.customScale))
+      // 🆕 v2.24.0 — comfort mode swaps harsh scales (phrygian/harmMin) for gentler ones (minor/dorian)
+      let scaleKey = T.scale;
+      if (Settings.musicComfort !== false){
+        if (scaleKey === 'phrygian') scaleKey = 'minor';
+        else if (scaleKey === 'harmMin') scaleKey = 'dorian';
+        else if (scaleKey === 'blues')   scaleKey = 'pentMin';
+      }
+      const scale = (scaleKey === '_custom' && Array.isArray(Settings.customScale))
         ? Settings.customScale
-        : (SCALES[T.scale] || SCALES.major);
+        : (SCALES[scaleKey] || SCALES.major);
       // 🆕 v2.23.0 — SWING: nudge OFF-beats slightly later (a la jazz/funk feel)
       const swing = T.swing || 0;
       const swingOffset = (stepInBar % 2 === 1) ? sub * swing : 0;
