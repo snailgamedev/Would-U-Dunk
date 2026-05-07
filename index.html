@@ -7352,6 +7352,9 @@ function showSplash(){
   // 🆕 v2.13.13 — CUSTOM RULES editor
   const btnRules = document.getElementById('btnRules');
   if (btnRules) btnRules.onclick = renderCustomRuleEditor;
+  // 🆕 v2.19.2 — GOSPEL button
+  const btnGospel = document.getElementById('btnGospel');
+  if (btnGospel) btnGospel.onclick = renderGospelScreen;
   // 🆕 v2.14.0 — centralized achievement audit
   if (typeof auditRecentAchievements === 'function') auditRecentAchievements();
   // 🆕 v2.16.0 — DEVICE MODE picker (first visit) + body class application
