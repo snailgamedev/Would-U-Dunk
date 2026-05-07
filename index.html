@@ -2567,6 +2567,235 @@ const SFX = (() => {
   };
 })();
 
+/* ============================================================
+   🆕 v2.20.0 — THE ORCHESTRA · procedural music engine
+   Generates menu/gameplay/halftime/victory/praise/tense/finals
+   loops live in WebAudio. No audio files. Mood-reactive intensity.
+   Plus a STINGER channel for one-shot dramatic chord stabs.
+   "Sing to the LORD a new song" — Psalm 96:1
+============================================================ */
+const MUSIC = (() => {
+  let mctx = null, mGain = null, sGain = null;
+  let mActive = false;
+  let trackName = null;
+  let tickHandle = null;
+  let nextNoteTime = 0;
+  let step = 0;
+  let intensity = 1.0; // 0.4–2.0; rises in clutch / blowouts dampen it
+  const SCALES = {
+    minor:   [0,2,3,5,7,8,10,12],
+    major:   [0,2,4,5,7,9,11,12],
+    pentMin: [0,3,5,7,10,12],
+    pentMaj: [0,2,4,7,9,12],
+    dorian:  [0,2,3,5,7,9,10,12],
+    blues:   [0,3,5,6,7,10,12],
+    gospel:  [0,2,4,5,7,9,11,12], // major w/ added emphasis
+  };
+  const TRACKS = {
+    menu:     { bpm:96,  scale:'pentMaj', root:60, prog:[0,5,3,4],     drums:'soft',     mel:'sparkle' },
+    gameplay: { bpm:120, scale:'pentMin', root:55, prog:[0,3,5,4],     drums:'driving',  mel:'pulse' },
+    halftime: { bpm:80,  scale:'major',   root:62, prog:[0,3,4,0],     drums:'chill',    mel:'pad' },
+    victory:  { bpm:130, scale:'major',   root:65, prog:[0,4,5,0],     drums:'anthem',   mel:'fanfare' },
+    praise:   { bpm:72,  scale:'gospel',  root:60, prog:[0,3,4,5,0,3], drums:'worship',  mel:'choir' },
+    tense:    { bpm:140, scale:'minor',   root:50, prog:[0,5,3,5],     drums:'frantic',  mel:'tense' },
+    finals:   { bpm:128, scale:'pentMin', root:48, prog:[0,3,5,4],     drums:'epic',     mel:'epic' },
+  };
+  function getCtx(){
+    if (!Settings.music) return null;
+    if (!mctx){ try{ mctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if (mctx && !mGain){
+      mGain = mctx.createGain();
+      mGain.gain.value = (Settings.musicVolume != null ? Settings.musicVolume : 0.35);
+      mGain.connect(mctx.destination);
+      sGain = mctx.createGain();
+      sGain.gain.value = (Settings.stingerVolume != null ? Settings.stingerVolume : 0.55);
+      sGain.connect(mctx.destination);
+    }
+    if (mctx && mctx.state === 'suspended') mctx.resume();
+    return mctx;
+  }
+  const midiToFreq = m => 440 * Math.pow(2, (m-69)/12);
+  function note(freq, dur, type, vol, when, attack=0.008){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol * intensity, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.connect(g); g.connect(mGain || c.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  function kick(when){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(140, t0);
+    o.frequency.exponentialRampToValueAtTime(45, t0+0.12);
+    g.gain.setValueAtTime(0.32 * intensity, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0+0.2);
+    o.connect(g); g.connect(mGain || c.destination);
+    o.start(t0); o.stop(t0+0.22);
+  }
+  function snare(when){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const buf = c.createBuffer(1, c.sampleRate * 0.13, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (1 - i/d.length);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const g = c.createGain(); g.gain.value = 0.16 * intensity;
+    src.connect(g); g.connect(mGain || c.destination);
+    src.start(t0);
+  }
+  function hat(when){
+    const c = mctx; if (!c) return;
+    const t0 = c.currentTime + when;
+    const buf = c.createBuffer(1, c.sampleRate * 0.04, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const g = c.createGain(); g.gain.value = 0.05 * intensity;
+    src.connect(g); g.connect(mGain || c.destination);
+    src.start(t0);
+  }
+  // Genre→melody-wave map (user-toggleable in settings)
+  const GENRE_WAVES = { synthwave:'square', chiptune:'square', hiphop:'sawtooth', orchestral:'triangle', lofi:'sine', praise:'triangle', auto:null };
+  function melodyWave(){
+    const g = Settings.musicGenre || 'auto';
+    if (g === 'auto'){
+      // auto = match-track-appropriate
+      const t = TRACKS[trackName];
+      if (!t) return 'triangle';
+      return ({sparkle:'triangle', pulse:'square', pad:'sine', fanfare:'square', choir:'triangle', tense:'sawtooth', epic:'square'})[t.mel] || 'triangle';
+    }
+    return GENRE_WAVES[g] || 'triangle';
+  }
+  function bassWave(){
+    const g = Settings.musicGenre || 'auto';
+    if (g === 'lofi') return 'sine';
+    if (g === 'orchestral' || g === 'praise') return 'triangle';
+    return 'sawtooth';
+  }
+  function scheduleStep(){
+    if (!mActive) return;
+    const c = mctx; if (!c){ tickHandle = setTimeout(scheduleStep, 100); return; }
+    const T = TRACKS[trackName] || TRACKS.menu;
+    const beat = 60 / T.bpm;
+    const sub = beat / 4; // 16ths
+    while (nextNoteTime < c.currentTime + 0.18){
+      const stepInBar = step % 16;
+      const barIdx = Math.floor(step / 16) % T.prog.length;
+      const chordRoot = T.root + T.prog[barIdx];
+      const scale = SCALES[T.scale];
+      const dt = nextNoteTime - c.currentTime;
+      // melody — every 2 sub-steps, with mood-driven variance
+      if (stepInBar % 2 === 0){
+        const seed = (step * 0.7) + (barIdx * 1.1);
+        const idx = Math.abs(Math.floor((Math.sin(seed) + Math.sin(seed*2.3)*0.5) * 3) + 4) % scale.length;
+        const oct = (T.mel === 'epic' || T.mel === 'fanfare') ? 12 : 0;
+        const m = chordRoot + scale[idx] + oct;
+        note(midiToFreq(m), 0.18 + (T.mel === 'pad' ? 0.4 : 0), melodyWave(), 0.045, dt, 0.005);
+        // harmony for fanfare/choir
+        if (T.mel === 'fanfare' || T.mel === 'choir'){
+          note(midiToFreq(m + 4), 0.16, melodyWave(), 0.03, dt, 0.005);
+        }
+      }
+      // bass — every beat, octave hop on bar 2
+      if (stepInBar % 4 === 0){
+        const bm = chordRoot - 24 + (stepInBar === 8 ? 7 : 0);
+        note(midiToFreq(bm), 0.32, bassWave(), 0.06, dt, 0.005);
+      }
+      // drums by track
+      const d = T.drums;
+      if (d === 'driving'){
+        if (stepInBar % 4 === 0) kick(dt);
+        if (stepInBar % 8 === 4) snare(dt);
+        if (stepInBar % 2 === 0) hat(dt);
+      } else if (d === 'epic' || d === 'anthem'){
+        if (stepInBar === 0 || stepInBar === 6) kick(dt);
+        if (stepInBar === 4 || stepInBar === 12) snare(dt);
+        if (stepInBar % 2 === 0) hat(dt);
+      } else if (d === 'frantic'){
+        if (stepInBar % 2 === 0) kick(dt);
+        if (stepInBar % 4 === 2) snare(dt);
+        hat(dt);
+      } else if (d === 'worship'){
+        if (stepInBar === 0 || stepInBar === 8) kick(dt);
+        if (stepInBar === 4 || stepInBar === 12) snare(dt);
+      } else if (d === 'soft' || d === 'chill'){
+        if (stepInBar === 0) kick(dt);
+        if (stepInBar === 8) hat(dt);
+      }
+      nextNoteTime += sub;
+      step++;
+    }
+    tickHandle = setTimeout(scheduleStep, 25);
+  }
+  function start(name){
+    if (!Settings.music) return;
+    if (trackName === name && mActive) return;
+    stop();
+    trackName = name;
+    mActive = true;
+    const c = getCtx(); if (!c) return;
+    nextNoteTime = c.currentTime + 0.05;
+    step = 0;
+    scheduleStep();
+  }
+  function stop(){
+    mActive = false;
+    if (tickHandle){ clearTimeout(tickHandle); tickHandle = null; }
+  }
+  function setVolume(v){
+    Settings.musicVolume = Math.max(0, Math.min(1, v));
+    if (mGain) mGain.gain.value = Settings.musicVolume;
+    saveSettings();
+  }
+  function setStingerVolume(v){
+    Settings.stingerVolume = Math.max(0, Math.min(1, v));
+    if (sGain) sGain.gain.value = Settings.stingerVolume;
+    saveSettings();
+  }
+  function setIntensity(v){ intensity = Math.max(0.4, Math.min(2.0, v)); }
+  function setGenre(g){ Settings.musicGenre = g; saveSettings(); }
+  function getGenre(){ return Settings.musicGenre || 'auto'; }
+  // STINGERS — one-shot dramatic chord stabs for big moments
+  const STINGERS = {
+    dunk:    [{m:60,t:0,d:0.16,w:'square',v:0.16},{m:64,t:0.05,d:0.16,w:'square',v:0.16},{m:67,t:0.10,d:0.16,w:'square',v:0.16},{m:72,t:0.15,d:0.45,w:'square',v:0.20}],
+    three:   [{m:67,t:0,d:0.13,w:'triangle',v:0.16},{m:72,t:0.06,d:0.13,w:'triangle',v:0.16},{m:76,t:0.12,d:0.36,w:'triangle',v:0.18}],
+    block:   [{m:48,t:0,d:0.32,w:'sawtooth',v:0.20},{m:36,t:0.05,d:0.42,w:'sawtooth',v:0.16}],
+    steal:   [{m:74,t:0,d:0.10,w:'square',v:0.14},{m:79,t:0.05,d:0.10,w:'square',v:0.14},{m:84,t:0.10,d:0.20,w:'square',v:0.16}],
+    buzzer:  [{m:60,t:0,d:0.32,w:'square',v:0.22},{m:64,t:0.16,d:0.32,w:'square',v:0.22},{m:67,t:0.32,d:0.32,w:'square',v:0.22},{m:72,t:0.48,d:0.65,w:'square',v:0.24}],
+    victory: [{m:60,t:0,d:0.22,w:'triangle',v:0.16},{m:64,t:0.20,d:0.22,w:'triangle',v:0.16},{m:67,t:0.40,d:0.22,w:'triangle',v:0.16},{m:72,t:0.60,d:0.40,w:'triangle',v:0.20},{m:76,t:0.80,d:0.50,w:'square',v:0.20},{m:79,t:1.00,d:0.85,w:'square',v:0.24}],
+    chosen:  [{m:67,t:0,d:0.42,w:'triangle',v:0.16},{m:71,t:0.20,d:0.42,w:'triangle',v:0.16},{m:74,t:0.40,d:0.42,w:'triangle',v:0.16},{m:79,t:0.60,d:0.85,w:'triangle',v:0.22}],
+    icecold: [{m:48,t:0,d:0.42,w:'sine',v:0.14},{m:55,t:0.20,d:0.42,w:'sine',v:0.14},{m:62,t:0.40,d:0.65,w:'sine',v:0.18}],
+    inzone:  [{m:55,t:0,d:0.22,w:'sawtooth',v:0.16},{m:62,t:0.10,d:0.22,w:'sawtooth',v:0.16},{m:67,t:0.20,d:0.42,w:'sawtooth',v:0.20}],
+    loss:    [{m:55,t:0,d:0.32,w:'sine',v:0.14},{m:51,t:0.20,d:0.32,w:'sine',v:0.14},{m:48,t:0.40,d:0.65,w:'sine',v:0.16}],
+    levelup: [{m:60,t:0,d:0.10,w:'square',v:0.14},{m:64,t:0.06,d:0.10,w:'square',v:0.14},{m:67,t:0.12,d:0.10,w:'square',v:0.14},{m:72,t:0.18,d:0.32,w:'square',v:0.20}],
+  };
+  function stinger(type){
+    if (!Settings.music || !Settings.stingers) return;
+    const c = getCtx(); if (!c) return;
+    const cfg = STINGERS[type]; if (!cfg) return;
+    const now = c.currentTime;
+    cfg.forEach(n => {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = n.w;
+      o.frequency.value = midiToFreq(n.m);
+      g.gain.setValueAtTime(0, now + n.t);
+      g.gain.linearRampToValueAtTime(n.v, now + n.t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+      o.connect(g); g.connect(sGain || c.destination);
+      o.start(now + n.t);
+      o.stop(now + n.t + n.d + 0.1);
+    });
+  }
+  return { start, stop, setVolume, setStingerVolume, setIntensity, setGenre, getGenre, stinger,
+           current: () => trackName, isPlaying: () => mActive,
+           tracks: () => Object.keys(TRACKS) };
+})();
+
 /* ------------------- DEFAULTS / SAVE ------------------- */
 const SKIN_COLORS    = [0xfbe3c8, 0xf2d4a8, 0xe0b487, 0xc4956a, 0x9b6a3a, 0x6e4520, 0x4f3219, 0x2a160a];
 const HAIR_COLORS    = [0x111111, 0x5a3a1f, 0xb87333, 0xe6c34d, 0xffffff, 0xff3b3b, 0x4f9eff, 0xa040ff, 0x4cf07a, 0x888888];
