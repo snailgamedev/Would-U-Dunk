@@ -2262,8 +2262,21 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v2.24.0';
+const VERSION = 'v2.25.0';
 const CHANGELOG = [
+  { v:'v2.25.0', notes:[
+      '🔊 LOWPASS SLIDER — dial the master tone 3000–12000 Hz right in Settings → MUSIC. Live-update; warmer at 4000 Hz · brighter at 10000 Hz.',
+      '🎧 HEADPHONE MODE — toggle in Settings. Synthesized convolver impulse (1.6s decay) gives every track a hall reverb tail. Best with cans on.',
+      '🛏 SLEEP MODE — new toggle + new "sleep" track (38 BPM · sine-only · chord pads + harp arps · NO drums). Drums globally suppressed everywhere when ON. For chillin / studyin / sleepin.',
+      '🧘 BINAURAL DETUNE — chord pad voices split L/R via createStereoPanner with ~6 cents detune offset. Mild brain-relax effect; needs stereo output.',
+      '📏 A/B TASTE TEST — purple/orange button in Settings flips comfort mode for 5 seconds so you can hear the diff live. Auto-restores.',
+      '💡 SCREEN DIM OVERLAY — new toggle. 18% black overlay (z-index 38) for tired eyes. Pairs naturally with COMFORT VIBE.',
+      '🌙 AUTO NIGHT MODE — toggle ON by default. After 21:00 local (or before 06:00) comfort + dim flip on automatically when the page loads.',
+      '🔁 SIBLING SHUFFLE — toggle ON by default. 10% chance on screen re-entry to swap to a same-vibe sibling track (menu↔about↔daily etc). Repeat visits feel fresh.',
+      '🎵 NEW PUBLIC API — MUSIC.setLowpassHz · setHeadphone · setSleep · setBinaural — all live-bindable.',
+      '🎚 EXPANDED TEST GRID — Settings now has ▶ test buttons for ALL 41 tracks (added sleep · funk · lofi · organ · arena · streetball · boss · trapbeat · pause · intermission · clutch · overtime · unlock).',
+      '✝️ "He giveth his beloved sleep" · "I will both lay me down in peace, and sleep: for thou, LORD, only makest me dwell in safety" · Ps 4:8',
+  ]},
   { v:'v2.24.0', notes:[
       '😌 VIBE / COMFORT MODE — every screen + every page music now soothes piercing highs that cause headaches & eye-strain. Default ON. Toggle in Settings → MUSIC → "😌 COMFORT VIBE".',
       '🎚 MASTER COMFORT CHAIN — mGain → 6.5kHz lowpass → soft glue compressor → output. Caps shrill frequencies; smooths peaks. The "bop" stays steady, never spikes.',
