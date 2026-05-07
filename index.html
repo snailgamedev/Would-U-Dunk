@@ -3462,12 +3462,12 @@ const MUSIC = (() => {
       }
 
       // 🆕 v2.23.0 — SHAKER 16ths (non-frantic tracks that opt-in)
-      if (T.shake && !isBridge && (T.drums !== 'frantic') && stepInBar % 2 === 1){
+      if (!sleepMode && T.shake && !isBridge && (T.drums !== 'frantic') && stepInBar % 2 === 1){
         shaker(dt);
       }
 
       // 🆕 v2.23.0 — CRASH cymbal on the bar 1 of each 4-bar block (chorus only)
-      if (T.crash && isChorus && stepInBar === 0 && (bar % 4 === 0)) crash(dt);
+      if (!sleepMode && T.crash && isChorus && stepInBar === 0 && (bar % 4 === 0)) crash(dt);
 
       nextNoteTime += sub;
       step++;
