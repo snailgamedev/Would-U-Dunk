@@ -2615,13 +2615,34 @@ const MUSIC = (() => {
     gospel:  [0,2,4,5,7,9,11,12], // major w/ added emphasis
   };
   const TRACKS = {
-    menu:     { bpm:96,  scale:'pentMaj', root:60, prog:[0,5,3,4],     drums:'soft',     mel:'sparkle' },
-    gameplay: { bpm:120, scale:'pentMin', root:55, prog:[0,3,5,4],     drums:'driving',  mel:'pulse' },
-    halftime: { bpm:80,  scale:'major',   root:62, prog:[0,3,4,0],     drums:'chill',    mel:'pad' },
-    victory:  { bpm:130, scale:'major',   root:65, prog:[0,4,5,0],     drums:'anthem',   mel:'fanfare' },
-    praise:   { bpm:72,  scale:'gospel',  root:60, prog:[0,3,4,5,0,3], drums:'worship',  mel:'choir' },
-    tense:    { bpm:140, scale:'minor',   root:50, prog:[0,5,3,5],     drums:'frantic',  mel:'tense' },
-    finals:   { bpm:128, scale:'pentMin', root:48, prog:[0,3,5,4],     drums:'epic',     mel:'epic' },
+    // CORE 7 (v2.20.0)
+    menu:        { bpm:96,  scale:'pentMaj', root:60, prog:[0,5,3,4],      drums:'soft',     mel:'sparkle' },
+    gameplay:    { bpm:120, scale:'pentMin', root:55, prog:[0,3,5,4],      drums:'driving',  mel:'pulse' },
+    halftime:    { bpm:80,  scale:'major',   root:62, prog:[0,3,4,0],      drums:'chill',    mel:'pad' },
+    victory:     { bpm:130, scale:'major',   root:65, prog:[0,4,5,0],      drums:'anthem',   mel:'fanfare' },
+    praise:      { bpm:72,  scale:'gospel',  root:60, prog:[0,3,4,5,0,3],  drums:'worship',  mel:'choir' },
+    tense:       { bpm:140, scale:'minor',   root:50, prog:[0,5,3,5],      drums:'frantic',  mel:'tense' },
+    finals:      { bpm:128, scale:'pentMin', root:48, prog:[0,3,5,4],      drums:'epic',     mel:'epic' },
+    // 🆕 v2.21.0 — PER-SCREEN tracks
+    shop:        { bpm:104, scale:'pentMaj', root:62, prog:[0,5,7,3],      drums:'driving',  mel:'sparkle' }, // funky boutique
+    tournament:  { bpm:138, scale:'minor',   root:52, prog:[0,7,5,3],      drums:'epic',     mel:'epic' },    // battle horns
+    franchise:   { bpm:118, scale:'major',   root:60, prog:[0,4,5,3],      drums:'anthem',   mel:'fanfare' }, // sports anthem
+    hof:         { bpm:64,  scale:'major',   root:55, prog:[0,3,5,7,4,0],  drums:'worship',  mel:'choir' },   // hall-of-fame grandeur
+    chronicle:   { bpm:90,  scale:'dorian',  root:55, prog:[0,3,5,7],      drums:'chill',    mel:'pad' },     // epic history scroll
+    gospel:      { bpm:60,  scale:'gospel',  root:60, prog:[0,3,5,4,0,3,4,5], drums:'worship', mel:'choir' }, // sacred / reverent
+    daily:       { bpm:124, scale:'pentMaj', root:60, prog:[0,4,5,3],      drums:'driving',  mel:'pulse' },   // adventure pop
+    rules:       { bpm:100, scale:'pentMaj', root:58, prog:[0,5,3,4],      drums:'soft',     mel:'sparkle' }, // tinker workshop
+    profile:     { bpm:88,  scale:'major',   root:60, prog:[0,5,3,4,0,3],  drums:'soft',     mel:'pad' },     // warm acoustic
+    leaderboard: { bpm:96,  scale:'pentMin', root:55, prog:[0,3,5,3],      drums:'chill',    mel:'pad' },     // chill stats
+    howto:       { bpm:108, scale:'pentMaj', root:62, prog:[0,3,4,5],      drums:'soft',     mel:'sparkle' }, // happy tutorial
+    about:       { bpm:84,  scale:'pentMaj', root:60, prog:[0,5,3,4,0],    drums:'chill',    mel:'pad' },     // nostalgic chimes
+    updates:     { bpm:114, scale:'pentMaj', root:60, prog:[0,5,3,4],      drums:'driving',  mel:'pulse' },   // news upbeat
+    modeselect:  { bpm:110, scale:'pentMaj', root:60, prog:[0,4,5,0],      drums:'driving',  mel:'pulse' },   // anthem lobby
+    charselect:  { bpm:102, scale:'pentMin', root:55, prog:[0,3,5,4],      drums:'chill',    mel:'pulse' },   // jazzy preview
+    online:      { bpm:128, scale:'pentMin', root:55, prog:[0,5,3,7],      drums:'driving',  mel:'pulse' },   // electronic
+    horse:       { bpm:96,  scale:'pentMaj', root:62, prog:[0,3,5,4],      drums:'soft',     mel:'sparkle' }, // playful
+    practice:    { bpm:104, scale:'pentMaj', root:60, prog:[0,5,7,4],      drums:'soft',     mel:'pulse' },   // relaxed gym
+    radio:       { bpm:68,  scale:'gospel',  root:62, prog:[0,3,4,5],      drums:'worship',  mel:'choir' },   // 12s praise interlude
   };
   function getCtx(){
     if (!Settings.music) return null;
