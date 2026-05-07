@@ -633,11 +633,14 @@ function defaultSettings(){
     sneakerSqueak: true,
     // 🆕 v2.20.0 — THE ORCHESTRA
     music: true,              // procedural music engine on/off
-    musicVolume: 0.35,        // 0–1 background music gain
+    musicVolume: 0.30,        // 0–1 background music gain (v2.24.0 default lowered for comfort)
     musicGenre: 'auto',       // auto · synthwave · chiptune · hiphop · orchestral · lofi · praise
     stingers: true,           // one-shot dramatic chord stabs (dunk/three/buzzer)
-    stingerVolume: 0.55,      // 0–1
+    stingerVolume: 0.45,      // 0–1 (v2.24.0 default lowered for comfort)
     moodReactive: true,       // intensity ramps in clutch / dampens in blowouts
+    // 🆕 v2.24.0 — VIBE / COMFORT MODE: tames piercing highs, soothes attacks,
+    // keeps the BOP alive but won't trigger eye-strain or headaches.
+    musicComfort: true,
   };
 }
 function loadSettings(){
