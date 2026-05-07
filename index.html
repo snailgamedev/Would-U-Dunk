@@ -6347,6 +6347,7 @@ document.getElementById('modalRoot').addEventListener('click', e => { if (e.targ
 
 /* ------------------- STATS SCREEN ------------------- */
 function renderStatsScreen(){
+  musicForScreen('leaderboard'); // 🆕 v2.21.0
   const lv = levelFromXp(Career.xp);
   const pct = Math.round((lv.into / lv.span) * 100);
   const winRate = Career.games ? Math.round(100 * Career.wins / Career.games) : 0;
