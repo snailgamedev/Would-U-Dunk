@@ -641,6 +641,14 @@ function defaultSettings(){
     // 🆕 v2.24.0 — VIBE / COMFORT MODE: tames piercing highs, soothes attacks,
     // keeps the BOP alive but won't trigger eye-strain or headaches.
     musicComfort: true,
+    // 🆕 v2.25.0 — comfort-extension settings
+    musicLowpassHz: 6500,     // 4500–10500 — master tone control (only meaningful when comfort ON)
+    musicHeadphone: false,    // stereo widener + convolver reverb tail
+    musicSleep: false,        // sine-only chord pads, no drums, ultra-slow BPM
+    musicBinaural: false,     // ~6 Hz L/R pad detune for relaxation
+    screenDim: false,         // CSS overlay 15% darken
+    autoNightMode: true,      // after 21:00 local: comfort + dim auto-on
+    siblingShuffle: true,     // 10% chance to swap to a sibling track on screen re-entry
   };
 }
 function loadSettings(){
