@@ -6390,6 +6390,7 @@ const RARITY_INFO = {
   PLATINUM: { color:'#a4f4ff', bg:'#a4f4ff22', label:'PLATINUM' },
 };
 function renderAchievementsScreen(){
+  musicForScreen('leaderboard'); // 🆕 v2.21.0
   const got = Object.keys(Career.achievements || {}).length;
   const total = ACH_LIST.length;
   const pct = Math.round((got / total) * 100);
