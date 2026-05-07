@@ -5805,6 +5805,7 @@ class MatchScene extends Phaser.Scene {
     if (blocker.idx === 0) Career.blockedShots = (Career.blockedShots||0) + 1;
     SFX.block && SFX.block();
     SFX.crowdAhh && SFX.crowdAhh();
+    if (typeof MUSIC !== 'undefined') MUSIC.stinger('block'); // 🆕 v2.20.0
     this.popCoach && this.popCoach('🛡 BLOCKED!');
     // visual flash on the block point
     const flash = this.add.circle(opp.x, opp.y - 30, 30, 0xffffff, 0.85).setStrokeStyle(4, 0xff3b3b).setDepth(DEPTH.EFFECT_FRONT);
