@@ -3282,7 +3282,10 @@ const MUSIC = (() => {
         ? Settings.customScale
         : (SCALES[scaleKey] || SCALES.major);
       // 🆕 v2.23.0 — SWING: nudge OFF-beats slightly later (a la jazz/funk feel)
-      const swing = T.swing || 0;
+      // 🆕 v2.24.0 — comfort mode floor: every track gets at LEAST 0.10 swing.
+      // No straight-quantized robot feel. Every screen now has that head-nod pocket.
+      const baseSwing = T.swing || 0;
+      const swing = (Settings.musicComfort !== false) ? Math.max(baseSwing, 0.10) : baseSwing;
       const swingOffset = (stepInBar % 2 === 1) ? sub * swing : 0;
       const dt = (nextNoteTime - c.currentTime) + swingOffset;
       // 🆕 v2.23.0 — SONG STRUCTURE — 8-bar phrases:
