@@ -9893,6 +9893,8 @@ async function startRound(){
   const cfg = ChaosEngine.apply(rolls);
   // mode extra cfg overrides
   Object.assign(cfg, mode.extraCfg || {});
+  // 🆕 v2.26.0 — clamp unscoreable combos AFTER mode overrides so target-mode-aware fixes apply
+  sanitizeCfg(cfg, mode);
   // mode-driven round length + target
   cfg._roundLen = mode.roundLen;
   let target = mode.target || 0;
