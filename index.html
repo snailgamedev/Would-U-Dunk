@@ -6683,10 +6683,17 @@ function saveGambleHistory(arr){
   try { localStorage.setItem(`wud:gambleHistory:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){}
 }
 function placeBet(typeId, wager, opts){
+  // 🛡 v3.17.0 — HOLY GUARDRAIL · check if blocked first
+  if (typeof isGamblingBlocked === 'function' && isGamblingBlocked()){
+    if (typeof showCooldownScreen === 'function') showCooldownScreen('Take a breather. Tomorrow is a new day.');
+    return false;
+  }
   const t = BET_TYPES.find(b => b.id === typeId);
   if (!t) return false;
   if (wager <= 0) return false;
   if (!spendCash(wager)) return false;
+  // 🛡 v3.17.0 — guard tick after successful spend
+  if (typeof tickGuard === 'function') tickGuard('bet', wager);
   // 🆕 v3.0.0 — CONFIDENCE MULTIPLIER (locked before seeing match info)
   let mult = t.mult;
   if (opts && opts.confidence) mult *= 1.3;
