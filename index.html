@@ -8786,6 +8786,9 @@ function renderMpOverlay(){
   if (!Online.connected && !Online.lastCode) return;
   const wrap = document.createElement('div');
   wrap.id = 'mpOverlay';
+  // 🆕 v3.24.0 — start collapsed on mobile
+  const isMobileOverlay = (typeof IS_MOBILE !== 'undefined' && IS_MOBILE) || ('ontouchstart' in window);
+  if (isMobileOverlay && !window._mpOverlayExpanded) wrap.className = 'collapsed';
   wrap.style.cssText = 'position:fixed;bottom:8px;right:8px;width:280px;background:linear-gradient(135deg,rgba(8,12,28,.95),rgba(20,8,40,.95));color:#fff;padding:10px;border-radius:14px;font-size:12px;z-index:9997;box-shadow:0 8px 24px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.15);font-family:system-ui,sans-serif';
   const pingColor = Online.ping <= 0 ? '#888' : (Online.ping < 100 ? '#0f0' : (Online.ping < 250 ? '#fc0' : '#f44'));
   const stateLabel = Online.isSpectator ? '👁 SPEC' : (Online.isHost ? '🏠 HOST' : '🚪 GUEST');
