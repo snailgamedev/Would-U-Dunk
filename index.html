@@ -9400,8 +9400,8 @@ class MatchScene extends Phaser.Scene {
     this.popScorePoints(hoop, points, zoneLabel);
     // Cheer text bubble from random crowd row
     this.popCrowdCheer(hoop.x);
-    this.cameras.main.flash(220, 247, 201, 72);
-    this.shakeCam(160, 0.005);
+    // 🆕 v3.11.0 — removed score-flash · keep tiny shake (subtle)
+    this.shakeCam(60, 0.002);
     hoop.drawNet(true);
     this.time.delayedCall(380, () => hoop.drawNet(false));
     const scorer = scorerIdx===0 ? this.p1 : this.p2;
