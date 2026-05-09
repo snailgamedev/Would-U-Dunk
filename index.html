@@ -6835,6 +6835,9 @@ function placeBet(typeId, wager, opts){
   if (wager >= 10000 && typeof unlockAchievement === 'function') unlockAchievement('first_10k_bet');
   // 🎯 v3.15.0 — wager challenge tick on big bets
   if (wager >= 5000 && typeof tickWagerChallenge === 'function') tickWagerChallenge('bigBet', wager);
+  // ⚙ v3.18.0 — auto-apply bet requirement settings (CAEE)
+  // Defer until rolls are made (after rollChaos) — flag for the rollChaos pipeline
+  State._pendingBetReqType = typeId;
   return true;
 }
 function resolveBet(){
