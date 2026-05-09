@@ -5444,8 +5444,27 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.9.0';
+const VERSION = 'v3.10.0';
 const CHANGELOG = [
+  { v:'v3.10.0', notes:[
+      '🎬 OPERATION CINEMATIC SUPREME — every play feels like a highlight reel + 9 v3.9 next-ideas all shipped + critical null-bug squashed.',
+      '🩹 NULL BUG FIXED — `document.getElementById(\'btnStats\').onclick` was failing in showSplash because v3.8 hub redesign moved that button to MORE hub. Wrapped ALL legacy splash button refs in safe `_wire()` helper · zero null errors now.',
+      '🎬 CINEMATIC LETTERBOX — final 10s of close games auto-adds 16:9 letterbox bars · 200ms slide-in · removed cleanly on round end.',
+      '🐢 GAME-WINNING SLOWMO — last bucket that wins the game triggers 0.5× world speed for 1.5s + camera zoom + verse popup. Hollywood finish.',
+      '🃏 PRE-GAME CINEMATIC INTRO CARD — 2-second card flashes per-NPC: name · archetype · tier badge · "vs" · then dissolves · happens before every CPU match.',
+      '✨ DUNK PARTICLE BURST — 24 confetti particles explode on every dunk · color matches dunker · 1.2s decay.',
+      '📊 SCOREBOARD PULSE — bumps score number scale on every bucket · 200ms pulse · color-coded by point value.',
+      '🌗 MOOD/CALM RANDOM EVENTS — 4 new events: 🧘 ZEN MODE (calm everyone) · 😡 RAGE MODE (boost all stats) · 🌫 FOG (vision dim) · 🌟 INSPIRATION (perfect releases for 30s).',
+      '🎄 FESTIVE/MOURNING SEASONS — calendar-based · CHRISTMAS week (golden glow + jingle) · LENT (reflective mood + extra scripture) · INDEPENDENCE WEEK (red/blue/white tints).',
+      '🌒 DAY/NIGHT AUTO SWITCH — visual theme swap at sunset (after 18:00 local) · subtle dimming · cooler color palette.',
+      '🎡 WEEKLY BONUS SPIN — Friday gets 2 fortune wheel spins · weekend gets 3 · auto-detected.',
+      '👑 CROWN UNLOCK SKINS — earn fancier crown variants by streak length: 5+ ON FIRE · 10+ KING · 15+ GOAT · 25+ ✝ ANOINTED · 50+ 🌟 LEGEND OF LEGENDS.',
+      '🧙 MENTOR WISDOM VERSES — special verse pool fires when you play declared mentors · scripture pool: gentle wisdom + perseverance.',
+      '📊 OPPOSITES DASHBOARD — new screen showing all 8 mirror states current values: hot/cold zones + CPU form + luck + rep + boom-bust + court mood + mentors + frontrunner-ready.',
+      '🎰 BET AUTO-RECURRING — toggle to auto-place same bet every match until cancelled or out of cash.',
+      '🔇 AMBIENT CROWD LOOP — quiet crowd murmur during quiet moments · adds atmosphere · gated by setting.',
+      '✝️ "Now to him who is able to do immeasurably more than all we ask" — Eph 3:20 · always extending · always expanding',
+  ]},
   { v:'v3.9.0', notes:[
       '🌗 OPERATION OPPOSITES + POLISH — extending hot/cold patterns across entire game · readability pass · QoL fixes · creative bonuses.',
       '🔥❄️ OPPOSITES SYSTEM — full mirror pattern across 8 systems: HOT/COLD ZONES (already · enhanced display) · HOT/COLD STREAKS (matching CPU dynamic form) · LUCKY/UNLUCKY events · HERO/VILLAIN player rep · BOOM/BUST cash multipliers · SUNSHINE/STORM court mood · MENTOR (anti-rival · CPU you keep losing to) · FRONTRUNNER bet (anti-underdog · 1.3x for picking the favorite).',
