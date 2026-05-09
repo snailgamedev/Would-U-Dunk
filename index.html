@@ -9877,7 +9877,7 @@ class MatchScene extends Phaser.Scene {
   flipGravity(){
     const g = this.physics.world.gravity;
     g.y = -g.y;
-    this.cameras.main.flash(120, 255, 100, 100);
+    // 🆕 v3.11.0 — removed flip-gravity flash (jarring · physics flip is feedback enough)
   }
   warpAll(){
     const margin = 200;
