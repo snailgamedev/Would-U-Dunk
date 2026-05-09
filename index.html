@@ -14224,6 +14224,18 @@ function showEndCard(){
         if (typeof showToast === 'function') showToast('⚔ RIVAL DEFEATED · 2× cash bonus', 'level');
       }
     }
+    // 🆕 v3.9.0 — OPPOSITES tracking · cpu form · mentor (anti-rival) · rep
+    const npcId = State.rolls?.cpuTiers?.[0]?._npc?.id;
+    if (npcId && typeof tickCpuForm === 'function') tickCpuForm(npcId, won);
+    if (!won && npcId && typeof recordLossVsNpc === 'function') recordLossVsNpc(npcId);
+    if (typeof tickRep === 'function') tickRep(won, (State._maxDeficit || 0) >= 10);
+    // Mentor XP bonus
+    if (won && npcId && typeof isMentor === 'function' && isMentor(npcId)){
+      awardXp(50);
+      if (typeof showToast === 'function') showToast('🧙 BEAT THE MENTOR · +50 XP bonus', 'level');
+    }
+    // Double XP from fortune wheel
+    if (State._fortune2xXp){ awardXp(50); State._fortune2xXp = false; if (typeof showToast === 'function') showToast('⚡ FORTUNE 2× XP · +50 bonus', 'level'); }
     // 🆕 v3.4.0 — log spectated CPU vs CPU match
     if (State.cfg?.cpuVsCpu && typeof logSpectatedMatch === 'function'){
       logSpectatedMatch(State.looks[0]?.username || 'CPU1', State.looks[1]?.username || 'CPU2', myPts, oppPts);
