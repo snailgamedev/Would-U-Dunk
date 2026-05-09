@@ -2503,12 +2503,22 @@ function loadGambleHistory(){
 function saveGambleHistory(arr){
   try { localStorage.setItem(`wud:gambleHistory:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){}
 }
-function placeBet(typeId, wager){
+function placeBet(typeId, wager, opts){
   const t = BET_TYPES.find(b => b.id === typeId);
   if (!t) return false;
   if (wager <= 0) return false;
   if (!spendCash(wager)) return false;
-  State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult:t.mult, payout: Math.round(wager * t.mult) };
+  // 🆕 v3.0.0 — CONFIDENCE MULTIPLIER (locked before seeing match info)
+  let mult = t.mult;
+  if (opts && opts.confidence) mult *= 1.3;
+  // 🆕 v3.0.0 — HOT STREAK BONUS (3+ recent wagered wins → 4th gets +0.25 to mult)
+  const hist = loadGambleHistory();
+  const recentWins = hist.slice(-3).every(h => h.won);
+  if (hist.length >= 3 && recentWins) mult += 0.25;
+  // 🆕 v3.0.0 — COMEBACK KID (3+ recent losses → next gets +0.5 sympathy mult)
+  const recentLosses = hist.slice(-3).every(h => !h.won);
+  if (hist.length >= 3 && recentLosses) mult += 0.5;
+  State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult, payout: Math.round(wager * mult), confidence: !!(opts && opts.confidence), bonus: mult - t.mult };
   return true;
 }
 function resolveBet(){
