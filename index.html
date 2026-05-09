@@ -6413,6 +6413,240 @@ const COURT_PHYSICS_V316 = {
 };
 setTimeout(() => { try { Object.assign(COURT_PHYSICS, COURT_PHYSICS_V316); } catch(e){} }, 0);
 
+// 🎵 v3.17.0 — MUSIC TAB-SWITCH FIX · suspend AudioContext when tab hidden
+document.addEventListener('visibilitychange', () => {
+  try {
+    const ac = (typeof MUSIC !== 'undefined' && MUSIC._ctx) ? MUSIC._ctx : null;
+    if (!ac) return;
+    if (document.hidden){
+      if (ac.state === 'running') ac.suspend().catch(()=>{});
+    } else {
+      if (ac.state === 'suspended') ac.resume().catch(()=>{});
+    }
+  } catch(e){}
+});
+
+// 🛡 v3.17.0 — HOLY GUARDRAILS · anti-addiction · session limits · scripture reminders
+function loadGuardState(){
+  try {
+    const raw = localStorage.getItem(`wud:guard:${currentProfileName()}`);
+    const day = new Date().toISOString().slice(0,10);
+    const def = { day, sessionBets:0, dailyLoss:0, lastReflectionAt:0, blocked:false };
+    const parsed = raw ? JSON.parse(raw) : def;
+    if (parsed.day !== day){ parsed.day = day; parsed.sessionBets = 0; parsed.dailyLoss = 0; parsed.blocked = false; }
+    return Object.assign(def, parsed);
+  } catch(e){ return {day:'',sessionBets:0,dailyLoss:0,lastReflectionAt:0,blocked:false}; }
+}
+function saveGuardState(g){ try { localStorage.setItem(`wud:guard:${currentProfileName()}`, JSON.stringify(g)); } catch(e){} }
+function tickGuard(eventType, value){
+  const g = loadGuardState();
+  if (eventType === 'bet'){
+    g.sessionBets += 1;
+    if (Settings.guardEnabled !== false){
+      // Reflection prompt every 10 bets
+      if (g.sessionBets % 10 === 0){
+        showReflectionPrompt();
+      }
+      // Cooldown after 30 bets
+      if (g.sessionBets >= (Settings.guardSessionLimit || 30)){
+        g.blocked = true;
+        showCooldownScreen('You\'ve placed a lot of bets. Take a moment.');
+      }
+    }
+  } else if (eventType === 'loss'){
+    g.dailyLoss += value;
+    if (Settings.guardEnabled !== false && g.dailyLoss >= (Settings.guardDailyLossLimit || 50000)){
+      g.blocked = true;
+      showCooldownScreen(`Daily loss limit reached ($${g.dailyLoss.toLocaleString()}). Come back tomorrow.`);
+    }
+  }
+  saveGuardState(g);
+}
+function isGamblingBlocked(){
+  const g = loadGuardState();
+  return g.blocked;
+}
+function showReflectionPrompt(){
+  try {
+    const verses = [
+      { ref:'Heb 13:5', text:'be content with what you have' },
+      { ref:'Prov 23:5', text:'cast but a glance at riches and they are gone' },
+      { ref:'1 Tim 6:10', text:'love of money is a root of all kinds of evil' },
+      { ref:'Eccl 5:10', text:'whoever loves money never has enough' },
+      { ref:'Phil 4:11', text:'I have learned to be content whatever the circumstances' },
+    ];
+    const v = verses[(Math.random()*verses.length)|0];
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000d;display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML = `
+      <div style="max-width:440px;padding:24px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center">
+        <div style="font-size:34px">🙏</div>
+        <div style="font-size:16px;font-weight:900;letter-spacing:3px;margin-top:8px">QUICK REFLECTION</div>
+        <div style="margin-top:12px;font-size:13px;line-height:1.6">Take a breath. Pray. Play wise.<br><br><i>"${v.text}"</i><br><span style="font-size:11px;color:#000a">— ${v.ref}</span></div>
+        <button class="btn" id="rfClose" style="margin-top:14px;width:100%;padding:12px;background:#000;color:#ffd76e;font-weight:900;letter-spacing:2px">CONTINUE WISELY</button>
+      </div>`;
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+    document.getElementById('rfClose').onclick = () => overlay.remove();
+  } catch(e){}
+}
+function showCooldownScreen(message){
+  try {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#0008,#000d);display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML = `
+      <div style="max-width:480px;padding:30px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center">
+        <div style="font-size:60px">🛑</div>
+        <div style="font-size:18px;font-weight:900;letter-spacing:3px;margin-top:10px">PAUSE FOR PEACE</div>
+        <div style="margin-top:14px;font-size:13px;line-height:1.6">${message}</div>
+        <div style="margin-top:14px;padding:14px;background:#000c;color:#ffd76e;border-radius:8px;font-size:11px;line-height:1.7">
+          🙏 PRAY ABOUT IT · ✝️ "be content with what you have" — Heb 13:5<br>
+          📖 OPEN FAITH CORNER instead<br>
+          💔 STRUGGLING? Call <b>1-800-GAMBLER</b> (24/7 free confidential help)
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn" id="cdFaith" style="flex:1;padding:12px;background:#1a0e02;color:#ffd76e;font-weight:900">🙏 FAITH CORNER</button>
+          <button class="btn" id="cdHome" style="flex:1;padding:12px;background:#000;color:#fff;font-weight:900">🏠 HOME</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('cdFaith').onclick = () => { overlay.remove(); if (typeof renderFaithCornerScreen === 'function') renderFaithCornerScreen(); };
+    document.getElementById('cdHome').onclick = () => { overlay.remove(); if (typeof showSplash === 'function') showSplash(); };
+  } catch(e){}
+}
+
+// 👥 v3.17.0 — FRIEND LEADERBOARDS · share rank via 6-char code
+function generateFriendCode(){
+  // Stable per-profile · derived from profile name + machine fingerprint-ish
+  const profile = currentProfileName();
+  const hash = Array.from(profile).reduce((h, c) => ((h * 31 + c.charCodeAt(0)) >>> 0), 5381);
+  const fingerprint = (navigator.userAgent.length + screen.width + screen.height) >>> 0;
+  const combined = ((hash ^ fingerprint) >>> 0).toString(36).toUpperCase().padStart(6, '0').slice(-6);
+  return combined;
+}
+function loadFriends(){ try { return JSON.parse(localStorage.getItem(`wud:friends:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveFriends(arr){ try { localStorage.setItem(`wud:friends:${currentProfileName()}`, JSON.stringify(arr.slice(0, 50))); } catch(e){} }
+function addFriend(code, name){
+  const f = loadFriends();
+  if (f.find(x => x.code === code)) return false;
+  f.push({ code, name: name || `Friend-${code}`, addedAt: Date.now(), score: 0 });
+  saveFriends(f);
+  return true;
+}
+function renderFriendLeaderboardScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const myCode = generateFriendCode();
+  const friends = loadFriends();
+  // Build a "leaderboard" — your score + friends · sorted by cash (best proxy w/o cloud)
+  const myScore = loadCash();
+  const entries = [
+    { name: currentProfileName() + ' · YOU', score: myScore, isMe: true },
+    ...friends.map(f => ({ name: f.name + ` (${f.code})`, score: f.score, isMe: false })),
+  ].sort((a, b) => b.score - a.score);
+  const rows = entries.map((e, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+    return `<div style="display:flex;justify-content:space-between;padding:10px 14px;margin:4px 0;background:${e.isMe?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0008'};border:2px solid ${e.isMe?'#4cf07a':'#ffd76e44'};border-radius:8px;color:#fff">
+      <div style="font-weight:900;font-size:13px"><span style="display:inline-block;width:36px;color:#aab">${medal}</span>${e.name}</div>
+      <div style="color:#ffd76e;font-weight:900">$${e.score.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center">👥 FRIEND LEADERBOARD</div>
+      <div class="subtitle" style="text-align:center">share rank w/ friends · cross-device</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:10px;text-align:center;color:#000">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">YOUR FRIEND CODE</div>
+        <div style="font-size:36px;font-weight:900;margin-top:6px;letter-spacing:6px;font-family:monospace">${myCode}</div>
+        <div style="font-size:10px;margin-top:6px">share this w/ friends</div>
+      </div>
+      <div style="margin:14px 0;padding:10px;background:#0008;border:2px dashed #ffd76e;border-radius:8px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:2px;margin-bottom:8px">➕ ADD A FRIEND</div>
+        <input id="friendCode" type="text" placeholder="6-char code" style="width:60%;padding:10px;background:#000;color:#fff;border:2px solid #ffd76e44;border-radius:6px;font-family:monospace;text-transform:uppercase">
+        <button class="btn" id="friendAdd" style="margin-left:8px;padding:10px 18px;background:#4cf07a;color:#000;font-weight:900">ADD</button>
+      </div>
+      <div style="margin:14px 0;max-height:50vh;overflow-y:auto">${rows}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">${friends.length} friends · scores update when they share</div>
+      <button class="btn" id="flBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('flBack').onclick = showSplash;
+  document.getElementById('friendAdd').onclick = () => {
+    const code = (document.getElementById('friendCode').value || '').toUpperCase().trim();
+    if (code.length !== 6){ if (typeof showToast === 'function') showToast('CODE MUST BE 6 CHARS', 'allpro'); return; }
+    if (addFriend(code, `Friend-${code}`)){
+      if (typeof showToast === 'function') showToast(`👥 FRIEND ${code} ADDED`, 'level');
+      renderFriendLeaderboardScreen();
+    } else {
+      if (typeof showToast === 'function') showToast('already friends w/ that code', 'allpro');
+    }
+  };
+}
+
+// 🎬 v3.17.0 — TIER-UP CINEMATIC · upgrade simple banner
+function showTierUpCinematic(tier){
+  try {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,${tier.color}66,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:Bebas Neue,Impact,sans-serif;letter-spacing:6px;animation:tierFadeIn .6s ease;cursor:pointer`;
+    overlay.innerHTML = `
+      <div style="font-size:140px;animation:tierMedal 1.2s ease infinite alternate;text-shadow:0 0 40px ${tier.color}">${tier.label.split(' ')[0]}</div>
+      <div style="font-size:48px;margin-top:14px;color:${tier.color};text-shadow:0 0 30px ${tier.color}">${tier.label.split(' ').slice(1).join(' ')}</div>
+      <div style="font-size:18px;margin-top:8px;color:#fff;letter-spacing:4px">WEALTH TIER UP</div>
+      <div style="font-size:13px;margin-top:14px;color:#fff;font-style:italic;max-width:90%;text-align:center">"From dust He raises the poor · He seats them with princes" — 1 Sam 2:8</div>
+      <div style="font-size:10px;margin-top:18px;color:#aab">tap to dismiss</div>`;
+    if (!document.getElementById('tierUpKey')){
+      const s = document.createElement('style'); s.id = 'tierUpKey';
+      s.textContent = '@keyframes tierFadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes tierMedal{from{transform:translateY(0)scale(1)}to{transform:translateY(-30px)scale(1.1)}}';
+      document.head.appendChild(s);
+    }
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.parentNode && overlay.remove(), 6000);
+    if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger('victory');
+    if (typeof haptic === 'function') haptic([100, 50, 200, 50, 300]);
+  } catch(e){}
+}
+
+// 👑 v3.17.0 — CROWN COLLECTION trophy room
+function renderCrownCollectionScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const wealth = currentWealthTier();
+  const wealthIdx = WEALTH_TIERS.findIndex(t => t.id === wealth.id);
+  const streakCrown = (typeof streakCrownAdvanced === 'function') ? streakCrownAdvanced() : '';
+  const vip = currentVipTier();
+  const got_aches = Object.keys(Career.achievements || {}).length;
+  const podiumCount = (() => {
+    let c = 0;
+    if (typeof LEADERBOARD_CATS !== 'undefined' && typeof LB_WINDOWS !== 'undefined'){
+      LEADERBOARD_CATS.forEach(cat => {
+        LB_WINDOWS.forEach(win => {
+          const arr = loadLeaderboard(cat.id, win);
+          if (arr[0]?.profile === currentProfileName()) c++;
+        });
+      });
+    }
+    return c;
+  })();
+  const sections = [
+    { title:'💰 WEALTH TIER', items:WEALTH_TIERS.slice(1, wealthIdx+1).map(t => ({ label:t.label, color:t.color, owned:true })) },
+    { title:'💎 VIP TIER', items:VIP_TIERS.slice(1, VIP_TIERS.findIndex(t=>t.id===vip.id)+1).map(t => ({ label:t.name, color:t.color, owned:true })) },
+    { title:'🔥 STREAK CROWNS', items:streakCrown ? [{ label:streakCrown, color:'#ffd76e', owned:true }] : [] },
+    { title:'🏛 ACHIEVEMENTS', items:[{ label:`${got_aches} / ${ACH_LIST.length} unlocked`, color:'#4cf07a', owned:true }] },
+    { title:'🥇 LEADERBOARD #1', items:podiumCount ? [{ label:`${podiumCount} top spots`, color:'#ffd700', owned:true }] : [] },
+  ];
+  const blocks = sections.map(s => `<div style="margin:14px 0">
+    <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">${s.title}</div>
+    ${s.items.length ? s.items.map(i => `<div style="display:inline-block;margin:4px;padding:10px 14px;background:linear-gradient(135deg,${i.color}33,#000);border:2px solid ${i.color};border-radius:8px;color:#fff;font-weight:900;letter-spacing:2px;font-size:12px;box-shadow:0 0 12px ${i.color}66">${i.label}</div>`).join('') : '<div style="color:#aab;font-size:11px">none yet</div>'}
+  </div>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">👑 CROWN COLLECTION</div>
+      <div class="subtitle" style="text-align:center">trophy room · everything earned</div>
+      <div style="margin:14px 0;max-height:65vh;overflow-y:auto">${blocks}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "Well done · good and faithful servant" — Matt 25:23</div>
+      <button class="btn" id="ccBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('ccBack').onclick = showSplash;
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
