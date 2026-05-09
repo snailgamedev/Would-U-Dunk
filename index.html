@@ -4907,6 +4907,8 @@ function renderHubProgress(){
     'spec-hall': renderSpectatorHallScreen,
     stats: renderStatsScreen,
     board: renderLeaderboardScreen,
+    leaderboards: renderLeaderboardsScreen,
+    'parlay-tracker': renderParlayTrackerScreen,
   };
   document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
     const fn = actions[b.dataset.hubAction];
