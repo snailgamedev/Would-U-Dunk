@@ -14003,6 +14003,12 @@ function renderGambleScreen(){
     }
     // 🆕 v3.9.0 — persist bet prefs for next visit
     if (typeof saveBetPrefs === 'function') saveBetPrefs({ lastType: pickedType, lastWager: pickedWager, lastConfidence: conf, lastMode: pickedMode });
+    // 🤖 v3.14.0 — auto-bet activation
+    const autoBet = document.getElementById('autoBetCheck')?.checked;
+    if (autoBet && typeof saveAutoBetState === 'function'){
+      saveAutoBetState({ active: true, count: 0, type: pickedType, wager: pickedWager, confidence: conf });
+      if (typeof showToast === 'function') showToast('🤖 AUTO-BET ENABLED · re-places after each match', 'level');
+    }
     const t = BET_TYPES.find(b => b.id === pickedType);
     const msg = State._activeBet.bonus > 0 ? ` (+${(State._activeBet.bonus).toFixed(2)}x bonus)` : '';
     showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → $${State._activeBet.payout}${msg}`, 'level');
