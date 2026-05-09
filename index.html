@@ -12792,6 +12792,13 @@ class MatchScene extends Phaser.Scene {
       const dx = inp.x - p.x;
       if (Math.abs(dx) > 8) p.x += dx * 0.3;
     }
+    // 🆕 v3.22.0 — additional position smoothing from high-freq pos broadcast
+    if (Online.remotePos && Online.remotePos.x != null){
+      const dx2 = Online.remotePos.x - p.x;
+      const dy2 = Online.remotePos.y - p.y;
+      if (Math.abs(dx2) > 4) p.x += dx2 * 0.4;
+      if (Math.abs(dy2) > 8) p.y += dy2 * 0.3;
+    }
     // edge detection for jump press / release
     const prev = this._lastRemoteJumpDown || false;
     const cur  = !!inp.jumpDown;
