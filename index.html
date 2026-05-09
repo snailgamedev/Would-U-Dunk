@@ -5966,6 +5966,49 @@ class MatchScene extends Phaser.Scene {
     if (this._dunking) return;
     this._dunking = true;
     State.usedDunk = true;
+    // 🆕 v3.1.0 — CINEMATIC CPU DUNK — slow-mo zoom + dramatic flash + signature label per archetype
+    if (player.isCpu){
+      try {
+        const tier = State.rolls?.cpuTiers?.[player.idx];
+        const archId = tier?._npc?.archetypeBaseId || tier?._npc?.archetypeId || 'baller';
+        const sig = ({
+          slasher:    '⚔ EURO STEP',
+          showtime:   '🌟 SHOWTIME 360',
+          paint_beast:'💪 RIM-WRECKER',
+          streetballer:'🔥 STREET POSTER',
+          closer:     '⏱ DAGGER FINISH',
+          microwave:  '⚡ INSTANT FLAME',
+          point_god:  '🎯 SURGICAL FINISH',
+          sniper:     '🎯 PULL-UP HAMMER',
+          gambler:    '🎲 ALL-IN JAM',
+          oracle:     '🔮 PROPHESIED',
+          ninja:      '🥷 SILENT POSTER',
+          shadow:     '👤 GHOST FINISH',
+          mirror:     '🪞 MIRROR IMAGE',
+          chaotic:    '💥 CHAOS HAMMER',
+          steady:     '🧊 ICE-COLD JAM',
+          glue_guy:   '🤝 TEAM JAM',
+          enigma:     '❓ UNREAL FINISH',
+          prophet:    '✝️ ANOINTED THROW-DOWN',
+          clown:      '🤡 CIRCUS DUNK',
+          baller:     '🏀 SIGNATURE SLAM',
+        })[archId] || '🏀 SIGNATURE SLAM';
+        // dramatic camera zoom-pan to the dunk point
+        this.cameras.main.zoomTo(1.18, 280, 'Sine.easeInOut');
+        this.cameras.main.pan(target.x, target.y - 40, 280, 'Sine.easeInOut');
+        this.cameras.main.flash(180, 255, 215, 110, false);
+        this.cameras.main.shake(280, 0.012);
+        // signature label
+        const sigT = this.add.text(target.x, target.y - 140, sig, {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:36, color:'#ffd76e', stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION).setScale(0.4).setScrollFactor(0).setPosition(VIEW_W/2, VIEW_H/2 - 100);
+        this.tweens.add({ targets:sigT, scale:1.3, duration:200, ease:'Back.out', onComplete:()=>{
+          this.tweens.add({ targets:sigT, alpha:0, y:sigT.y - 60, duration:1200, onComplete:()=>sigT.destroy() });
+        }});
+        // restore camera after 600ms (slow-mo feel)
+        this.time.delayedCall(600, () => {
+          try { this.cameras.main.zoomTo(1.0, 220, 'Sine.easeInOut'); } catch(e){}
+        });
+      } catch(e){}
+    }
     if (State.matchStats?.[player.idx]) State.matchStats[player.idx].dunks += 1;
     // 🆕 v2.16.6 — daily-objective dunk hook (player only)
     if (player.idx === 0 && typeof trackDailyObjective === 'function') trackDailyObjective('dunks', 1);
