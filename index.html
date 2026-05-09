@@ -4902,8 +4902,19 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.7.0';
+const VERSION = 'v3.8.0';
 const CHANGELOG = [
+  { v:'v3.8.0', notes:[
+      '🎯 OPERATION SMOOTH OPERATOR — polish pass · clean menu · smooth music · in-game popups · replay top moments · dunking fix.',
+      '🚫 NO MORE NATIVE DENIED POPUPS — all `confirm()` / `prompt()` / `alert()` calls replaced w/ in-game styled corner modals. UI stays interactive · no system-look dialogs.',
+      '🎵 SMOOTH MUSIC CROSSFADE — switching tracks now fades old out (400ms) while new fades in. No more harsh cuts when entering screens.',
+      '🩹 DUNK CAMERA FIX — added safety restore in update loop · if zoom > 1.0 + no active dunk → smooth zoom back to 1.0 within 800ms. No more stuck zoom.',
+      '📺 REPLAY TOP MOMENTS · ACTUAL PLAYBACK — every highlight now has ▶ REPLAY button · enlarges captured frame in cinematic overlay · ghost-arc animation overlays the shot · 3-second replay loop.',
+      '🏠 MAIN MENU HUB REDESIGN — splash now CLEAN: hero PLAY button · 4 category hubs (🏀 PLAY · 🏆 PROGRESS · 🛒 ECONOMY · ⚙ MORE) · each opens dedicated sub-screen w/ related buttons · navigation way easier.',
+      '🎨 ALL ORIGINAL BUTTONS PRESERVED — every screen + feature from v3.7 still accessible · just better organized through hubs.',
+      '✨ ANIMATED HUB TRANSITIONS — fade-in when entering hubs · breadcrumb back nav.',
+      '✝️ "He maketh my way perfect" — Ps 18:32 · clean · smooth · easy to find',
+  ]},
   { v:'v3.7.0', notes:[
       '📱 OPERATION MOBILE COOK — full mobile playability + accessibility + availability pass. iPhone · iPad · Android · all sizes finally feeling FIRST CLASS.',
       '🏠 PWA INSTALLABLE — web manifest + service worker registered · "Add to Home Screen" prompt · installs as standalone app · offline-cached after first load.',
