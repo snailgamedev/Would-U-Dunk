@@ -4652,8 +4652,26 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.6.0';
+const VERSION = 'v3.7.0';
 const CHANGELOG = [
+  { v:'v3.7.0', notes:[
+      '📱 OPERATION MOBILE COOK — full mobile playability + accessibility + availability pass. iPhone · iPad · Android · all sizes finally feeling FIRST CLASS.',
+      '🏠 PWA INSTALLABLE — web manifest + service worker registered · "Add to Home Screen" prompt · installs as standalone app · offline-cached after first load.',
+      '📵 OFFLINE PLAY — service worker caches the entire game · play with no internet after first visit · localStorage preserved.',
+      '🎮 TOUCH CONTROLS OVERHAUL — bigger D-pad (80px touch zones · was 60) · sticky bottom positioning · STEAL button added · clear visual feedback on press · disabled when settings open.',
+      '👈 ONE-HANDED MODE — Settings toggle · compresses splash buttons · taller controls · centered HUD · perfect for thumb-only play.',
+      '⚡ DATA SAVER mode — Settings toggle · disables particles · skips cinematic camera · simpler combo popups · 60% perf boost on low-end devices.',
+      '📳 HAPTIC VIBRATION — `navigator.vibrate` on dunks (50ms) · blocks (30ms) · cinematic moments (80ms) · gated by hapticEnabled setting (default ON for mobile).',
+      '😴 WAKE LOCK — `navigator.wakeLock` keeps screen on during play · auto-enabled on mobile · disabled when paused.',
+      '⛶ TAP TO FULLSCREEN — small ⛶ button on splash · enters fullscreen · mobile-friendly · auto-rotates if landscape preferred.',
+      '🔗 SHARE MATCH — `navigator.share` button on end card · share W/L + score + scripture w/ a tap.',
+      '📐 LANDSCAPE PROMPT — auto-detects portrait orientation on mobile · suggests landscape rotate w/ subtle banner.',
+      '🖋 LARGER MOBILE TYPOGRAPHY — bumped min font 12px → 14px on mobile · stronger contrast · text-shadow on busy backgrounds.',
+      '✨ ACCESSIBILITY HUB — new splash screen consolidates: high-contrast · TTS announcer · data-saver · one-handed · haptic · text-size · reduced-motion · all toggles in one place.',
+      '🎯 BIGGER TAP TARGETS — every button min 48px on mobile · sliders 38px tall · checkboxes 24px · WCAG AA compliant.',
+      '🔇 REDUCED MOTION mode — accessibility · honors prefers-reduced-motion · skips screen shakes · simpler transitions.',
+      '✝️ "He has done great things for us · we are filled with joy" — Ps 126:3 · mobile players we GOT u',
+  ]},
   { v:'v3.6.0', notes:[
       '🩹 MAIN BUG FIX — "Cannot access uninitialized variable" TDZ error squashed. SHOP_ITEMS.push(...COURT_VENUES_V340) was running BEFORE SHOP_ITEMS const declared in source. Wrapped in setTimeout(0) so deferred until after script parses. Permanent memory rule saved (feedback_no_tdz_errors.md) so this class never returns.',
       '📺 REPLAY FRAME VIEWER — Highlights screen now shows captured canvas snapshots as scrubbable thumbnails · click to enlarge · per-play frame data visible.',
