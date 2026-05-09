@@ -8823,6 +8823,17 @@ function renderMpOverlay(){
   document.getElementById('mpReconnect').onclick = () => Online.reconnect();
   document.getElementById('mpHuddle').onclick = () => Online.startPrayerHuddle();
   document.getElementById('mpClose').onclick = () => { wrap.remove(); };
+  // 🆕 v3.24.0 — tap pill to expand on mobile
+  if (wrap.classList.contains('collapsed')){
+    wrap.onclick = (e) => {
+      if (e.target.id === 'mpPill' || e.target === wrap){
+        window._mpOverlayExpanded = true;
+        renderMpOverlay();
+      }
+    };
+  } else {
+    document.getElementById('mpClose').addEventListener('click', () => { window._mpOverlayExpanded = false; });
+  }
 }
 // auto-render MP overlay when connected · poll every 2s for ping refresh
 setInterval(() => { try { if (Online.connected) renderMpOverlay(); } catch(e){} }, 2000);
