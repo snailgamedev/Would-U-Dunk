@@ -17542,11 +17542,13 @@ const ThemeAudio = {
     const p = this.palettes[themeId] || this.palettes.classic;
     try {
       if (typeof MUSIC !== 'undefined'){
-        if (MUSIC.setBpm)     MUSIC.setBpm(p.bpm);
-        if (MUSIC.setScale)   MUSIC.setScale(p.scale);
-        if (MUSIC.setIntensity) MUSIC.setIntensity(0.85);
+        // defensive — MUSIC engine may not have setBpm/setScale; fall back to intensity nudge
+        if (typeof MUSIC.setBpm === 'function')      MUSIC.setBpm(p.bpm);
+        if (typeof MUSIC.setScale === 'function')    MUSIC.setScale(p.scale);
+        if (typeof MUSIC.setIntensity === 'function') MUSIC.setIntensity(0.85);
+        // store palette for future MUSIC reads
+        window._wudThemeAudio = p;
       }
-      if (typeof showToast === 'function') showToast(`🎵 ${p.bpm}bpm · ${p.scale}`, 'level');
     } catch(e){}
   },
   test(themeId){
