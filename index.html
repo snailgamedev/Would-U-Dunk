@@ -5814,7 +5814,23 @@ class MatchScene extends Phaser.Scene {
     if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
     // 🆕 v2.26.0 — GAMBLE bet tracking: first-scorer + logo-splash flags
     if (State._firstScorer == null) State._firstScorer = scorerIdx;
-    if (scorerIdx === 0 && zoneVal >= 5) State._p1LogoMade = true;
+    if (scorerIdx === 0 && zoneVal >= 5){
+      State._p1LogoMade = true;
+      if (typeof bumpRecord === 'function') bumpRecord('logoMade', (loadRecords().logoMade||0) + 1);
+    }
+    // 🆕 v3.0.0 — ASCENSION · COMBO NAME ENGINE — escalating popups for both sides
+    if (typeof fireComboName === 'function') fireComboName(this, scorerIdx, State.bucketStreak[scorerIdx]);
+    // 🆕 v3.0.0 — ASCENSION · CROWD REACTION strings on big plays
+    if (typeof fireCrowdReaction === 'function') fireCrowdReaction(this, points, zoneVal, State.bucketStreak[scorerIdx]);
+    // 🆕 v3.0.0 — ASCENSION · SPECTATOR COMMENTARY (CPU vs CPU)
+    if (typeof pushCommentary === 'function' && State.cfg && State.cfg.cpuVsCpu){
+      pushCommentary(this, scorerIdx, points, zoneVal);
+    }
+    // 🆕 v3.0.0 — ASCENSION · MOMENTUM tracker
+    if (!State._momentum) State._momentum = 0;
+    State._momentum += (scorerIdx === 0 ? 1 : -1) * Math.min(3, points);
+    State._momentum = Math.max(-15, Math.min(15, State._momentum));
+    if (typeof updateMomentumBar === 'function') updateMomentumBar(this);
     // 🆕 v2.13.28 — daily objective progress
     if (scorerIdx === 0 && typeof trackDailyObjective === 'function'){
       trackDailyObjective('buckets', 1);
