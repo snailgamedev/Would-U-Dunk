@@ -16874,6 +16874,417 @@ setTimeout(() => {
   setTimeout(() => obs.observe(document.body, { childList: true, subtree: true }), 1500);
 })();
 
+/* ════════════════════════════════════════════════════════════
+   🆕 v3.27.0 OPERATION GAP CRUSHER — geo theme · MP · LB · stubs
+   ════════════════════════════════════════════════════════════ */
+
+// ━━━━━━━ 1) GEO THEME — FULL UI OVERHAUL ━━━━━━━
+const ThemeEngine = {
+  active: 'classic',
+  themes: {
+    'classic':       { name:'CLASSIC',        bg:'linear-gradient(180deg,#000,#0a1530)', panel:'rgba(0,4,18,.85)', accent:'#ffd76e', text:'#fff', btn:'#1a1a3a', emoji:'🏀' },
+    'holy-land':     { name:'HOLY LAND',      bg:'linear-gradient(180deg,#1a0e02,#7a5a14,#ffd76e)', panel:'rgba(26,14,2,.92)', accent:'#ffd76e', text:'#ffead0', btn:'#3a2010', emoji:'✝️' },
+    'asia-morning':  { name:'ASIA AM',        bg:'linear-gradient(180deg,#fff,#ffd6e5,#ff9ad4)', panel:'rgba(255,250,253,.92)', accent:'#ff66cc', text:'#1a0010', btn:'#ffd6e5', emoji:'🌸' },
+    'asia-evening':  { name:'ASIA NIGHT',     bg:'linear-gradient(180deg,#0a0a2e,#5a1a8c)', panel:'rgba(10,10,46,.92)', accent:'#ff66cc', text:'#fff', btn:'#3a1a5c', emoji:'🌃' },
+    'usa-morning':   { name:'USA MORN',       bg:'linear-gradient(180deg,#0066cc44,#00000099,#003d80)', panel:'rgba(0,30,80,.85)', accent:'#fff', text:'#fff', btn:'#003d80', emoji:'🌅' },
+    'usa-afternoon': { name:'USA NIGHT',      bg:'linear-gradient(180deg,#001a4d,#003366,#0f1f3a)', panel:'rgba(0,15,40,.9)', accent:'#ff3b3b', text:'#fff', btn:'#0a2a5c', emoji:'🌌' },
+    'euro-classic':  { name:'EUROPE',         bg:'linear-gradient(180deg,#1a1a3a,#3a3a6c,#6c6c9c)', panel:'rgba(20,20,40,.88)', accent:'#9cf', text:'#fff', btn:'#2a2a5c', emoji:'🏰' },
+    'savanna':       { name:'SAVANNA',        bg:'linear-gradient(180deg,#3d2817,#7a5a14,#cc8a14)', panel:'rgba(40,25,12,.9)', accent:'#fc6', text:'#fff8e0', btn:'#5a3818', emoji:'🦁' },
+    // 🆕 v3.27.0 — 5 NEW themes
+    'christ-king':   { name:'CHRIST KING',    bg:'linear-gradient(180deg,#0a0028,#3a0066,#ffd76e)', panel:'rgba(20,0,60,.92)', accent:'#ffd76e', text:'#ffead0', btn:'#3a1066', emoji:'👑' },
+    'sunrise':       { name:'SUNRISE',        bg:'linear-gradient(180deg,#ff8a3c,#ffd76e,#fff5d0)', panel:'rgba(255,138,60,.85)', accent:'#fff', text:'#1a0010', btn:'#ff6630', emoji:'🌄' },
+    'midnight':      { name:'MIDNIGHT COURT', bg:'linear-gradient(180deg,#000,#0a0a14,#1a0a2a)', panel:'rgba(0,0,0,.95)', accent:'#9cf', text:'#9cf', btn:'#0a0a14', emoji:'🌙' },
+    'gold-rush':     { name:'GOLD RUSH',      bg:'linear-gradient(180deg,#1a0e02,#7a5a14,#ffd76e,#fff5d0)', panel:'rgba(40,30,5,.92)', accent:'#fff', text:'#fff5d0', btn:'#7a5a14', emoji:'🏆' },
+    'arctic':        { name:'ARCTIC',         bg:'linear-gradient(180deg,#e0f0ff,#a0c8e8,#5090c0)', panel:'rgba(255,255,255,.85)', accent:'#0066cc', text:'#001a4d', btn:'#a0c8e8', emoji:'❄️' },
+  },
+  load(){
+    try { this.active = localStorage.getItem('wud:theme:v327') || 'classic'; } catch(e){}
+    if (!this.themes[this.active]) this.active = 'classic';
+  },
+  apply(id){
+    if (!this.themes[id]) return;
+    this.active = id;
+    try { localStorage.setItem('wud:theme:v327', id); } catch(e){}
+    const t = this.themes[id];
+    this.injectStyle(t);
+    // count distinct themes tried for achievement
+    try {
+      const tried = JSON.parse(localStorage.getItem('wud:themesTried') || '[]');
+      if (!tried.includes(id)) { tried.push(id); localStorage.setItem('wud:themesTried', JSON.stringify(tried)); }
+      if (tried.length >= 5) try { unlockAchievement('theme_pilgrim'); } catch(e){}
+    } catch(e){}
+  },
+  injectStyle(t){
+    let s = document.getElementById('themeEngineCss');
+    if (!s){ s = document.createElement('style'); s.id = 'themeEngineCss'; document.head.appendChild(s); }
+    s.textContent = `
+      body { background: ${t.bg} !important; color: ${t.text} !important; transition: background 800ms ease; }
+      .panel { background: ${t.panel} !important; color: ${t.text} !important; border-color: ${t.accent}55 !important; }
+      .btn { background: ${t.btn} !important; color: ${t.text} !important; border: 1px solid ${t.accent}33; }
+      .btn:hover { background: ${t.accent}44 !important; }
+      .btn.hot, .btn.primary { background: linear-gradient(135deg, ${t.accent}, ${t.btn}) !important; color: ${t.text} !important; }
+      .title, .subtitle { color: ${t.accent} !important; }
+      #scoreL, #scoreR { color: ${t.accent} !important; text-shadow: 0 0 8px ${t.accent}88 !important; }
+      #scripture { background: ${t.panel} !important; border-color: ${t.accent} !important; color: ${t.text} !important; }
+      .lvlbar { background: ${t.panel} !important; }
+      .toast { background: ${t.panel} !important; color: ${t.text} !important; border: 1px solid ${t.accent}66; }
+      .modalCard { background: ${t.bg} !important; color: ${t.text} !important; border: 2px solid ${t.accent}88; }
+      .modalCard .head { background: ${t.btn} !important; color: ${t.accent} !important; }
+    `;
+  },
+  pick(){
+    if (typeof showModal !== 'function') return;
+    const ids = Object.keys(this.themes);
+    const body = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      ${ids.map(id => {
+        const t = this.themes[id];
+        const live = this.active === id;
+        return `<button class="btn" style="padding:14px;background:${t.bg};color:${t.text};border:${live?'3px solid '+t.accent:'1px solid #fff3'};display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:900" onclick="ThemeEngine.apply('${id}');closeModal&&closeModal();showToast&&showToast('${t.emoji} ${t.name} adopted','level');setTimeout(()=>ThemeEngine.pick(),200);">
+          <span style="font-size:28px">${t.emoji}</span>
+          <span>${t.name}</span>
+          ${live?'<span style="font-size:10px;color:'+t.accent+'">✓ ACTIVE</span>':''}
+        </button>`;
+      }).join('')}
+    </div>
+    <div style="font-size:11px;opacity:.7;text-align:center;margin-top:10px">"Let your light shine before others" — Matt 5:16</div>`;
+    showModal('🌎 PICK A THEME · GLOBAL', body, [{label:'CLOSE', tone:'gold'}]);
+  }
+};
+ThemeEngine.load(); ThemeEngine.apply(ThemeEngine.active);
+
+// ━━━━━━━ 2) MP — VERIFY + AUTO-RECONNECT ━━━━━━━
+const MpFix = {
+  reconnectAttempts: 0,
+  init(){
+    // ensure PeerJS loaded; if not, try injecting
+    setTimeout(() => {
+      if (typeof Peer === 'undefined'){
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+        s.onload = () => { if (typeof showToast === 'function') showToast('🌐 PeerJS loaded · MP ready', 'level'); };
+        document.head.appendChild(s);
+      }
+    }, 1500);
+    // auto-reconnect on heartbeat fail
+    setInterval(() => {
+      try {
+        if (typeof Online === 'undefined') return;
+        if (!Online.connected || !Online.lastHeartbeat) return;
+        const since = Date.now() - Online.lastHeartbeat;
+        if (since > 15000 && this.reconnectAttempts < 3 && Online.lastCode){
+          this.reconnectAttempts++;
+          if (typeof showToast === 'function') showToast(`🔄 AUTO-RECONNECT attempt ${this.reconnectAttempts}/3`, 'level');
+          Online.reconnect();
+          setTimeout(() => { if (Online.connected) this.reconnectAttempts = 0; }, 4000);
+        }
+      } catch(e){}
+    }, 5000);
+    // ensure MP overlay shows in match too
+    setInterval(() => {
+      try {
+        if (typeof Online === 'undefined' || !Online.connected) return;
+        if (!document.getElementById('mpOverlay') && typeof renderMpOverlay === 'function') renderMpOverlay();
+      } catch(e){}
+    }, 3000);
+    // on first MP match end, unlock achievement
+    setInterval(() => {
+      try {
+        if (Online && Online.connected && State && State.matchOver) unlockAchievement('mp_verified');
+      } catch(e){}
+    }, 8000);
+  },
+  testConnection(){
+    if (typeof Peer === 'undefined'){
+      if (typeof showToast === 'function') showToast('⚠ PeerJS not loaded — refresh page', 'allpro');
+      return;
+    }
+    if (typeof showToast === 'function') showToast('🌐 Testing PeerJS broker connection...', 'level');
+    try {
+      const test = new Peer();
+      test.on('open', (id) => {
+        if (typeof showToast === 'function') showToast('✅ PeerJS broker reachable · ID: ' + id.slice(0,8) + '...', 'level');
+        setTimeout(() => test.destroy(), 1000);
+      });
+      test.on('error', (e) => {
+        if (typeof showToast === 'function') showToast('⚠ MP broker error: ' + e.type, 'allpro');
+      });
+    } catch(e){}
+  }
+};
+MpFix.init();
+
+// ━━━━━━━ 3) SUPERNOVA LEADERBOARD ━━━━━━━
+const Supernova = {
+  // gather all known leaderboard sources
+  collectAllBoards(){
+    const boards = [];
+    try {
+      // weekly mobile
+      boards.push({ id:'mobileWeek', name:'📱 MOBILE WEEK', icon:'📱', data: JSON.parse(localStorage.getItem('wud:lb:mobileWeek') || '[]'), scoreKey:'wins', scoreLabel:'wins' });
+      // legacy boards from v3.13+
+      const lbKeys = Object.keys(localStorage).filter(k => k.startsWith('wud:lb:'));
+      lbKeys.forEach(k => {
+        if (k === 'wud:lb:mobileWeek') return;
+        try {
+          const data = JSON.parse(localStorage.getItem(k) || '[]');
+          if (Array.isArray(data) && data.length > 0){
+            const id = k.replace('wud:lb:','');
+            boards.push({ id, name: id.toUpperCase().replace(/_/g,' '), icon:'🏆', data, scoreKey: data[0].wins ? 'wins' : (data[0].score ? 'score' : 'value'), scoreLabel: 'pts' });
+          }
+        } catch(e){}
+      });
+      // career synthesis
+      try {
+        if (typeof Career !== 'undefined'){
+          boards.push({ id:'careerWins', name:'🏅 CAREER WINS', icon:'🏅',
+            data: [{ name: currentProfileName(), wins: Career.wins||0 }], scoreKey:'wins', scoreLabel:'wins'});
+          boards.push({ id:'careerXp', name:'⭐ CAREER XP', icon:'⭐',
+            data: [{ name: currentProfileName(), wins: Career.xp||0 }], scoreKey:'wins', scoreLabel:'XP'});
+        }
+      } catch(e){}
+    } catch(e){}
+    return boards;
+  },
+  show(){
+    if (typeof menuEl === 'undefined') return;
+    const boards = this.collectAllBoards();
+    const me = (typeof currentProfileName === 'function') ? currentProfileName() : 'YOU';
+    const myThemeAccent = ThemeEngine.themes[ThemeEngine.active]?.accent || '#ffd76e';
+    let activeBoardIdx = 0;
+    let activeFilter = 'all'; // all / wins / score
+    const render = () => {
+      const board = boards[activeBoardIdx] || { name:'NO DATA', data:[], scoreKey:'wins', scoreLabel:'pts' };
+      const sorted = [...board.data].sort((a,b) => (b[board.scoreKey]||0) - (a[board.scoreKey]||0));
+      const myRank = sorted.findIndex(e => e.name === me);
+      const top3 = sorted.slice(0, 3);
+      const rest = sorted.slice(3, 20);
+      // YOUR RANK pinned
+      const myEntry = sorted[myRank];
+      const above = myRank > 0 ? sorted[myRank-1] : null;
+      const below = myRank+1 < sorted.length ? sorted[myRank+1] : null;
+      menuEl.classList.remove('hide');
+      menuEl.innerHTML = `
+        <div class="panel" style="max-width:760px;background:radial-gradient(circle at top, ${myThemeAccent}22, transparent), var(--panel-bg, #0a0a1a)">
+          <div class="title" style="text-align:center;font-size:36px;letter-spacing:3px;background:linear-gradient(90deg,${myThemeAccent},#fff,${myThemeAccent});-webkit-background-clip:text;background-clip:text;color:transparent;animation:cosmicShimmer 4s linear infinite">🌌 SUPERNOVA</div>
+          <div class="subtitle" style="text-align:center;font-size:13px;opacity:.85">cosmic leaderboard · all 48 boards in one place</div>
+          <style>
+            @keyframes cosmicShimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+            @keyframes podiumRise{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+            @keyframes crownFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+            @keyframes sparkle{0%,100%{opacity:.3}50%{opacity:1}}
+            .podium-card{animation:podiumRise .6s ease-out backwards}
+            .holo{background:linear-gradient(135deg,${myThemeAccent}aa,#fff,${myThemeAccent}aa);background-size:200% 200%;animation:cosmicShimmer 3s linear infinite}
+          </style>
+
+          <!-- BOARD CHIP SELECTOR -->
+          <div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin-bottom:12px;scrollbar-width:thin">
+            ${boards.map((b,i) => `<button class="btn" style="white-space:nowrap;padding:6px 12px;font-size:11px;background:${i===activeBoardIdx?myThemeAccent:'#0008'};color:${i===activeBoardIdx?'#000':'#fff'};border:1px solid ${myThemeAccent}66" onclick="window._snBoardIdx=${i};Supernova.show()">${b.icon} ${b.name}</button>`).join('')}
+          </div>
+
+          <!-- ANIMATED 3D PODIUM -->
+          <div style="display:flex;justify-content:center;align-items:flex-end;gap:8px;height:240px;margin:20px 0;perspective:600px">
+            ${top3[1] ? this.renderPodium(top3[1], 2, 130, '.1s', '#c0c0c0', myThemeAccent, board.scoreKey, board.scoreLabel) : '<div style="width:120px;opacity:.3">—</div>'}
+            ${top3[0] ? this.renderPodium(top3[0], 1, 180, '.0s', '#ffd700', myThemeAccent, board.scoreKey, board.scoreLabel, true) : '<div style="width:120px;opacity:.3">—</div>'}
+            ${top3[2] ? this.renderPodium(top3[2], 3, 100, '.2s', '#cd7f32', myThemeAccent, board.scoreKey, board.scoreLabel) : '<div style="width:120px;opacity:.3">—</div>'}
+          </div>
+
+          <!-- YOUR RANK PINNED -->
+          ${myEntry ? `
+          <div style="background:linear-gradient(90deg,${myThemeAccent}44,transparent);border:2px solid ${myThemeAccent};border-radius:14px;padding:12px;margin:12px 0">
+            <div style="font-size:11px;opacity:.85;letter-spacing:2px;font-weight:900;color:${myThemeAccent}">⭐ YOUR RANK · #${myRank+1} of ${sorted.length}</div>
+            <div style="display:flex;justify-content:space-around;align-items:center;margin-top:6px;font-size:13px">
+              ${above ? `<div style="opacity:.6">↑ #${myRank} · ${above.name} · ${above[board.scoreKey]||0}</div>` : '<div></div>'}
+              <div style="font-weight:900;font-size:18px;color:${myThemeAccent}">#${myRank+1} · ${myEntry.name} · ${myEntry[board.scoreKey]||0} ${board.scoreLabel}</div>
+              ${below ? `<div style="opacity:.6">↓ #${myRank+2} · ${below.name} · ${below[board.scoreKey]||0}</div>` : '<div></div>'}
+            </div>
+          </div>` : ''}
+
+          <!-- REST OF LB -->
+          <div style="background:#0006;border-radius:10px;padding:8px;max-height:300px;overflow-y:auto">
+            ${rest.length === 0 ? '<div style="text-align:center;padding:20px;opacity:.5">no other entries · invite your friends!</div>' : rest.map((e,i) => `
+              <div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid ${myThemeAccent}22;font-size:13px;${e.name===me?'background:'+myThemeAccent+'22;border-radius:6px':''}">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="opacity:.6;width:24px">#${i+4}</span>
+                  <span style="font-weight:700">${e.name}</span>
+                  ${e.trend === 'up' ? '<span style="color:#0f0">↑</span>' : (e.trend === 'down' ? '<span style="color:#f44">↓</span>' : '')}
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-weight:900">${e[board.scoreKey]||0}</span>
+                  <button onclick="Supernova.shareEntry('${(e.name||'').replace(/'/g,'')}',${e[board.scoreKey]||0},'${board.scoreLabel}')" style="background:none;border:none;color:${myThemeAccent};cursor:pointer;font-size:14px">📤</button>
+                </div>
+              </div>`).join('')}
+          </div>
+
+          <div style="display:flex;gap:6px;margin-top:12px">
+            <button class="btn" id="snRefresh" style="flex:1">🔄 REFRESH</button>
+            <button class="btn" id="snShareLb" style="flex:1">📤 SHARE LB</button>
+            <button class="btn" id="snBack" style="flex:1;background:${myThemeAccent};color:#000">← BACK</button>
+          </div>
+        </div>`;
+      document.getElementById('snBack').onclick = showSplash;
+      document.getElementById('snRefresh').onclick = () => Supernova.show();
+      document.getElementById('snShareLb').onclick = () => Supernova.shareLB(board);
+      // music swell
+      try { if (typeof MUSIC !== 'undefined') MUSIC.setIntensity(1.2); } catch(e){}
+      // sparkle particles for top 3
+      this.injectSparkles();
+      // check if I'm #1 → unlock cosmic
+      if (myRank === 0) try { unlockAchievement('lb_cosmic'); } catch(e){}
+    };
+    if (typeof window._snBoardIdx === 'number') activeBoardIdx = window._snBoardIdx;
+    render();
+  },
+  renderPodium(entry, place, height, delay, color, accent, scoreKey, scoreLabel, isFirst){
+    const initial = (entry.name||'?').slice(0,1).toUpperCase();
+    return `<div class="podium-card" style="animation-delay:${delay};display:flex;flex-direction:column;align-items:center;width:120px">
+      ${isFirst ? `<div style="font-size:36px;animation:crownFloat 2s ease-in-out infinite;margin-bottom:-10px;text-shadow:0 0 18px ${accent}">👑</div>` : ''}
+      <div class="holo" style="width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:900;color:#000;box-shadow:0 0 20px ${color}aa;border:3px solid ${color};margin-bottom:8px">${initial}</div>
+      <div style="font-weight:900;font-size:13px;text-align:center">${entry.name||'?'}</div>
+      <div style="font-size:11px;opacity:.85;color:${accent}">${entry[scoreKey]||0} ${scoreLabel}</div>
+      <div style="margin-top:6px;width:80px;background:linear-gradient(180deg,${color},${color}66);height:${height}px;border-radius:10px 10px 0 0;display:grid;place-items:center;color:#000;font-weight:900;font-size:24px;box-shadow:inset 0 8px 0 ${color}cc, 0 4px 14px ${color}88">${place}</div>
+    </div>`;
+  },
+  injectSparkles(){
+    setTimeout(() => {
+      document.querySelectorAll('.podium-card').forEach((card, idx) => {
+        for (let i = 0; i < 6; i++){
+          const s = document.createElement('span');
+          s.textContent = '✨';
+          s.style.cssText = `position:absolute;font-size:${10+Math.random()*8}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:sparkle ${1+Math.random()*1.5}s ease-in-out infinite;animation-delay:${Math.random()*2}s;pointer-events:none`;
+          card.style.position = 'relative';
+          card.appendChild(s);
+        }
+      });
+    }, 100);
+  },
+  shareEntry(name, score, label){
+    if (navigator.share){
+      navigator.share({ title:'Would U Dunk · Supernova LB', text:`${name} sits at ${score} ${label} 🏀✝️ catch them at`, url:'https://snailgamedev.github.io/Would-U-Dunk/' }).catch(()=>{});
+    } else { if (typeof showToast === 'function') showToast(`${name}: ${score} ${label}`, 'level'); }
+  },
+  shareLB(board){
+    const top = (board.data||[]).slice(0,3).map(e => `${e.name} · ${e[board.scoreKey]||0}`).join(' | ');
+    if (navigator.share){
+      navigator.share({ title:'WUD ' + board.name, text:'Top 3: ' + top, url:'https://snailgamedev.github.io/Would-U-Dunk/' }).catch(()=>{});
+    } else { if (typeof showToast === 'function') showToast(top, 'level'); }
+  }
+};
+
+// ━━━━━━━ 4) STUB CRUSHER ━━━━━━━
+const StubCrusher = {
+  init(){
+    // PWA install day-0 for mobile
+    setTimeout(() => {
+      if (typeof MobileBeast !== 'undefined' && MobileBeast.installPrompt && IS_MOBILE){
+        const days = (Date.now() - (MobileBeast.pwaPromptDismissedAt||0)) / 86400000;
+        if (days > 0.5) MobileBeast.showPwaPrompt();
+      }
+    }, 6000);
+    // Mirror replay → MP4 via MediaRecorder
+    if (typeof MobileTitan !== 'undefined'){
+      MobileTitan.exportReplayMp4 = async function(){
+        try {
+          const c = document.querySelector('canvas');
+          if (!c || !c.captureStream){ if (typeof showToast==='function') showToast('Canvas capture not supported', 'allpro'); return; }
+          const stream = c.captureStream(30);
+          const chunks = [];
+          const rec = new MediaRecorder(stream, { mimeType:'video/webm;codecs=vp9' });
+          rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+          rec.onstop = () => {
+            const blob = new Blob(chunks, { type:'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'wud-replay-' + Date.now() + '.webm'; a.click();
+            try { unlockAchievement('replay_maker'); } catch(e){}
+            if (typeof showToast==='function') showToast('🎬 REPLAY EXPORTED', 'level');
+            stream.getTracks().forEach(t => t.stop());
+          };
+          rec.start();
+          if (typeof showToast==='function') showToast('🎬 Recording 8s...', 'level');
+          setTimeout(() => { try { rec.stop(); } catch(e){} }, 8000);
+        } catch(e){ if (typeof showToast==='function') showToast('Export failed: ' + e.message, 'allpro'); }
+      };
+    }
+    // Voice training screen
+    if (typeof MobileTitan !== 'undefined'){
+      MobileTitan.openVoiceTraining = function(){
+        if (typeof showModal !== 'function') return;
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem('wud:voiceTrain') || '{}'); } catch(e){}
+        const body = `
+          <div style="display:grid;gap:10px;font-size:13px">
+            <div style="opacity:.85">Record up to 3 custom phrases — they'll trigger SHOOT, STEAL, JUMP.</div>
+            ${['shoot','steal','jump'].map(action => `
+              <div style="background:#0006;padding:10px;border-radius:10px">
+                <div style="font-weight:900;margin-bottom:4px;text-transform:uppercase">${action}</div>
+                <div style="font-size:11px;opacity:.7;margin-bottom:6px">phrase: <b>${saved[action] || '(none yet)'}</b></div>
+                <input id="vt_${action}" placeholder="e.g. homie shoot" value="${saved[action]||''}" style="width:100%;padding:6px;background:#000;color:#fff;border:1px solid #ffd76e;border-radius:6px;font-size:12px"/>
+              </div>`).join('')}
+            <button class="btn" style="background:#ffd76e;color:#000;font-weight:900" onclick="
+              const phrases = {};
+              ['shoot','steal','jump'].forEach(a => { const v = (document.getElementById('vt_'+a)||{}).value || ''; if (v.trim()) phrases[a] = v.trim().toLowerCase(); });
+              localStorage.setItem('wud:voiceTrain', JSON.stringify(phrases));
+              if (Object.keys(phrases).length) try { unlockAchievement('voice_trained'); } catch(e){}
+              showToast && showToast('🎙 ' + Object.keys(phrases).length + ' phrases saved', 'level');
+              closeModal && closeModal();
+            ">SAVE PHRASES</button>
+            <div style="font-size:10px;opacity:.6;text-align:center">Voice command must be ON for these to fire.</div>
+          </div>`;
+        showModal('🎙 VOICE TRAINING', body, [{label:'CLOSE'}]);
+      };
+    }
+  }
+};
+StubCrusher.init();
+
+// inline SVG hoop AR fallback (richer than CSS)
+if (typeof MobileTitan !== 'undefined'){
+  const _arOrig = MobileTitan.arHoop ? MobileTitan.arHoop.bind(MobileTitan) : null;
+  MobileTitan.arHoop = function(){
+    if (typeof showModal !== 'function') return;
+    const svg = `<svg viewBox="0 0 200 200" width="220" height="220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rim" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff8a3c"/><stop offset="100%" stop-color="#cc4a00"/></radialGradient>
+        <linearGradient id="board" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#888"/></linearGradient>
+      </defs>
+      <rect x="60" y="20" width="80" height="60" rx="4" fill="url(#board)" stroke="#000" stroke-width="2"/>
+      <rect x="80" y="40" width="40" height="30" fill="none" stroke="#ff3b3b" stroke-width="2"/>
+      <ellipse cx="100" cy="90" rx="40" ry="10" fill="none" stroke="url(#rim)" stroke-width="6"/>
+      <path d="M65 90 Q100 130 135 90" stroke="#fff" stroke-width="1" fill="none"/>
+      <path d="M70 95 L75 130 M80 95 L82 135 M90 98 L92 138 M100 100 L100 140 M110 98 L108 138 M120 95 L118 135 M130 95 L125 130" stroke="#fff" stroke-width="1" fill="none"/>
+      <line x1="100" y1="90" x2="100" y2="180" stroke="#888" stroke-width="3"/>
+      <ellipse cx="100" cy="180" rx="20" ry="4" fill="#666"/>
+      <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="8s" repeatCount="indefinite"/>
+    </svg>`;
+    const haveXR = !!(navigator.xr && navigator.xr.isSessionSupported);
+    const body = `<div style="text-align:center;padding:14px">
+      <div style="display:inline-block;padding:14px;background:radial-gradient(circle,#0a0a14,#000);border-radius:14px">${svg}</div>
+      <div style="margin-top:14px;font-size:13px;line-height:1.5">${haveXR ? '🤳 WebXR supported · launching...' : '🤳 WebXR not on this device · enjoy the inline preview'}</div>
+      <div style="font-size:11px;opacity:.7;margin-top:6px">"Lift up your eyes and look around" — Isa 49:18</div>
+    </div>`;
+    showModal('🤳 AR HOOP PREVIEW', body, [{label:'CLOSE', tone:'gold'}]);
+    if (haveXR) navigator.xr.isSessionSupported('immersive-ar').catch(()=>{});
+  };
+}
+
+// PIP — proper canvas capture with playback control
+if (typeof MobileBeast !== 'undefined'){
+  MobileBeast.togglePip = async function(){
+    try {
+      const c = document.querySelector('canvas');
+      if (!c || !c.captureStream){ if (typeof showToast==='function') showToast('PIP requires Chrome/Edge mobile', 'allpro'); return; }
+      const stream = c.captureStream(30);
+      let v = document.getElementById('pipVid');
+      if (!v){ v = document.createElement('video'); v.id = 'pipVid'; v.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(v); }
+      v.srcObject = stream; v.muted = true;
+      await v.play();
+      if (v.requestPictureInPicture){
+        await v.requestPictureInPicture();
+        if (typeof showToast==='function') showToast('📺 PIP active', 'level');
+      } else { if (typeof showToast==='function') showToast('PIP API unavailable', 'allpro'); }
+    } catch(e){ if (typeof showToast==='function') showToast('PIP failed: '+e.message, 'allpro'); }
+  };
+}
+
 // POLISH 5: geo theme manual override picker (in panel)
 MobileTitan.pickGeoTheme = function(){
   if (typeof showModal !== 'function') return;
