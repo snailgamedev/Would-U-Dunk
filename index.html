@@ -5161,8 +5161,22 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.8.0';
+const VERSION = 'v3.9.0';
 const CHANGELOG = [
+  { v:'v3.9.0', notes:[
+      '🌗 OPERATION OPPOSITES + POLISH — extending hot/cold patterns across entire game · readability pass · QoL fixes · creative bonuses.',
+      '🔥❄️ OPPOSITES SYSTEM — full mirror pattern across 8 systems: HOT/COLD ZONES (already · enhanced display) · HOT/COLD STREAKS (matching CPU dynamic form) · LUCKY/UNLUCKY events · HERO/VILLAIN player rep · BOOM/BUST cash multipliers · SUNSHINE/STORM court mood · MENTOR (anti-rival · CPU you keep losing to) · FRONTRUNNER bet (anti-underdog · 1.3x for picking the favorite).',
+      '📜 SCROLL POSITION MEMORY — every screen now remembers your scroll position · backing out + returning lands you exactly where you left off · sessionStorage-scoped per screen.',
+      '🖋 READABILITY PASS — global font bump · all panels get stronger background opacity · text-shadow on busy areas · WCAG AA contrast 4.5:1 minimum · darker panel backgrounds for clarity.',
+      '🎟 BATTLE PASS · CLAIM ALL button — one-tap claim every available reward · visual cascade · summary toast · saves like 30 taps for high-tier players.',
+      '🎰 BET SETTINGS PERSIST — last wager · last bet type · confidence default · last play-mode (PLAY/WATCH) all auto-saved · pre-filled on next visit · `wud:betPrefs:${profile}` localStorage key.',
+      '🩹 HALFTIME BUG FIXES — never fires on round 1 · doesnt overlap other banners · proper z-index · auto-dismiss timer cleared correctly · `_halftimeShownRound` reset on match start.',
+      '🛡 JS ERROR GLOBAL GUARDS — window.onerror handler · captures uncaught errors · friendly toast instead of crash · console error log preserved · graceful degradation for missing features.',
+      '🎡 FORTUNE WHEEL — daily spin · 8 wedges (cash · gems · cards · verses · cinematic boost · mystery box · double XP · bust) · 1 spin per day · animated reveal.',
+      '🧙 MENTOR SYSTEM — opposite of rivalry · 3 losses to same NPC = MENTOR declared · 1.5× learning XP from games against them · respect-builds-character flavor.',
+      '👑 STREAK CROWN BADGE — visual on profile when on 5+ win streak · gold crown · sparkle aura · pride in the moment.',
+      '✝️ "He brings down · He raises up" — 1 Sam 2:7 · opposites in tension · all working for good',
+  ]},
   { v:'v3.8.0', notes:[
       '🎯 OPERATION SMOOTH OPERATOR — polish pass · clean menu · smooth music · in-game popups · replay top moments · dunking fix.',
       '🚫 NO MORE NATIVE DENIED POPUPS — all `confirm()` / `prompt()` / `alert()` calls replaced w/ in-game styled corner modals. UI stays interactive · no system-look dialogs.',
