@@ -17515,6 +17515,305 @@ setInterval(() => {
   } catch(e){}
 }, 9000);
 
+/* ════════════════════════════════════════════════════════════
+   🆕 v3.28.0 — TITLE FIX + 5 NEW SYSTEMS
+   ════════════════════════════════════════════════════════════ */
+
+// ━━━━━━━ 1) THEME AUDIO PALETTES ━━━━━━━
+const ThemeAudio = {
+  palettes: {
+    'classic':       { bpm:120, scale:'major',     stinger:'gentle',  flavor:'#ffd76e' },
+    'holy-land':     { bpm: 88, scale:'mixolydian',stinger:'gentle',  flavor:'#ffd76e' },
+    'asia-morning':  { bpm:118, scale:'pentatonic',stinger:'bright',  flavor:'#ff66cc' },
+    'asia-evening':  { bpm:104, scale:'phrygian',  stinger:'cosmic',  flavor:'#a040ff' },
+    'usa-morning':   { bpm:128, scale:'major',     stinger:'bold',    flavor:'#9cf' },
+    'usa-afternoon': { bpm:140, scale:'minor',     stinger:'bold',    flavor:'#ff3b3b' },
+    'euro-classic':  { bpm:122, scale:'dorian',    stinger:'gentle',  flavor:'#9cf' },
+    'savanna':       { bpm: 96, scale:'mixolydian',stinger:'warm',    flavor:'#fc6' },
+    'christ-king':   { bpm: 78, scale:'mixolydian',stinger:'cosmic',  flavor:'#ffd76e' },
+    'sunrise':       { bpm:114, scale:'major',     stinger:'bright',  flavor:'#fff5d0' },
+    'midnight':      { bpm: 84, scale:'phrygian',  stinger:'cosmic',  flavor:'#9cf' },
+    'gold-rush':     { bpm:130, scale:'mixolydian',stinger:'bold',    flavor:'#ffd76e' },
+    'arctic':        { bpm: 92, scale:'minor',     stinger:'gentle',  flavor:'#0066cc' },
+  },
+  apply(themeId){
+    const p = this.palettes[themeId] || this.palettes.classic;
+    try {
+      if (typeof MUSIC !== 'undefined'){
+        if (MUSIC.setBpm)     MUSIC.setBpm(p.bpm);
+        if (MUSIC.setScale)   MUSIC.setScale(p.scale);
+        if (MUSIC.setIntensity) MUSIC.setIntensity(0.85);
+      }
+      if (typeof showToast === 'function') showToast(`🎵 ${p.bpm}bpm · ${p.scale}`, 'level');
+    } catch(e){}
+  },
+  test(themeId){
+    this.apply(themeId);
+    try {
+      if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger((this.palettes[themeId]||{}).stinger || 'gentle');
+    } catch(e){}
+  }
+};
+// override ThemeEngine.apply to also trigger audio
+(function wireThemeAudio(){
+  setTimeout(() => {
+    if (typeof ThemeEngine === 'undefined') return;
+    const _origApply = ThemeEngine.apply.bind(ThemeEngine);
+    ThemeEngine.apply = function(id){
+      _origApply(id);
+      ThemeAudio.apply(id);
+    };
+  }, 200);
+})();
+
+// ━━━━━━━ 2) QR PROFILE SYNC ━━━━━━━
+const QrSync = {
+  exportPayload(){
+    const out = {
+      v: '3.28',
+      profile: (typeof currentProfileName === 'function') ? currentProfileName() : 'PLAYER',
+      cash: parseInt(localStorage.getItem('wud:cash:'+(currentProfileName())) || '0', 10),
+      gems: parseInt(localStorage.getItem('wud:gems:'+(currentProfileName())) || '0', 10),
+      career: (typeof Career !== 'undefined') ? { wins: Career.wins, xp: Career.xp, achievements: Object.keys(Career.achievements||{}) } : null,
+      theme: (typeof ThemeEngine !== 'undefined') ? ThemeEngine.active : 'classic',
+      ts: Date.now(),
+    };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(out))));
+  },
+  importPayload(b64){
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      if (!data || data.v !== '3.28') throw new Error('version mismatch');
+      const profile = data.profile || 'IMPORTED';
+      // restore cash + gems
+      try { localStorage.setItem('wud:cash:'+profile, String(data.cash||0)); } catch(e){}
+      try { localStorage.setItem('wud:gems:'+profile, String(data.gems||0)); } catch(e){}
+      // restore achievements
+      if (data.career && data.career.achievements && typeof Career !== 'undefined'){
+        data.career.achievements.forEach(id => { Career.achievements[id] = { at: Date.now() }; });
+        Career.wins = Math.max(Career.wins||0, data.career.wins||0);
+        Career.xp = Math.max(Career.xp||0, data.career.xp||0);
+        if (typeof saveCareer === 'function') saveCareer();
+      }
+      if (data.theme && typeof ThemeEngine !== 'undefined') ThemeEngine.apply(data.theme);
+      try { unlockAchievement('cross_device'); } catch(e){}
+      if (typeof showToast === 'function') showToast('📲 IMPORTED · refresh to see all changes', 'level');
+      return true;
+    } catch(e){
+      if (typeof showToast === 'function') showToast('⚠ Import failed: ' + e.message, 'allpro');
+      return false;
+    }
+  },
+  // generate ASCII QR via simple matrix (no external lib)
+  // Uses Google Charts API as fallback for visual QR
+  showExportPanel(){
+    if (typeof showModal !== 'function') return;
+    const payload = this.exportPayload();
+    // truncate display preview
+    const short = payload.length > 60 ? payload.slice(0,60) + '...' : payload;
+    // Use qrserver.com (free public · no auth)
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(payload)}`;
+    const body = `
+      <div style="text-align:center;display:grid;gap:12px">
+        <div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;margin:0 auto"><img src="${qrUrl}" style="display:block;width:240px;height:240px" alt="profile QR"/></div>
+        <div style="font-size:13px;opacity:.85">📲 SCAN ON OTHER DEVICE → import this profile</div>
+        <div style="font-size:10px;font-family:monospace;background:#0008;padding:6px;border-radius:6px;word-break:break-all">${short}</div>
+        <button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${payload}');showToast&&showToast('📋 copied to clipboard','level');">📋 COPY PAYLOAD</button>
+        <button class="btn" onclick="QrSync.openImport();">📥 IMPORT FROM OTHER DEVICE</button>
+        <div style="font-size:11px;opacity:.7">"From the rising of the sun to its setting, the name of the LORD is to be praised" — Ps 113:3</div>
+      </div>`;
+    showModal('📲 QR PROFILE SYNC', body, [{label:'CLOSE', tone:'gold'}]);
+  },
+  openImport(){
+    if (typeof showModal !== 'function') return;
+    const body = `
+      <div style="display:grid;gap:10px;font-size:13px">
+        <div style="opacity:.85">Paste the payload from the source device:</div>
+        <textarea id="qrImport" placeholder="paste payload..." style="width:100%;min-height:80px;background:#000;color:#fff;border:1px solid #ffd76e;border-radius:6px;padding:6px;font-family:monospace;font-size:11px"></textarea>
+        <button class="btn" style="background:#ffd76e;color:#000;font-weight:900" onclick="
+          const v=document.getElementById('qrImport').value.trim();
+          if(QrSync.importPayload(v)){closeModal&&closeModal();}
+        ">IMPORT NOW</button>
+        <div style="font-size:11px;opacity:.7">⚠ Import overwrites local cash/gems/achievements (takes max of both).</div>
+      </div>`;
+    showModal('📥 IMPORT PROFILE', body, [{label:'CANCEL'}]);
+  }
+};
+
+// ━━━━━━━ 3) DAILY THEME BONUS ━━━━━━━
+const DailyTheme = {
+  themeIds(){ return Object.keys((ThemeEngine||{}).themes || {classic:1}); },
+  todays(){
+    // deterministic by date
+    const d = new Date();
+    const seed = (d.getFullYear()*1000 + d.getMonth()*40 + d.getDate()) % 99991;
+    const ids = this.themeIds();
+    return ids[seed % ids.length] || 'classic';
+  },
+  isActive(){
+    return (typeof ThemeEngine !== 'undefined') && ThemeEngine.active === this.todays();
+  },
+  bonusMul(){ return this.isActive() ? 1.20 : 1.0; },
+  recordUse(){
+    try {
+      const k = 'wud:dailyTheme:used';
+      const used = JSON.parse(localStorage.getItem(k) || '[]');
+      const today = new Date().toISOString().slice(0,10);
+      if (!used.includes(today) && this.isActive()){
+        used.push(today);
+        localStorage.setItem(k, JSON.stringify(used.slice(-30)));
+        if (used.length >= 3) try { unlockAchievement('daily_devotee'); } catch(e){}
+      }
+    } catch(e){}
+  },
+  showBadge(){
+    const old = document.getElementById('dailyThemeBadge'); if (old) old.remove();
+    const splash = document.getElementById('splash'); if (!splash) return;
+    const t = this.todays();
+    const tInfo = (ThemeEngine && ThemeEngine.themes[t]) || { name:t, emoji:'🌎', accent:'#ffd76e' };
+    const active = this.isActive();
+    const b = document.createElement('div');
+    b.id = 'dailyThemeBadge';
+    b.style.cssText = `display:inline-block;margin:6px auto;padding:4px 12px;border-radius:14px;background:${active?'linear-gradient(90deg,'+tInfo.accent+','+tInfo.accent+'88)':'#0008'};color:${active?'#000':'#fff'};font-size:11px;font-weight:900;letter-spacing:1px;border:2px solid ${tInfo.accent};cursor:pointer;text-align:center`;
+    b.innerHTML = `🪙 BLESSED THEME: ${tInfo.emoji} ${tInfo.name} ${active?'· +20% GOLD/XP ✓':'· tap to enable'}`;
+    b.onclick = () => { if (typeof ThemeEngine !== 'undefined'){ ThemeEngine.apply(t); DailyTheme.recordUse(); DailyTheme.showBadge(); } };
+    // insert after subtitle
+    const verse = document.getElementById('splashVerse');
+    if (verse && verse.parentNode) verse.parentNode.insertBefore(b, verse.nextSibling);
+    else splash.appendChild(b);
+  }
+};
+// hook badge on splash render + apply bonus mul to gold/xp awards
+setTimeout(() => {
+  const _wrap = window.showSplash;
+  if (typeof _wrap === 'function'){
+    window.showSplash = function(){ _wrap.apply(this, arguments); setTimeout(() => DailyTheme.showBadge(), 200); };
+  }
+  // monkey-patch awardCash + awardXp + awardGems
+  ['awardCash','awardXp','awardGems'].forEach(fn => {
+    if (typeof window[fn] === 'function'){
+      const orig = window[fn];
+      window[fn] = function(amt){
+        const bonus = DailyTheme.bonusMul();
+        return orig.call(this, Math.round((amt||0) * bonus));
+      };
+    }
+  });
+}, 1200);
+
+// ━━━━━━━ 4) WEATHER-AWARE THEME ━━━━━━━
+const WeatherTheme = {
+  enabled: false,
+  acceptedCount: 0,
+  lastCheck: 0,
+  load(){
+    try {
+      const p = JSON.parse(localStorage.getItem('wud:weatherTheme') || '{}');
+      this.enabled = !!p.enabled;
+      this.acceptedCount = p.acceptedCount || 0;
+    } catch(e){}
+  },
+  save(){ try { localStorage.setItem('wud:weatherTheme', JSON.stringify({ enabled:this.enabled, acceptedCount:this.acceptedCount })); } catch(e){} },
+  async check(){
+    if (Date.now() - this.lastCheck < 1800000) return; // 30 min cache
+    this.lastCheck = Date.now();
+    try {
+      // get rough location from IP-free Geolocation API
+      let lat = 31.7683, lon = 35.2137; // default Jerusalem 🙏
+      if (navigator.geolocation){
+        await new Promise((res) => {
+          navigator.geolocation.getCurrentPosition(
+            (p) => { lat = p.coords.latitude; lon = p.coords.longitude; res(); },
+            () => res(),
+            { timeout: 4000 }
+          );
+        });
+      }
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const code = data.current?.weather_code;
+      const isDay = data.current?.is_day === 1;
+      let suggested = 'classic';
+      if (code === 0 && isDay) suggested = 'sunrise';            // clear day
+      else if (code === 0 && !isDay) suggested = 'christ-king';  // clear night
+      else if (code >= 51 && code <= 67) suggested = 'midnight'; // rainy
+      else if (code >= 71 && code <= 77) suggested = 'arctic';   // snowy
+      else if (code === 95 || code === 96 || code === 99) suggested = 'usa-afternoon'; // thunder
+      else if (code >= 1 && code <= 3) suggested = isDay ? 'classic' : 'midnight';
+      this.suggest(suggested, code);
+    } catch(e){}
+  },
+  suggest(themeId, code){
+    if (typeof ThemeEngine === 'undefined') return;
+    if (ThemeEngine.active === themeId) return;
+    const t = ThemeEngine.themes[themeId] || { name:themeId, emoji:'🌎' };
+    const old = document.getElementById('weatherSuggest'); if (old) old.remove();
+    const b = document.createElement('div');
+    b.id = 'weatherSuggest';
+    b.style.cssText = 'position:fixed;top:env(safe-area-inset-top,8px);left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#0a3d6e,#5fa8d3);color:#fff;padding:10px 16px;border-radius:14px;z-index:9995;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px #0008;cursor:pointer;font-size:13px;border:2px solid #fff';
+    b.innerHTML = `<span style="font-size:18px">🌧</span><span>weather suggests <b>${t.emoji} ${t.name}</b></span><button style="background:#ffd76e;color:#000;border:none;padding:4px 10px;border-radius:8px;font-weight:900">ACCEPT</button>`;
+    b.querySelector('button').onclick = (ev) => {
+      ev.stopPropagation();
+      ThemeEngine.apply(themeId);
+      this.acceptedCount++;
+      this.save();
+      if (this.acceptedCount >= 3) try { unlockAchievement('weather_watcher'); } catch(e){}
+      b.remove();
+      if (typeof showToast === 'function') showToast(`🌧 ${t.name} adopted from weather`, 'level');
+    };
+    b.addEventListener('click', () => b.remove());
+    document.body.appendChild(b);
+    setTimeout(() => { if (b.parentNode) b.remove(); }, 12000);
+  },
+  toggle(){
+    this.enabled = !this.enabled;
+    this.save();
+    if (this.enabled) this.check();
+    if (typeof showToast === 'function') showToast('🌧 Weather theme ' + (this.enabled ? 'ON' : 'OFF'), 'level');
+  }
+};
+WeatherTheme.load();
+setTimeout(() => { if (WeatherTheme.enabled) WeatherTheme.check(); }, 5000);
+setInterval(() => { if (WeatherTheme.enabled) WeatherTheme.check(); }, 1800000);
+
+// ━━━━━━━ 5) TITLE_FIXER tracker (visit splash 7 days) ━━━━━━━
+setInterval(() => {
+  try {
+    const k = 'wud:splashDays';
+    const days = new Set(JSON.parse(localStorage.getItem(k) || '[]'));
+    days.add(new Date().toISOString().slice(0,10));
+    localStorage.setItem(k, JSON.stringify(Array.from(days).slice(-30)));
+    if (days.size >= 7) unlockAchievement('title_fixer');
+  } catch(e){}
+}, 60000);
+
+// ━━━━━━━ Wire entry points + extend ThemeEngine.pick with new buttons ━━━━━━━
+(function extendThemePicker(){
+  setTimeout(() => {
+    if (typeof ThemeEngine === 'undefined') return;
+    const _origPick = ThemeEngine.pick.bind(ThemeEngine);
+    ThemeEngine.pick = function(){
+      _origPick();
+      setTimeout(() => {
+        const card = document.querySelector('.modalCard');
+        if (card && !card.querySelector('#themeExtras')){
+          const extras = document.createElement('div');
+          extras.id = 'themeExtras';
+          extras.style.cssText = 'display:grid;gap:8px;margin-top:10px';
+          extras.innerHTML = `
+            <button class="btn" onclick="DailyTheme.showBadge();ThemeEngine.apply(DailyTheme.todays());closeModal&&closeModal();">🪙 ADOPT TODAY'S BLESSED THEME</button>
+            <button class="btn" onclick="WeatherTheme.toggle();">🌧 ${WeatherTheme.enabled?'✓ ':''}Auto-suggest from weather</button>
+            <button class="btn" onclick="WeatherTheme.lastCheck=0;WeatherTheme.check();showToast&&showToast('🌧 checking weather...','level');">🔄 Check weather now</button>
+            <button class="btn" onclick="QrSync.showExportPanel();">📲 QR PROFILE SYNC</button>
+            <div style="font-size:10px;opacity:.7;text-align:center">tap any theme above to adopt · audio palette switches automatically</div>`;
+          (card.querySelector('.body') || card).appendChild(extras);
+        }
+      }, 100);
+    };
+  }, 1500);
+})();
+
 // PIP — proper canvas capture with playback control
 if (typeof MobileBeast !== 'undefined'){
   MobileBeast.togglePip = async function(){
