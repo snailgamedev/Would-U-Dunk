@@ -13014,6 +13014,8 @@ function renderGambleScreen(){
     if (!placeBet(pickedType, pickedWager, { confidence: conf })){
       showToast('💸 NOT ENOUGH CASH', 'allpro'); return;
     }
+    // 🆕 v3.9.0 — persist bet prefs for next visit
+    if (typeof saveBetPrefs === 'function') saveBetPrefs({ lastType: pickedType, lastWager: pickedWager, lastConfidence: conf, lastMode: pickedMode });
     const t = BET_TYPES.find(b => b.id === pickedType);
     const msg = State._activeBet.bonus > 0 ? ` (+${(State._activeBet.bonus).toFixed(2)}x bonus)` : '';
     showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → $${State._activeBet.payout}${msg}`, 'level');
