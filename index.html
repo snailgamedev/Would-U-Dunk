@@ -2790,6 +2790,8 @@ function maybeFireRandomEvent(scene){
   scene._lastEventRound = scene._currentRoundIdx;
   const ev = RANDOM_EVENTS[(Math.random()*RANDOM_EVENTS.length)|0];
   scene._activeEvent = { ...ev, startedAt: scene.time.now };
+  // 🆕 v3.4.0 — TTS announce
+  if (typeof announceText === 'function') announceText(ev.label.replace(/[^\w\s]/g,'').trim());
   // visual banner
   let banner = document.getElementById('eventBanner');
   if (!banner){
