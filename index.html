@@ -4704,6 +4704,13 @@ const SHOP_ITEMS = [
   { id:'celeb_doves',   name:'DOVE RELEASE',       cat:'CELEB',  price:600,  icon:'🕊️', desc:'doves fly on every made shot' },
   { id:'badge_streak',  name:'STREAK MEDAL',       cat:'BADGE',  price:300,  icon:'🥇', desc:'profile badge' },
   { id:'badge_holy',    name:'CROSS MEDAL',        cat:'BADGE',  price:400,  icon:'✝️', desc:'profile badge · faith' },
+  // 🆕 v3.0.0 — HOLY GROUND · 6 faith-themed shop items
+  { id:'ball_holy_fire',     name:'HOLY FIRE BALL',         cat:'BALL',   price:1200, icon:'🔥', desc:'flaming gold ball · cross etched in the leather · trail glows' },
+  { id:'ball_living_water',  name:'LIVING WATER BALL',      cat:'BALL',   price:1200, icon:'💧', desc:'flowing blue ball · animated ripple · John 4:14' },
+  { id:'badge_armor_god',    name:'ARMOR OF GOD BADGE',     cat:'BADGE',  price:1500, icon:'🛡', desc:'profile badge · Eph 6:11 · golden shield outline' },
+  { id:'jersey_chosen',      name:'CHOSEN JERSEY',          cat:'JERSEY', price:1000, icon:'👕', desc:'clean white + gold colorway · 1 Pet 2:9 · always available' },
+  { id:'court_holy_ground',  name:'HOLY GROUND COURT',      cat:'COURT',  price:2500, icon:'🏟', desc:'golden court · subtle cross at center · soft glow' },
+  { id:'celeb_anointing',    name:'ANOINTING CELEBRATION',  cat:'CELEB',  price:1800, icon:'✨', desc:'unique score celeb · golden particle aura + dove silhouette' },
 ];
 function loadOwned(){ try { return JSON.parse(localStorage.getItem(`wud:owned:${currentProfileName()}`)||'["ball_classic","court_classic"]'); } catch(e){ return ['ball_classic','court_classic']; } }
 function saveOwned(arr){ try { localStorage.setItem(`wud:owned:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
