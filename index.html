@@ -4430,6 +4430,206 @@ function renderWalkoutMixerScreen(){
   });
 }
 
+// 🆕 v3.7.0 — MOBILE MEGA MODULE · PWA · haptic · wake lock · share · fullscreen · accessibility
+
+// 📱 MOBILE DETECTION
+const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+// 🏠 PWA SERVICE WORKER (inline registration · cache-first strategy)
+function registerServiceWorker(){
+  if (!('serviceWorker' in navigator)) return;
+  // Inline SW via blob URL · no separate sw.js file needed
+  const swCode = `
+    const CACHE = 'wud-v3.7.0';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.add('./')));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      if (e.request.method !== 'GET') return;
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(net => {
+        const clone = net.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone)).catch(()=>{});
+        return net;
+      }).catch(() => caches.match('./'))));
+    });
+  `;
+  try {
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).catch(() => {});
+  } catch(e){}
+}
+setTimeout(registerServiceWorker, 1500);
+
+// 🏠 PWA INSTALL PROMPT
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  setTimeout(() => {
+    let p = document.getElementById('installPrompt');
+    if (!p){
+      p = document.createElement('div');
+      p.id = 'installPrompt';
+      p.innerHTML = '📱 INSTALL APP';
+      p.onclick = () => {
+        if (_deferredInstallPrompt){
+          _deferredInstallPrompt.prompt();
+          _deferredInstallPrompt.userChoice.finally(() => { p.remove(); _deferredInstallPrompt = null; });
+        }
+      };
+      document.body.appendChild(p);
+    }
+    p.classList.add('on');
+    setTimeout(() => p.classList.remove('on'), 12000);   // hide after 12s, user can click again from settings
+  }, 800);
+});
+
+// 📳 HAPTIC VIBRATION
+function haptic(durationMs){
+  if (!Settings.hapticEnabled) return;
+  if (!('vibrate' in navigator)) return;
+  try { navigator.vibrate(durationMs); } catch(e){}
+}
+function hapticDunk(){ haptic(50); }
+function hapticBlock(){ haptic([20, 10, 20]); }
+function hapticCinematic(){ haptic([30, 20, 60]); }
+function hapticBigPlay(){ haptic([60, 30, 80]); }
+
+// 😴 WAKE LOCK · keeps screen on during play
+let _wakeLock = null;
+async function requestWakeLock(){
+  if (!Settings.wakeLockEnabled) return;
+  if (!('wakeLock' in navigator)) return;
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+  } catch(e){}
+}
+async function releaseWakeLock(){
+  if (_wakeLock){ try { await _wakeLock.release(); } catch(e){} _wakeLock = null; }
+}
+// Re-acquire on visibility change
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && Settings.wakeLockEnabled) requestWakeLock();
+});
+
+// ⛶ FULLSCREEN
+function toggleFullscreen(){
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else if (document.exitFullscreen){
+      document.exitFullscreen().catch(() => {});
+    }
+  } catch(e){}
+}
+
+// 🔗 SHARE MATCH RESULT
+function shareMatchResult(myPts, oppPts, won){
+  if (!('share' in navigator)) return false;
+  const verse = (typeof randomVerse === 'function') ? randomVerse() : { text:'play hard', ref:'WUD' };
+  const text = `🏀 ${won ? 'WON' : 'LOST'} ${myPts}-${oppPts} on Would U Dunk · "${verse.text}" — ${verse.ref}`;
+  try {
+    navigator.share({
+      title: 'Would U Dunk',
+      text: text,
+      url: 'https://snailgamedev.github.io/Would-U-Dunk/',
+    }).catch(() => {});
+    return true;
+  } catch(e){ return false; }
+}
+
+// 📐 LANDSCAPE PROMPT (mobile portrait detection)
+function checkOrientation(){
+  if (!IS_MOBILE) return;
+  let banner = document.getElementById('landscapeBanner');
+  if (!banner){
+    banner = document.createElement('div');
+    banner.id = 'landscapeBanner';
+    banner.innerHTML = '📱 ROTATE TO LANDSCAPE FOR BEST PLAY · TAP TO DISMISS';
+    banner.onclick = () => banner.classList.remove('on');
+    document.body.appendChild(banner);
+  }
+  if (window.innerHeight > window.innerWidth){ banner.classList.add('on'); }
+  else { banner.classList.remove('on'); }
+}
+window.addEventListener('resize', () => setTimeout(checkOrientation, 100));
+window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+setTimeout(checkOrientation, 1000);
+
+// ✨ ACCESSIBILITY · honors prefers-reduced-motion
+if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  setTimeout(() => { try { document.body.classList.add('reduced-motion'); } catch(e){} }, 100);
+}
+
+// 📱 ACCESSIBILITY HUB SCREEN
+function renderAccessibilityScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('rules');
+  const toggle = (key, label, desc, dflt) => {
+    const cur = Settings[key] !== undefined ? Settings[key] : dflt;
+    return `<label style="display:flex;align-items:center;padding:12px;margin:6px 0;background:#0008;border:2px solid #ffd76e44;border-radius:8px;cursor:pointer;color:#fff">
+      <input type="checkbox" data-aset="${key}" ${cur?'checked':''} style="margin-right:12px;transform:scale(1.4)" />
+      <div style="flex:1">
+        <div style="font-weight:900;letter-spacing:2px;font-size:14px">${label}</div>
+        <div style="font-size:11px;color:#aab;margin-top:3px">${desc}</div>
+      </div>
+    </label>`;
+  };
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center">♿ ACCESSIBILITY</div>
+      <div class="subtitle" style="text-align:center">all the toggles · in one place</div>
+      <div style="margin:14px 0;max-height:65vh;overflow-y:auto">
+        ${toggle('highContrast',     '👁 HIGH CONTRAST UI',     'stronger borders · larger text · max contrast')}
+        ${toggle('ttsAnnouncer',     '🎙 TTS ANNOUNCER',         'speak random events + cinematic moments + verses out loud')}
+        ${toggle('hapticEnabled',    '📳 HAPTIC VIBRATION',      'vibrate on dunks · blocks · cinematic moments (mobile)')}
+        ${toggle('wakeLockEnabled',  '😴 WAKE LOCK',              'keep screen on during play · prevent dim/sleep')}
+        ${toggle('oneHanded',        '👈 ONE-HANDED MODE',        'compress UI for thumb-only play · narrower panels')}
+        ${toggle('dataSaver',        '⚡ DATA SAVER',              'disable particles · skip cinematic camera · 60% perf boost')}
+        ${toggle('reducedMotion',    '🔇 REDUCED MOTION',         'skip screen shakes · simpler transitions · for vestibular comfort')}
+        ${toggle('largeText',        '🖋 LARGE TEXT',              'bumps all UI text +20%')}
+        ${toggle('randomEvents',     '🎲 RANDOM EVENTS',           '12% per round mid-game event')}
+        ${toggle('goldilocks',       '🎚 GOLDILOCKS DIFFICULTY',   'auto-balance CPU strength · prevent steamrolls')}
+      </div>
+      <button class="btn hot" id="accFs" style="width:100%;font-size:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900">⛶ TOGGLE FULLSCREEN</button>
+      <button class="btn" id="accBack" style="margin-top:8px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('accBack').onclick = showSplash;
+  document.getElementById('accFs').onclick = toggleFullscreen;
+  document.querySelectorAll('[data-aset]').forEach(cb => cb.onchange = () => {
+    Settings[cb.dataset.aset] = cb.checked;
+    saveSettings();
+    // live-apply body classes
+    document.body.classList.toggle('high-contrast', !!Settings.highContrast);
+    document.body.classList.toggle('one-handed', !!Settings.oneHanded);
+    document.body.classList.toggle('data-saver', !!Settings.dataSaver);
+    document.body.classList.toggle('reduced-motion', !!Settings.reducedMotion);
+    document.body.classList.toggle('large-text', !!Settings.largeText);
+    if (cb.dataset.aset === 'wakeLockEnabled' && Settings.wakeLockEnabled) requestWakeLock();
+    if (cb.dataset.aset === 'wakeLockEnabled' && !Settings.wakeLockEnabled) releaseWakeLock();
+    if (typeof showToast === 'function') showToast(`♿ ${cb.dataset.aset} · ${cb.checked ? 'ON' : 'OFF'}`, 'level');
+  });
+}
+
+// 📱 Apply mobile/accessibility body classes on page load
+setTimeout(() => {
+  try {
+    if (Settings.oneHanded) document.body.classList.add('one-handed');
+    if (Settings.dataSaver) document.body.classList.add('data-saver');
+    if (Settings.reducedMotion) document.body.classList.add('reduced-motion');
+    if (Settings.largeText) document.body.classList.add('large-text');
+    if (IS_MOBILE) document.body.classList.add('ui-mobile');
+    if (Settings.wakeLockEnabled) requestWakeLock();
+  } catch(e){}
+}, 100);
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
