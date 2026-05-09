@@ -957,6 +957,20 @@ const ChaosEngine = {
 };
 
 // 🆕 v2.26.0 — SANITIZE-CFG — clamps stacked-modifier combos that would make scoring literally impossible
+// 🆕 v3.12.0 — 9 NEW BALL TYPES · basketrandom variety extension (deferred push · TDZ-safe)
+const NEW_BALLS_V3120 = [
+  { id:'volleyball',  name:'🏐 Volleyball',     desc:'lighter · floats more',        cfg:{ ballMass:0.6, ballAirDrag:0.10 } },
+  { id:'tennis_ball', name:'🎾 Tennis Ball',    desc:'tiny + extreme bounce',        cfg:{ ballScale:0.55, ballBounce:0.95, ballMass:0.4 } },
+  { id:'soccer_ball', name:'⚽ Soccer Ball',    desc:'medium float · less spin',     cfg:{ ballMass:0.85, spinChaos:0 } },
+  { id:'bowling_ball',name:'🎳 Bowling Ball',   desc:'heavy · low bounce · drops',   cfg:{ ballMass:2.8, ballBounce:0.30, shotPower:1.3 } },
+  { id:'cube_ball',   name:'◼️ Cube Ball',      desc:'unpredictable angles',         cfg:{ spinChaos:1.5, ballBounce:0.55 } },
+  { id:'neon_ball',   name:'💡 Neon Ball',      desc:'glow trail · normal physics',  cfg:{ neonBall:true } },
+  { id:'disco_ball',  name:'🪩 Disco Ball',     desc:'reflective · slight slip',     cfg:{ ballFriction:0.10, discoBall:true } },
+  { id:'watermelon',  name:'🍉 Watermelon',    desc:'big + heavy · juicy bounce',   cfg:{ ballScale:1.4, ballMass:1.6, ballBounce:0.75 } },
+  { id:'atom_ball',   name:'⚛ Atom Ball',      desc:'tiny atom · max bounce',       cfg:{ ballScale:0.40, ballBounce:1.05, ballMass:0.3 } },
+];
+setTimeout(() => { try { MODS.ball.push(...NEW_BALLS_V3120); } catch(e){ console.warn('[v3.12] balls push deferred', e); } }, 0);
+
 // 🛡 v3.12.0 — ALWAYS-SCORE BANNED MOD IDS (modifiers culled before reaching sanitize)
 const ALWAYS_SCORE_BANNED = ['tiny_court'];   // tiny_court breaks shooting from distance · banned entirely
 function cullBannedMods(rolls){
