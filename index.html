@@ -6952,7 +6952,15 @@ class MatchScene extends Phaser.Scene {
 
   runCpu(p, dt){
     if (State.cfg.practice){ p.body.setAccelerationX(0); return; }
-    const tiers = State.rolls.cpuTiers;
+    const allTiers = State.rolls.cpuTiers;
+    // 🆕 v2.26.0 — CPU vs CPU: each player uses its OWN tier (P1 = tiers[0], P2 = tiers[1])
+    // Otherwise (single-CPU or super-chaos tag-team), average all tiers together.
+    let tiers;
+    if (State.cfg.cpuVsCpu && allTiers.length >= 2){
+      tiers = [ p.idx === 0 ? allTiers[0] : allTiers[1] ];
+    } else {
+      tiers = allTiers;
+    }
     // average stats across tiers
     const tier = tiers.reduce((a,t)=>{
       a.moveMul += t.moveMul; a.accuracy += t.accuracy; a.react += t.react;
