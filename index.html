@@ -5616,7 +5616,11 @@ function resolveBet(){
     return false;
   })();
   const payout = won ? bet.payout : 0;
-  if (payout) awardCash(payout);
+  if (payout){
+    awardCash(payout);
+    // 🆕 v3.12.0 — visible toast confirms cash landed
+    if (typeof showToast === 'function') setTimeout(() => showToast(`💰 +$${payout} RECEIVED · cash now $${loadCash()}`, 'level'), 600);
+  }
   const hist = loadGambleHistory();
   hist.push({ at:Date.now(), type:bet.type, label:bet.label, icon:bet.icon, wager:bet.wager, mult:bet.mult, payout, won, myPts, oppPts });
   saveGambleHistory(hist);
