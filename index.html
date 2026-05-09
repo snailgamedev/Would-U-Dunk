@@ -8462,7 +8462,9 @@ const Online = {
       c.on('open', () => {
         showToast(`OPPONENT JOINED · ${this.code}`, 'level');
         this.send({ type:'hello', from:'host', look: State.looks[0] });
+        this.startHeartbeat();   // 🆕 v3.22.0
       });
+      c.on('close', () => { this.connected = false; this.stopHeartbeat(); if (typeof showToast === 'function') showToast('⚠ OPPONENT DISCONNECTED', 'allpro'); });
     });
     this.peer.on('error', (e) => showToast('PEER ERROR: ' + e.type, 'allpro'));
   },
