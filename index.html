@@ -16038,6 +16038,11 @@ async function startRound(){
     }));
   }
   State.rolls = rolls; State.cfg = cfg;
+  // ⚙ v3.18.0 — apply pending bet requirement settings AFTER chaos roll
+  if (State._pendingBetReqType && typeof applyBetRequirementCfg === 'function'){
+    applyBetRequirementCfg(State._pendingBetReqType);
+    State._pendingBetReqType = null;
+  }
   // 🆕 v3.4.0 — show rival intro card if matched up against declared rival
   if (typeof maybeShowRivalIntro === 'function') setTimeout(() => maybeShowRivalIntro(), 100);
   // 🎬 v3.10.0 — pre-game cinematic intro card (CPU mode only)
