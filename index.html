@@ -10756,6 +10756,11 @@ async function startMatch(){
   State._firstScorer = null;
   State._p1LogoMade = false;
   State._betResolved = false;
+  // 🆕 v3.0.0 — ASCENSION trackers reset
+  State._maxDeficit = 0;
+  State._cinematicTriggered = false;
+  State._momentum = 0;
+  State._perfectThisRound = 0;
   State.matchStats = [
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
