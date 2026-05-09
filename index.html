@@ -3151,6 +3151,11 @@ function renderMyCareerScreen(){
         <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">📜 NARRATIVE BEATS (last 10)</div>
         ${beatsHtml || '<div style="color:#aab;text-align:center;padding:10px">play matches to unlock beats</div>'}
       </div>
+      <!-- 🆕 v3.6.0 — CAREER STATS GRAPH -->
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #4cf07a44;border-radius:10px">
+        <div style="color:#4cf07a;font-size:11px;letter-spacing:3px;margin-bottom:8px">📈 CAREER GRAPH</div>
+        ${(typeof renderCareerGraph === 'function') ? renderCareerGraph() : ''}
+      </div>
       <!-- 🆕 v3.4.0 — ENDORSEMENT DEALS section -->
       <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e;border-radius:10px;max-height:280px;overflow-y:auto">
         <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">💼 ENDORSEMENT DEALS</div>
