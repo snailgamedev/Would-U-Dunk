@@ -16003,6 +16003,8 @@ const MobileBeast = {
         <div style="font-size:11px;opacity:.7;text-align:center;padding:8px;background:#ffd76e22;border-radius:8px">"He gives strength to the weary" — Isa 40:29</div>
       </div>`;
     showModal('📱 MOBILE BEAST · ADVANCED', body, [{label:'CLOSE', tone:'gold'}]);
+    // start joystick viz loop
+    setTimeout(() => MobileBeast.renderJoystickViz(), 200);
   }
 };
 setTimeout(() => { try { MobileBeast.init(); } catch(e){ console.warn('MobileBeast init failed', e); } }, 700);
