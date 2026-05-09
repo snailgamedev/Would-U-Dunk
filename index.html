@@ -12112,6 +12112,11 @@ function showSplash(){
   if (btnReplayView) btnReplayView.onclick = renderReplayViewerScreen;
   const btnFaithHoF = document.getElementById('btnFaithHoF');
   if (btnFaithHoF) btnFaithHoF.onclick = renderFaithHoFScreen;
+  // 🆕 v3.7.0 — Accessibility + Fullscreen
+  const btnAccessibility = document.getElementById('btnAccessibility');
+  if (btnAccessibility) btnAccessibility.onclick = renderAccessibilityScreen;
+  const btnFullscreen = document.getElementById('btnFullscreen');
+  if (btnFullscreen) btnFullscreen.onclick = toggleFullscreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
