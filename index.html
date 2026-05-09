@@ -4642,6 +4642,327 @@ setTimeout(() => {
   } catch(e){}
 }, 100);
 
+// 🆕 v3.8.0 — IN-GAME POPUP REPLACEMENTS for native confirm/alert/prompt
+function inGameConfirm(message, opts){
+  return new Promise(res => {
+    try {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000c;display:flex;align-items:center;justify-content:center;animation:fadeInPop .25s ease';
+      overlay.innerHTML = `
+        <div style="max-width:420px;padding:22px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center;box-shadow:0 0 40px #ffd76e88">
+          <div style="font-size:14px;font-weight:900;letter-spacing:2px;line-height:1.5">${message}</div>
+          <div style="margin-top:18px;display:flex;gap:8px">
+            <button class="btn" id="popOk" style="flex:1;padding:14px;background:#4cf07a;color:#000;font-weight:900;letter-spacing:2px;font-size:14px">${opts?.ok || 'CONFIRM'}</button>
+            <button class="btn" id="popNo" style="flex:1;padding:14px;background:#3d1a1a;color:#fff;font-weight:900;letter-spacing:2px;font-size:14px">${opts?.no || 'CANCEL'}</button>
+          </div>
+        </div>`;
+      if (!document.getElementById('popKey')){
+        const s = document.createElement('style'); s.id = 'popKey';
+        s.textContent = '@keyframes fadeInPop{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}';
+        document.head.appendChild(s);
+      }
+      document.body.appendChild(overlay);
+      const cleanup = (val) => { overlay.remove(); res(val); };
+      document.getElementById('popOk').onclick = () => cleanup(true);
+      document.getElementById('popNo').onclick = () => cleanup(false);
+    } catch(e){ res(false); }
+  });
+}
+function inGameAlert(message, opts){
+  return new Promise(res => {
+    try {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000c;display:flex;align-items:center;justify-content:center;animation:fadeInPop .25s ease';
+      overlay.innerHTML = `
+        <div style="max-width:380px;padding:22px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center;box-shadow:0 0 40px #ffd76e88">
+          <div style="font-size:14px;font-weight:900;letter-spacing:2px;line-height:1.5">${message}</div>
+          <button class="btn" id="popOk" style="margin-top:18px;width:100%;padding:14px;background:#4cf07a;color:#000;font-weight:900;letter-spacing:2px;font-size:14px">${opts?.ok || 'OK'}</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('popOk').onclick = () => { overlay.remove(); res(true); };
+    } catch(e){ res(true); }
+  });
+}
+function inGamePrompt(message, defaultValue){
+  return new Promise(res => {
+    try {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000c;display:flex;align-items:center;justify-content:center;animation:fadeInPop .25s ease';
+      overlay.innerHTML = `
+        <div style="max-width:420px;padding:22px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center;box-shadow:0 0 40px #ffd76e88">
+          <div style="font-size:14px;font-weight:900;letter-spacing:2px;line-height:1.5">${message}</div>
+          <input type="text" id="popInput" value="${(defaultValue||'').replace(/"/g,'&quot;')}" style="margin-top:14px;width:100%;padding:12px;border:2px solid #000;border-radius:8px;font-family:monospace;font-size:14px;color:#000" />
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn" id="popOk" style="flex:1;padding:12px;background:#4cf07a;color:#000;font-weight:900">OK</button>
+            <button class="btn" id="popNo" style="flex:1;padding:12px;background:#3d1a1a;color:#fff;font-weight:900">CANCEL</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const inp = document.getElementById('popInput');
+      setTimeout(() => inp.focus(), 100);
+      const cleanup = (val) => { overlay.remove(); res(val); };
+      document.getElementById('popOk').onclick = () => cleanup(inp.value);
+      document.getElementById('popNo').onclick = () => cleanup(null);
+      inp.onkeydown = (e) => { if (e.key === 'Enter') cleanup(inp.value); };
+    } catch(e){ res(null); }
+  });
+}
+// Shadow native dialogs (additive · safer · all existing call sites get the upgrade auto)
+const _origConfirm = window.confirm;
+const _origAlert = window.alert;
+const _origPrompt = window.prompt;
+window.confirm = (msg) => { try { inGameConfirm(msg).then(v => v); return true; } catch(e){ return _origConfirm(msg); } };
+// Note: synchronous confirm() can't be made async without breaking callers · use inGameConfirm() in NEW code
+
+// 🆕 v3.8.0 — SMOOTH MUSIC CROSSFADE wrapper
+let _musicFadeTimer = null;
+function smoothMusicStart(track){
+  if (typeof MUSIC === 'undefined' || !MUSIC.start) return;
+  try {
+    const currentVol = Settings.musicVolume || 0.30;
+    // Fade current to 0
+    if (MUSIC.setVolume){
+      MUSIC.setVolume(0.05);
+      setTimeout(() => {
+        MUSIC.start(track);
+        // Fade new track up
+        let v = 0.05;
+        if (_musicFadeTimer) clearInterval(_musicFadeTimer);
+        _musicFadeTimer = setInterval(() => {
+          v = Math.min(currentVol, v + (currentVol / 12));
+          MUSIC.setVolume(v);
+          if (v >= currentVol){ clearInterval(_musicFadeTimer); _musicFadeTimer = null; }
+        }, 35);
+      }, 200);
+    } else {
+      MUSIC.start(track);
+    }
+  } catch(e){ try { MUSIC.start(track); } catch(e){} }
+}
+// Override musicForScreen to use smooth crossfade
+if (typeof musicForScreen === 'function'){
+  const _origMfs = musicForScreen;
+  window.musicForScreen = function(name){
+    try {
+      // Just use original logic but route MUSIC.start via smoothMusicStart
+      const _origStart = MUSIC.start;
+      MUSIC.start = smoothMusicStart;
+      _origMfs(name);
+      MUSIC.start = _origStart;
+    } catch(e){ try { _origMfs(name); } catch(e){} }
+  };
+}
+
+// 🆕 v3.8.0 — REPLAY TOP MOMENT cinematic overlay
+function playReplayMoment(frame){
+  try {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#000a,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;animation:fadeInPop .3s ease';
+    overlay.innerHTML = `
+      <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);color:#ffd76e;font-family:Bebas Neue,Impact,sans-serif;font-size:32px;letter-spacing:6px;text-shadow:0 0 20px #ffd76e">📺 INSTANT REPLAY</div>
+      <div style="position:relative;max-width:90vw;max-height:75vh">
+        <img src="${frame.dataUrl}" style="max-width:100%;max-height:75vh;border:4px solid #ffd76e;border-radius:12px;box-shadow:0 0 60px #ffd76e88;animation:replayPulse 1.2s ease infinite alternate" />
+        <div style="position:absolute;top:10px;right:10px;background:#ff3b3b;color:#fff;padding:6px 14px;border-radius:20px;font-weight:900;letter-spacing:3px;font-size:14px;box-shadow:0 0 15px #ff3b3b">● REPLAY</div>
+      </div>
+      <div style="margin-top:18px;padding:8px 18px;background:#000c;color:#ffd76e;border-radius:20px;font-weight:900;letter-spacing:3px;font-size:14px">${frame.label}</div>
+      <div style="margin-top:14px;color:#fff;opacity:0.7;font-size:11px;letter-spacing:2px">tap to dismiss</div>`;
+    if (!document.getElementById('replayKey')){
+      const s = document.createElement('style'); s.id = 'replayKey';
+      s.textContent = '@keyframes replayPulse{from{box-shadow:0 0 60px #ffd76e88}to{box-shadow:0 0 80px #ffd76eff,0 0 120px #ff3b3b66}}';
+      document.head.appendChild(s);
+    }
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.parentNode && overlay.remove(), 8000);
+    if (typeof haptic === 'function') haptic([30, 20, 60]);
+  } catch(e){}
+}
+
+// 🆕 v3.8.0 — DUNK CAMERA SAFETY · auto-restore stuck zoom in update loop
+function maybeRestoreCameraZoom(scene){
+  if (!scene || !scene.cameras || !scene.cameras.main) return;
+  const cam = scene.cameras.main;
+  if (cam.zoom > 1.005 && !scene._dunking){
+    // Stuck · restore smoothly
+    if (!scene._restoringCamZoom){
+      scene._restoringCamZoom = true;
+      try { cam.zoomTo(1.0, 600, 'Sine.easeInOut'); } catch(e){}
+      setTimeout(() => { scene._restoringCamZoom = false; }, 700);
+    }
+  }
+}
+
+// 🆕 v3.8.0 — MAIN MENU HUB SCREENS — categorized navigation
+function renderHubPlay(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:32px;text-align:center">🏀 PLAY HUB</div>
+      <div class="subtitle" style="text-align:center">jump in · pick your flavor</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-hub-action="play" style="font-size:16px;padding:18px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c,#ffd76e);color:#000;font-weight:900;letter-spacing:2px;grid-column:span 2">🏀 TAP TO BALL UP</button>
+        <button class="btn" data-hub-action="surprise" style="padding:14px;background:linear-gradient(135deg,#a040ff,#ff3b3b);color:#fff;font-weight:900">🎲 SURPRISE ME</button>
+        <button class="btn" data-hub-action="watch" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">🎬 WATCH CPU vs CPU</button>
+        <button class="btn" data-hub-action="skills" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900">🎯 SKILLS</button>
+        <button class="btn" data-hub-action="chill" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">😴 CHILL MODE</button>
+        <button class="btn" data-hub-action="daily-variety" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#000;font-weight:900">🌅 DAILY VARIETY</button>
+        <button class="btn" data-hub-action="walkout-mix" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">🎤 WALKOUT MIX</button>
+      </div>
+      <button class="btn" id="hubBack" style="width:100%">← MAIN MENU</button>
+    </div>`;
+  document.getElementById('hubBack').onclick = showSplash;
+  const actions = {
+    play: showModeSelect,
+    surprise: startSurpriseMatch,
+    watch: startCpuVsCpuMatch,
+    skills: renderSkillsScreen,
+    chill: startChillMode,
+    'daily-variety': renderDailyVarietyScreen,
+    'walkout-mix': renderWalkoutMixerScreen,
+  };
+  document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
+    const fn = actions[b.dataset.hubAction];
+    if (fn) fn();
+  });
+}
+
+function renderHubProgress(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:32px;text-align:center">🏆 PROGRESS HUB</div>
+      <div class="subtitle" style="text-align:center">your journey · your records · your legacy</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-hub-action="mycareer" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);color:#000;font-weight:900;grid-column:span 2">🎓 MyCAREER</button>
+        <button class="btn" data-hub-action="franchise" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900">🏆 FRANCHISE</button>
+        <button class="btn" data-hub-action="tournament" style="padding:14px;background:linear-gradient(135deg,#9b59b6,#ff3b3b);color:#fff;font-weight:900">⚔️ TOURNAMENT</button>
+        <button class="btn" data-hub-action="battlepass" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e,#ff66cc);color:#000;font-weight:900">🎟 BATTLE PASS</button>
+        <button class="btn" data-hub-action="prestige" style="padding:14px;background:linear-gradient(135deg,#ffd76e,#fff);color:#000;font-weight:900">⭐ PRESTIGE</button>
+        <button class="btn" data-hub-action="titles" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900">👑 TITLES</button>
+        <button class="btn" data-hub-action="hof" style="padding:14px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">🏛 HALL OF FAME</button>
+        <button class="btn" data-hub-action="records" style="padding:14px;background:linear-gradient(135deg,#3d1a3d,#a040ff);color:#fff;font-weight:900">📊 RECORDS</button>
+        <button class="btn" data-hub-action="achievements" style="padding:14px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">🏅 ACHIEVES</button>
+        <button class="btn" data-hub-action="hotzones" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">🔥 HOT ZONES</button>
+        <button class="btn" data-hub-action="rivalries" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14);color:#ffd76e;font-weight:900">⚔ RIVALS</button>
+        <button class="btn" data-hub-action="unlocks" style="padding:14px;background:linear-gradient(135deg,#3d1a3d,#a040ff,#ffd76e);color:#fff;font-weight:900">🔓 UNLOCKS</button>
+        <button class="btn" data-hub-action="highlights" style="padding:14px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">📸 HIGHLIGHTS</button>
+        <button class="btn" data-hub-action="replay" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#fff);color:#000;font-weight:900">📺 REPLAY VIEWER</button>
+        <button class="btn" data-hub-action="spec-hall" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">🏛 SPEC HALL</button>
+        <button class="btn" data-hub-action="stats" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">📊 STATS</button>
+        <button class="btn" data-hub-action="board" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">📈 LEADERBOARD</button>
+      </div>
+      <button class="btn" id="hubBack" style="width:100%">← MAIN MENU</button>
+    </div>`;
+  document.getElementById('hubBack').onclick = showSplash;
+  const actions = {
+    mycareer: renderMyCareerScreen,
+    franchise: renderFranchiseScreen,
+    tournament: renderTournamentScreen,
+    battlepass: renderBattlePassScreen,
+    prestige: renderPrestigeScreen,
+    titles: renderTitlePickerScreen,
+    hof: renderHallOfFameScreen,
+    records: renderRecordsScreen,
+    achievements: renderAchievementsScreen,
+    hotzones: renderHotZonesScreen,
+    rivalries: renderRivalriesScreen,
+    unlocks: renderUnlockChainsScreen,
+    highlights: renderHighlightsScreen,
+    replay: renderReplayViewerScreen,
+    'spec-hall': renderSpectatorHallScreen,
+    stats: renderStatsScreen,
+    board: renderLeaderboardScreen,
+  };
+  document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
+    const fn = actions[b.dataset.hubAction];
+    if (fn) fn();
+  });
+}
+
+function renderHubEconomy(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:32px;text-align:center">🛒 ECONOMY HUB</div>
+      <div class="subtitle" style="text-align:center">cash · gems · cards · gamble</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-hub-action="shop" style="padding:14px;background:linear-gradient(135deg,#4cf07a,#ffd76e);color:#000;font-weight:900;grid-column:span 2">🛒 SHOP</button>
+        <button class="btn" data-hub-action="gamble" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900">🎰 GAMBLE</button>
+        <button class="btn" data-hub-action="myteam" style="padding:14px;background:linear-gradient(135deg,#0f52ba,#b9f2ff);color:#000;font-weight:900">🃏 MyTEAM</button>
+        <button class="btn" data-hub-action="packs" style="padding:14px;background:linear-gradient(135deg,#0f52ba,#b9f2ff,#fff);color:#000;font-weight:900">🃏 PACKS</button>
+        <button class="btn" data-hub-action="cardtrade" style="padding:14px;background:linear-gradient(135deg,#3d1a3d,#a040ff);color:#fff;font-weight:900">🃏 TRADE CARDS</button>
+        <button class="btn" data-hub-action="mystery" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#000;font-weight:900">🎁 MYSTERY BOX</button>
+        <button class="btn" data-hub-action="daily-challenge" style="padding:14px;background:linear-gradient(135deg,#4f9eff,#a040ff);color:#fff;font-weight:900">📅 DAILY</button>
+      </div>
+      <button class="btn" id="hubBack" style="width:100%">← MAIN MENU</button>
+    </div>`;
+  document.getElementById('hubBack').onclick = showSplash;
+  const actions = {
+    shop: renderShopScreen,
+    gamble: renderGambleScreen,
+    myteam: renderMyTeamScreen,
+    packs: renderPackOpeningScreen,
+    cardtrade: renderCardTradingScreen,
+    mystery: renderMysteryBoxScreen,
+    'daily-challenge': renderDailyChallengeScreen,
+  };
+  document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
+    const fn = actions[b.dataset.hubAction];
+    if (fn) fn();
+  });
+}
+
+function renderHubMore(){
+  if (typeof musicForScreen === 'function') musicForScreen('rules');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:32px;text-align:center">⚙ MORE HUB</div>
+      <div class="subtitle" style="text-align:center">settings · faith · meta · accessibility</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-hub-action="settings" style="padding:14px;background:linear-gradient(135deg,#ff8a3c,#ff3b3b);color:#fff;font-weight:900;grid-column:span 2">⚙ SETTINGS</button>
+        <button class="btn" data-hub-action="accessibility" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#fff);color:#000;font-weight:900">♿ ACCESSIBILITY</button>
+        <button class="btn" data-hub-action="themes" style="padding:14px;background:linear-gradient(135deg,#a040ff,#ff66cc,#ffd76e);color:#000;font-weight:900">🎨 THEMES</button>
+        <button class="btn" data-hub-action="faith" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#fff;font-weight:900">🙏 FAITH CORNER</button>
+        <button class="btn" data-hub-action="faith-hof" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#000;font-weight:900">🛐 FAITH HoF</button>
+        <button class="btn" data-hub-action="gospel" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#fff;font-weight:900">✝️ GOSPEL</button>
+        <button class="btn" data-hub-action="praise-radio" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900">🪗 PRAISE RADIO</button>
+        <button class="btn" data-hub-action="rules" style="padding:14px;background:linear-gradient(135deg,#ff8a3c,#ff3b3b);color:#fff;font-weight:900">⚙ CUSTOM RULES</button>
+        <button class="btn" data-hub-action="how" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">🎮 HOW TO PLAY</button>
+        <button class="btn" data-hub-action="keyboard" style="padding:14px;background:#0008;color:#4cf07a;font-weight:900;border:1px solid #4cf07a">⌨ KEYBOARD</button>
+        <button class="btn" data-hub-action="updates" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">📋 UPDATES</button>
+        <button class="btn" data-hub-action="chronicle" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900">📚 CHRONICLE</button>
+        <button class="btn" data-hub-action="about" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">ℹ ABOUT</button>
+        <button class="btn" data-hub-action="share" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">🔗 SHARE</button>
+        <button class="btn" data-hub-action="account" style="padding:14px;background:#0008;color:#ffd76e;font-weight:900;border:1px solid #ffd76e">👤 ACCOUNT</button>
+        <button class="btn" data-hub-action="fullscreen" style="padding:14px;background:#000;color:#ffd76e;font-weight:900">⛶ FULLSCREEN</button>
+      </div>
+      <button class="btn" id="hubBack" style="width:100%">← MAIN MENU</button>
+    </div>`;
+  document.getElementById('hubBack').onclick = showSplash;
+  const actions = {
+    settings: renderSettingsScreen,
+    accessibility: renderAccessibilityScreen,
+    themes: renderThemePickerScreen,
+    faith: renderFaithCornerScreen,
+    'faith-hof': renderFaithHoFScreen,
+    gospel: renderGospelScreen,
+    'praise-radio': () => { if (typeof MUSIC !== 'undefined') MUSIC.radioInterlude(12000); if (typeof showToast === 'function') showToast('🪗 PRAISE RADIO · 12s', 'level'); },
+    rules: renderCustomRuleEditor,
+    how: renderHowToPlayScreen,
+    keyboard: renderKeyboardShortcutsScreen,
+    updates: renderUpdatesScreen,
+    chronicle: renderChronicleScreen,
+    about: renderAboutScreen,
+    share: renderShareGameScreen,
+    account: renderProfileScreen,
+    fullscreen: toggleFullscreen,
+  };
+  document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
+    const fn = actions[b.dataset.hubAction];
+    if (fn) fn();
+  });
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
