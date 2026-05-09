@@ -8429,11 +8429,20 @@ const CHANGELOG = [
   { v:'v0.1', notes:['initial build — 42 modifiers, 8 CPU tiers, local 2P + CPU'] },
 ];
 
-/* ------------------- ONLINE MP (PeerJS) ------------------- */
+/* ------------------- ONLINE MP (PeerJS) — v3.22.0 CAEE upgrade ------------------- */
 const Online = {
   peer: null, conn: null, isHost: false, code: null, connected: false,
   remoteInputs: { left:false, right:false, jumpDown:false, jumpUp:false, steal:false },
   remoteLook: null,
+  // 🆕 v3.22.0 — CAEE additions
+  remotePos: { x:null, y:null, vx:0, vy:0, lastUpdate:0 },   // smoothed remote player pos
+  remoteBall: { x:null, y:null, vx:0, vy:0, lastUpdate:0 },   // host-authoritative ball
+  ping: 0,                                                    // round-trip ms
+  lastPingAt: 0,
+  lastHeartbeat: 0,
+  ready: false,                                               // ready-up status
+  remoteReady: false,
+  chatLog: [],                                                // lobby chat history
   randomCode(){
     const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // skip confusing chars
     let s = ''; for (let i=0;i<6;i++) s += A[(Math.random()*A.length)|0];
