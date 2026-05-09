@@ -12404,10 +12404,13 @@ function renderMyTeamScreen(){
       <div style="font-size:9px;color:#aab;margin-top:4px;text-transform:uppercase">${c.arch || 'baller'}</div>
     </div>`;
   }).join('');
+  // 🆕 v3.6.0 — set chemistry display
+  const chem = (typeof setChemistryBonus === 'function') ? setChemistryBonus() : { mul:1.0, label:'no chemistry yet' };
   menuEl.innerHTML = `
     <div class="panel" style="max-width:760px">
       <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#0f52ba,#b9f2ff,#fff);-webkit-background-clip:text;background-clip:text;color:transparent">🃏 MyTEAM</div>
       <div class="subtitle" style="text-align:center">${team.length} cards collected · earn more by winning</div>
+      <div style="margin:10px 0;padding:10px;background:#0008;border:2px solid ${chem.mul > 1 ? '#4cf07a' : '#ffd76e44'};border-radius:8px;text-align:center;color:${chem.mul > 1 ? '#4cf07a' : '#aab'};font-weight:900;letter-spacing:2px">${chem.label}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0">
         <div>
           <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">📊 BY TIER</div>
