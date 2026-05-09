@@ -2128,9 +2128,11 @@ function unlockAchievement(id){
   Career.achievements[id] = { at: Date.now() };
   saveCareer();
   awardXp(50);
+  // 🆕 v3.3.0 — also award 1 GEM per achievement unlocked
+  if (typeof awardGems === 'function') awardGems(1);
   SFX.achievement();
   if (typeof MUSIC !== 'undefined') MUSIC.stinger('chosen'); // 🆕 v2.20.0
-  showToast(`${ACH_BY_ID[id].icon} ${ACH_BY_ID[id].name}`, 'ach');
+  showToast(`${ACH_BY_ID[id].icon} ${ACH_BY_ID[id].name} · +1💎`, 'ach');
   return true;
 }
 
