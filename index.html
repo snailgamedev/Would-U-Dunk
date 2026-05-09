@@ -9196,7 +9196,7 @@ class MatchScene extends Phaser.Scene {
     if (remainingNow > 0 && remainingNow < 3){
       points *= 2;
       this.bigShotHighlight && this.bigShotHighlight(`🚨 BUZZER BEATER · ${points}PT`);
-      this.cameras.main.flash(180, 255, 80, 80);
+      // 🆕 v3.11.0 — removed buzzer-beater flash (highlight popup is enough)
       if (scorerIdx === 0) {
         awardCash(100);
         State._buzzerThisMatch = true;
