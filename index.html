@@ -4773,6 +4773,7 @@ function renderHubPlay(){
         <button class="btn" data-hub-action="chill" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">😴 CHILL MODE</button>
         <button class="btn" data-hub-action="daily-variety" style="padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#000;font-weight:900">🌅 DAILY VARIETY</button>
         <button class="btn" data-hub-action="walkout-mix" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">🎤 WALKOUT MIX</button>
+        <button class="btn hot" data-hub-action="fortune" style="padding:14px;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);color:#000;font-weight:900;grid-column:span 2">🎡 FORTUNE WHEEL · DAILY SPIN</button>
       </div>
       <button class="btn" id="hubBack" style="width:100%">← MAIN MENU</button>
     </div>`;
@@ -4785,6 +4786,7 @@ function renderHubPlay(){
     chill: startChillMode,
     'daily-variety': renderDailyVarietyScreen,
     'walkout-mix': renderWalkoutMixerScreen,
+    fortune: renderFortuneWheelScreen,
   };
   document.querySelectorAll('[data-hub-action]').forEach(b => b.onclick = () => {
     const fn = actions[b.dataset.hubAction];
