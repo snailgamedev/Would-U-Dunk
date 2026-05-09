@@ -8824,6 +8824,20 @@ class MatchScene extends Phaser.Scene {
   // 🆕 v2.8.2 — Standalone block executor · 🆕 v2.19.0 — distance-graded probability so blocks aren't binary
   executeBlock(blocker, opp){
     if (!blocker || !opp || this.ball.getData('held') !== opp) return;
+    // 🆕 v3.4.0 — CINEMATIC BLOCK · same camera treatment as dunks
+    if (blocker.isCpu && Math.random() < 0.6){
+      try {
+        this.cameras.main.zoomTo(1.15, 220, 'Sine.easeInOut');
+        this.cameras.main.flash(140, 255, 80, 80);
+        this.cameras.main.shake(220, 0.010);
+        const tag = this.add.text(VIEW_W/2, VIEW_H/2 - 60, 'DENIED!', {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:48, color:'#ff3b3b', stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION).setScrollFactor(0).setScale(0.4);
+        this.tweens.add({ targets:tag, scale:1.3, duration:180, ease:'Back.out', onComplete:()=>{
+          this.tweens.add({ targets:tag, alpha:0, y:tag.y - 60, duration:1000, onComplete:()=>tag.destroy() });
+        }});
+        if (typeof announceText === 'function') announceText('Denied!');
+        this.time.delayedCall(500, () => { try { this.cameras.main.zoomTo(1.0, 200, 'Sine.easeInOut'); } catch(e){} });
+      } catch(e){}
+    }
     if ((blocker._lastBlockAt || 0) + 250 > this.time.now) return;   // debounce
     // 🆕 v2.19.0 — RNG block: very close (<60px) = ~95% success, far (>140px) = ~25% — and slight player Y advantage
     const d = Phaser.Math.Distance.Between(blocker.x, blocker.y, opp.x, opp.y);
