@@ -16028,16 +16028,146 @@ setTimeout(() => { try { MobileBeast.init(); } catch(e){ console.warn('MobileBea
   }, 1500);
 })();
 
-// 🆕 v3.25.0 — unlock joystick achievement on bucket
-(function trackMobileAchievements(){
-  let buckets = 0;
+// 🆕 v3.25.0 — CHECK PASS 1 GAP FILLERS
+
+// GAP 1: Long-press joystick = SPRINT
+(function longPressSprint(){
+  let pressStart = 0, sprintActive = false;
   setInterval(() => {
-    try {
-      const ach = JSON.parse(localStorage.getItem('wud:mob:ach') || '{}');
-      // Joystick maestro: 50 buckets w/ joystick active
-      if (typeof Mobile !== 'undefined' && Mobile.joystickActive){ /* hook handled via shoot */ }
-    } catch(e){}
-  }, 1000);
+    if (typeof Mobile === 'undefined' || !MobileBeast.longPressSprint) return;
+    if (Mobile.joystickActive){
+      if (!pressStart) pressStart = Date.now();
+      else if (!sprintActive && Date.now() - pressStart > 400){
+        sprintActive = true;
+        window._wudSprintMul = 1.4;
+        MobileBeast.vibrate('shoot');
+        if (typeof showToast === 'function') showToast('🏃 SPRINT', 'level');
+      }
+    } else {
+      pressStart = 0; sprintActive = false; window._wudSprintMul = 1.0;
+    }
+  }, 100);
+})();
+
+// GAP 2: Pinch-to-zoom court view
+(function pinchZoom(){
+  let initDist = 0, baseZoom = 1, currentZoom = 1;
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2){
+      const t = e.touches;
+      initDist = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      baseZoom = currentZoom;
+    }
+  }, { passive: true });
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initDist > 0){
+      const t = e.touches;
+      const d = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      currentZoom = Math.max(1.0, Math.min(2.5, baseZoom * (d / initDist)));
+      try {
+        const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+        if (sc && sc.cameras && sc.cameras.main) sc.cameras.main.setZoom(currentZoom);
+      } catch(err){}
+    }
+  }, { passive: true });
+  // double-tap to reset zoom
+  let lastDoubleTap = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (e.touches.length === 0 && now - lastDoubleTap < 280){
+      try {
+        currentZoom = 1.0;
+        const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+        if (sc && sc.cameras && sc.cameras.main) sc.cameras.main.setZoom(1.0);
+        if (typeof showToast === 'function') showToast('🔍 ZOOM RESET', 'level');
+      } catch(err){}
+      lastDoubleTap = 0;
+    } else if (e.touches.length === 0) {
+      lastDoubleTap = now;
+    }
+  }, { passive: true });
+})();
+
+// GAP 3: Joystick visualizer in advanced settings panel (live)
+MobileBeast.renderJoystickViz = function(){
+  const c = document.getElementById('jsVizCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  // ring
+  ctx.strokeStyle = '#ffd76e';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(60,60,55,0,Math.PI*2); ctx.stroke();
+  // axis
+  if (typeof Mobile !== 'undefined' && Mobile.joystickActive){
+    const ax = Mobile.joystickAxis.x * 50;
+    const ay = Mobile.joystickAxis.y * 50;
+    ctx.fillStyle = '#ff8a3c';
+    ctx.beginPath(); ctx.arc(60+ax, 60+ay, 14, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px monospace';
+    ctx.fillText(`x:${Mobile.joystickAxis.x.toFixed(2)}`, 4, 12);
+    ctx.fillText(`y:${Mobile.joystickAxis.y.toFixed(2)}`, 4, 24);
+  } else {
+    ctx.fillStyle = '#ffd76e';
+    ctx.beginPath(); ctx.arc(60,60,14,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff8';
+    ctx.font = '10px monospace';
+    ctx.fillText('drag joystick', 14, 110);
+  }
+  if (document.getElementById('jsVizCanvas')) requestAnimationFrame(() => MobileBeast.renderJoystickViz());
+};
+
+// GAP 4: tilt sensitivity actually wired into handler
+MobileBeast.tiltHandler = function(ev){
+  const tilt = ev.gamma || 0;
+  const sens = MobileBeast.tiltSensitivity || 30;
+  if (Math.abs(tilt) > 8){
+    const ax = Math.max(-1, Math.min(1, tilt / sens));
+    const swap = (Mobile && Mobile.oneHanded) ? -1 : 1;
+    if (ax * swap > 0.18) { touchState.right = true; touchState.left = false; }
+    else if (ax * swap < -0.18) { touchState.left = true; touchState.right = false; }
+  }
+};
+// override Mobile.enableTilt to use the new sensitivity-aware handler
+setTimeout(() => {
+  if (typeof Mobile !== 'undefined'){
+    Mobile.enableTilt = function(){
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+        DeviceOrientationEvent.requestPermission().then(state => {
+          if (state === 'granted') window.addEventListener('deviceorientation', MobileBeast.tiltHandler);
+        }).catch(()=>{});
+      } else {
+        window.addEventListener('deviceorientation', MobileBeast.tiltHandler);
+      }
+    };
+  }
+}, 800);
+
+// GAP 5: Quick-start floating play button on mobile
+(function quickStartBtn(){
+  setTimeout(() => {
+    if (!IS_MOBILE && !('ontouchstart' in window)) return;
+    if (document.getElementById('qsPlay')) return;
+    const b = document.createElement('button');
+    b.id = 'qsPlay';
+    b.textContent = '⚡';
+    b.style.cssText = 'position:fixed;right:14px;top:50vh;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#ff8a3c,#ffd76e);color:#000;border:3px solid #fff;font-size:26px;font-weight:900;z-index:9993;box-shadow:0 6px 18px #ff8a3c88;cursor:pointer;display:none';
+    b.title = 'Quick start last mode';
+    document.body.appendChild(b);
+    b.onclick = () => {
+      try {
+        if (typeof startMatch === 'function') startMatch();
+        else if (typeof showModeSelect === 'function') showModeSelect();
+      } catch(e){}
+    };
+    // show only on splash
+    setInterval(() => {
+      const splash = document.getElementById('splash');
+      const visible = splash && !document.getElementById('menu').classList.contains('hide') && document.body.contains(splash);
+      b.style.display = visible ? 'block' : 'none';
+    }, 500);
+  }, 1200);
 })();
 
 /* ------------------- DOM MENUS ------------------- */
