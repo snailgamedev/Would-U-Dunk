@@ -14494,6 +14494,8 @@ async function startRound(){
     rolls.mods = cats.slice(0,6).map(cat => ({cat, mod: MODS[cat][(Math.random()*MODS[cat].length)|0]}));
     rolls.cpuTiers = [CPU_TIERS[(Math.random()*CPU_TIERS.length)|0], CPU_TIERS[(Math.random()*CPU_TIERS.length)|0]];
   }
+  // 🛡 v3.12.0 — ALWAYS-SCORE: cull banned mods BEFORE applying cfg
+  if (typeof cullBannedMods === 'function') cullBannedMods(rolls);
   const cfg = ChaosEngine.apply(rolls);
   // mode extra cfg overrides
   Object.assign(cfg, mode.extraCfg || {});
