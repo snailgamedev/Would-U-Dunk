@@ -16251,6 +16251,437 @@ setInterval(() => {
   } catch(e){}
 }, 5000);
 
+/* ------------------- 🆕 v3.26.0 MOBILE TITAN — 10 IDEAS + 6 BONUSES ------------------- */
+const MobileTitan = {
+  // prefs
+  voiceShoot: false,
+  micCrowd: false,
+  joystickDeadzone: 0.18,
+  inertialScroll: true,
+  edgeSwipeBack: true,
+  geoTheme: true,
+  perButtonHaptics: true,
+  arHoopOptIn: true,
+  // runtime
+  recognition: null,
+  audioCtx: null,
+  micStream: null,
+  micAnalyser: null,
+  hypeLevel: 0,
+  navStack: [],
+  edgeSwipeCount: 0,
+  voiceShotCount: 0,
+  cheerCount: 0,
+  timezones: new Set(),
+  lastReplay: null,
+
+  load(){
+    try {
+      const p = JSON.parse(localStorage.getItem('wud:mobileTitan') || '{}');
+      Object.assign(this, p);
+    } catch(e){}
+    try { this.timezones = new Set(JSON.parse(localStorage.getItem('wud:tz') || '[]')); } catch(e){ this.timezones = new Set(); }
+  },
+  save(){
+    try {
+      localStorage.setItem('wud:mobileTitan', JSON.stringify({
+        voiceShoot: this.voiceShoot,
+        micCrowd: this.micCrowd,
+        joystickDeadzone: this.joystickDeadzone,
+        inertialScroll: this.inertialScroll,
+        edgeSwipeBack: this.edgeSwipeBack,
+        geoTheme: this.geoTheme,
+        perButtonHaptics: this.perButtonHaptics,
+        arHoopOptIn: this.arHoopOptIn,
+        edgeSwipeCount: this.edgeSwipeCount,
+        voiceShotCount: this.voiceShotCount,
+        cheerCount: this.cheerCount,
+      }));
+      localStorage.setItem('wud:tz', JSON.stringify(Array.from(this.timezones)));
+    } catch(e){}
+  },
+
+  init(){
+    this.load();
+    if (!IS_MOBILE && !('ontouchstart' in window)) return;
+    this.injectCSS();
+    this.bindEdgeSwipe();
+    this.bindGeoTheme();
+    this.trackTimezone();
+    this.applyDeadzoneOverride();
+    this.applyInertialScroll();
+    if (this.voiceShoot) this.startVoice();
+    if (this.micCrowd) this.startMic();
+  },
+
+  // ---------- DEADZONE OVERRIDE ----------
+  applyDeadzoneOverride(){
+    if (typeof Mobile === 'undefined') return setTimeout(() => this.applyDeadzoneOverride(), 800);
+    const dz = this.joystickDeadzone;
+    Mobile.updateJoystick = function(cx, cy){
+      const dx = cx - this.joystickCenter.x;
+      const dy = cy - this.joystickCenter.y;
+      const dist = Math.min(this.joystickRadius, Math.hypot(dx, dy));
+      const ang = Math.atan2(dy, dx);
+      const knobX = Math.cos(ang) * dist;
+      const knobY = Math.sin(ang) * dist;
+      const k = document.getElementById('joystickKnob');
+      if (k) k.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+      this.joystickAxis = { x: knobX / this.joystickRadius, y: knobY / this.joystickRadius };
+      const ax = this.joystickAxis.x;
+      const swap = this.oneHanded ? -1 : 1;
+      const dzNow = MobileTitan.joystickDeadzone || 0.18;
+      if (ax * swap > dzNow) { touchState.right = true; touchState.left = false; }
+      else if (ax * swap < -dzNow) { touchState.left = true; touchState.right = false; }
+      else { touchState.left = false; touchState.right = false; }
+    };
+  },
+
+  // ---------- INERTIAL SCROLL ----------
+  applyInertialScroll(){
+    if (!this.inertialScroll) return;
+    document.querySelectorAll('#menu, #endcard, #reveal, #modalRoot, .panel, .body').forEach(el => {
+      el.style.WebkitOverflowScrolling = 'touch';
+      el.style.overscrollBehavior = 'contain';
+      el.style.scrollSnapType = 'y proximity';
+    });
+  },
+
+  // ---------- EDGE SWIPE BACK ----------
+  bindEdgeSwipe(){
+    let startX = null, startY = null, startT = 0;
+    document.addEventListener('touchstart', e => {
+      if (!this.edgeSwipeBack) return;
+      const t = e.touches[0]; if (!t) return;
+      const fromLeftEdge = t.clientX < 24;
+      const fromRightEdge = t.clientX > window.innerWidth - 24;
+      const oneHanded = (typeof Mobile !== 'undefined' && Mobile.oneHanded);
+      const triggerEdge = oneHanded ? fromRightEdge : fromLeftEdge;
+      if (triggerEdge){
+        startX = t.clientX; startY = t.clientY; startT = Date.now();
+      } else { startX = null; }
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      if (startX == null) return;
+      const t = (e.changedTouches && e.changedTouches[0]); if (!t) { startX = null; return; }
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      const dt = Date.now() - startT;
+      const oneHanded = (typeof Mobile !== 'undefined' && Mobile.oneHanded);
+      const fired = oneHanded ? (dx < -60) : (dx > 60);
+      if (fired && dy < 80 && dt < 500){
+        this.edgeSwipeCount++;
+        this.save();
+        if (this.edgeSwipeCount >= 10) try { unlockAchievement('edge_master'); } catch(e){}
+        this.goBack();
+        if (typeof showToast === 'function') showToast('⬅ BACK', 'level');
+        if (typeof MobileBeast !== 'undefined') MobileBeast.vibrate('light');
+      }
+      startX = null;
+    }, { passive: true });
+  },
+  goBack(){
+    // try common back triggers in order
+    const candidates = ['hubBack','backBtn','btnBack','closeModal','btnReturn','splashBackBtn'];
+    for (const id of candidates){
+      const el = document.getElementById(id);
+      if (el && typeof el.click === 'function'){ el.click(); return; }
+    }
+    // fallback: showSplash
+    if (typeof showSplash === 'function') showSplash();
+  },
+
+  // ---------- GEO THEME ----------
+  bindGeoTheme(){
+    if (!this.geoTheme) return;
+    const apply = () => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const hr = new Date().getHours();
+      let palette = 'classic';
+      if (tz.includes('Jerusalem')) palette = 'holy-land';
+      else if (tz.startsWith('Asia/')) palette = (hr < 12 ? 'asia-morning' : 'asia-evening');
+      else if (tz.startsWith('America/')) palette = (hr < 12 ? 'usa-morning' : 'usa-afternoon');
+      else if (tz.startsWith('Europe/')) palette = 'euro-classic';
+      else if (tz.startsWith('Africa/')) palette = 'savanna';
+      // remove all geo classes first
+      document.body.classList.remove('geo-holy-land','geo-asia-morning','geo-asia-evening','geo-usa-morning','geo-usa-afternoon','geo-euro-classic','geo-savanna','geo-classic');
+      document.body.classList.add('geo-' + palette);
+    };
+    apply();
+    setInterval(apply, 1800000); // every 30 min
+  },
+
+  // ---------- TRACK TIMEZONE ----------
+  trackTimezone(){
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown';
+      this.timezones.add(tz);
+      this.save();
+      if (this.timezones.size >= 3) try { unlockAchievement('globe_trotter'); } catch(e){}
+    } catch(e){}
+  },
+
+  // ---------- VOICE COMMAND ----------
+  startVoice(){
+    try {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { if (typeof showToast==='function') showToast('Voice not supported on this browser', 'allpro'); return; }
+      this.recognition = new SR();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = false;
+      this.recognition.onresult = (ev) => {
+        const last = ev.results[ev.results.length - 1];
+        const txt = (last[0].transcript || '').toLowerCase().trim();
+        if (/\b(shoot|dunk|go|fire)\b/.test(txt)){
+          touchState.jumpQueued = true;
+          this.voiceShotCount++;
+          this.save();
+          if (typeof showToast==='function') showToast('🎙 "' + txt + '" → SHOT', 'level');
+          if (this.voiceShotCount >= 10) try { unlockAchievement('voice_heaven'); } catch(e){}
+        } else if (/\bpause\b/.test(txt)){
+          const pb = document.getElementById('floatPause'); if (pb) pb.click();
+        } else if (/\bsteal\b/.test(txt)){
+          const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+          if (sc && sc.onStealKey) sc.onStealKey(sc.p1);
+        } else if (/\bstop\b/.test(txt)){
+          this.stopVoice();
+        }
+      };
+      this.recognition.onerror = () => { /* silent */ };
+      this.recognition.onend = () => { if (this.voiceShoot) try { this.recognition.start(); } catch(e){} };
+      this.recognition.start();
+      if (typeof showToast==='function') showToast('🎙 VOICE ON · say "shoot" / "dunk" / "go" / "pause" / "steal" / "stop"', 'level');
+    } catch(e){}
+  },
+  stopVoice(){
+    try { if (this.recognition) this.recognition.stop(); } catch(e){}
+    this.recognition = null;
+    if (typeof showToast==='function') showToast('🎙 VOICE OFF', 'level');
+  },
+
+  // ---------- MIC CROWD ----------
+  async startMic(){
+    try {
+      this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      this.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const src = this.audioCtx.createMediaStreamSource(this.micStream);
+      this.micAnalyser = this.audioCtx.createAnalyser();
+      this.micAnalyser.fftSize = 256;
+      src.connect(this.micAnalyser);
+      this.injectHypeMeter();
+      this.tickMic();
+      if (typeof showToast==='function') showToast('👂 MIC ON · yell to hype the crowd', 'level');
+    } catch(e){ if (typeof showToast==='function') showToast('Mic permission denied', 'allpro'); }
+  },
+  stopMic(){
+    try { if (this.micStream) this.micStream.getTracks().forEach(t => t.stop()); } catch(e){}
+    this.micStream = null; this.micAnalyser = null;
+    const m = document.getElementById('hypeMeter'); if (m) m.remove();
+    if (typeof showToast==='function') showToast('👂 MIC OFF', 'level');
+  },
+  injectHypeMeter(){
+    if (document.getElementById('hypeMeter')) return;
+    const w = document.createElement('div');
+    w.id = 'hypeMeter';
+    w.style.cssText = 'position:fixed;top:env(safe-area-inset-top,8px);left:50%;transform:translateX(-50%);width:160px;height:14px;background:rgba(0,0,0,.6);border-radius:7px;z-index:9994;border:1px solid #ffd76e;overflow:hidden';
+    w.innerHTML = '<div id="hypeBar" style="height:100%;width:0%;background:linear-gradient(90deg,#4cf07a,#ffd76e,#ff3b3b);transition:width 100ms"></div>';
+    document.body.appendChild(w);
+  },
+  tickMic(){
+    if (!this.micAnalyser) return;
+    const data = new Uint8Array(this.micAnalyser.frequencyBinCount);
+    this.micAnalyser.getByteFrequencyData(data);
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) sum += data[i];
+    const avg = sum / data.length;
+    this.hypeLevel = Math.min(100, avg * 1.5);
+    const bar = document.getElementById('hypeBar');
+    if (bar) bar.style.width = this.hypeLevel + '%';
+    // cheer trigger: hype > 70
+    if (this.hypeLevel > 70 && (!this._lastCheer || Date.now() - this._lastCheer > 4000)){
+      this._lastCheer = Date.now();
+      this.cheerCount++;
+      this.save();
+      try { if (typeof SFX !== 'undefined' && SFX.cheer) SFX.cheer(); } catch(e){}
+      if (typeof showToast==='function') showToast('👂 CROWD HYPE +' + Math.round(this.hypeLevel), 'level');
+      if (this.cheerCount >= 5) try { unlockAchievement('crowd_hype'); } catch(e){}
+    }
+    requestAnimationFrame(() => this.tickMic());
+  },
+
+  // ---------- HAPTIC PATTERNS ----------
+  hapticPattern(kind){
+    if (!this.perButtonHaptics || !navigator.vibrate) return;
+    const patterns = {
+      shoot:    [40, 20, 60],
+      steal:    [25, 15, 25, 15, 25],
+      jump:     [30],
+      crossover:[15, 10, 15, 10, 30],
+      spin:     [50, 25, 50],
+      achievement: [20, 30, 20, 30, 100]
+    };
+    try { navigator.vibrate(patterns[kind] || 20); } catch(e){}
+  },
+
+  // ---------- MIRROR REPLAY ----------
+  saveLastShot(){
+    try {
+      const c = document.querySelector('canvas');
+      if (!c) return;
+      const url = c.toDataURL('image/png');
+      this.lastReplay = { url, at: Date.now(), score: (State.matchPoints||[0,0]).join('-') };
+      localStorage.setItem('wud:lastShot', JSON.stringify(this.lastReplay));
+    } catch(e){}
+  },
+  showReplay(speed){
+    try {
+      const r = this.lastReplay || JSON.parse(localStorage.getItem('wud:lastShot')||'null');
+      if (!r) { if (typeof showToast==='function') showToast('No replay available yet', 'allpro'); return; }
+      if (typeof showModal !== 'function') return;
+      const body = `
+        <div style="text-align:center;display:grid;gap:10px">
+          <img src="${r.url}" style="width:100%;border-radius:10px"/>
+          <div style="font-size:11px;opacity:.7">snapped: ${new Date(r.at).toLocaleTimeString()} · score: ${r.score}</div>
+          <div style="display:flex;gap:6px;justify-content:center">
+            ${[0.25,0.5,1,2].map(s => `<button class="btn" style="flex:1" onclick="MobileTitan.showReplay(${s})">${s}×</button>`).join('')}
+          </div>
+        </div>`;
+      showModal('🪞 LAST SHOT REPLAY', body, [{label:'CLOSE'}]);
+    } catch(e){}
+  },
+
+  // ---------- AR HOOP ----------
+  arHoop(){
+    if (!this.arHoopOptIn) return;
+    if (typeof navigator.xr === 'undefined' || !navigator.xr.isSessionSupported){
+      if (typeof showToast==='function') showToast('AR not supported on this device', 'allpro');
+      return;
+    }
+    navigator.xr.isSessionSupported('immersive-ar').then(ok => {
+      if (!ok){ if (typeof showToast==='function') showToast('Immersive AR unavailable', 'allpro'); return; }
+      if (typeof showToast==='function') showToast('🤳 AR HOOP launching... (best-effort)', 'level');
+      // trigger Quick Look on iOS
+      try {
+        const a = document.createElement('a');
+        a.rel = 'ar';
+        a.href = 'data:application/octet-stream;base64,';  // placeholder · iOS Quick Look would need .usdz
+        if (typeof showToast==='function') showToast('🤳 AR PREVIEW (no model attached yet · pending USDZ asset)', 'level');
+      } catch(e){}
+    }).catch(() => {});
+  },
+
+  // ---------- LEADERBOARD ----------
+  recordWeekly(){
+    try {
+      const k = 'wud:lb:mobileWeek';
+      const data = JSON.parse(localStorage.getItem(k) || '[]');
+      const weekStart = new Date();
+      weekStart.setHours(0,0,0,0);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+      const me = currentProfileName();
+      const entry = data.find(e => e.name === me && e.weekStart === weekStart.toISOString());
+      const wins = (Career.wins || 0);
+      if (entry){ entry.wins = wins; }
+      else { data.push({ name: me, wins, weekStart: weekStart.toISOString() }); }
+      localStorage.setItem(k, JSON.stringify(data));
+    } catch(e){}
+  },
+  showWeeklyLB(){
+    try {
+      const k = 'wud:lb:mobileWeek';
+      const data = JSON.parse(localStorage.getItem(k) || '[]').sort((a,b) => b.wins - a.wins).slice(0, 20);
+      if (typeof showModal !== 'function') return;
+      const rows = data.length ? data.map((e,i) => `<tr><td style="padding:6px">${['🥇','🥈','🥉'][i]||(i+1)}</td><td style="padding:6px">${e.name}</td><td style="padding:6px;text-align:right">${e.wins}</td></tr>`).join('')
+        : '<tr><td colspan="3" style="text-align:center;padding:18px;opacity:.6">no entries yet · play a match to seed</td></tr>';
+      const body = `
+        <div style="font-size:13px">
+          <div style="opacity:.8;margin-bottom:8px">resets every Monday · top 3 → +10💎 · mobile-only</div>
+          <table style="width:100%;border-collapse:collapse;background:#0006;border-radius:8px"><thead>
+            <tr style="background:#ffd76e22"><th style="text-align:left;padding:8px">#</th><th style="text-align:left;padding:8px">PLAYER</th><th style="text-align:right;padding:8px">WINS</th></tr>
+          </thead><tbody>${rows}</tbody></table>
+        </div>`;
+      showModal('📱 MOBILE WEEK LEADERBOARD', body, [{label:'CLOSE', tone:'gold'}]);
+    } catch(e){}
+  },
+
+  // ---------- CSS ----------
+  injectCSS(){
+    if (document.getElementById('mobileTitanCss')) return;
+    const css = document.createElement('style');
+    css.id = 'mobileTitanCss';
+    css.textContent = `
+      body.geo-holy-land { background: linear-gradient(180deg,#1a0e02,#7a5a14,#ffd76e) !important; }
+      body.geo-asia-morning .panel { border-top: 2px solid #ff66cc !important; }
+      body.geo-asia-evening { background: linear-gradient(180deg,#0a0a2e,#5a1a8c) !important; }
+      body.geo-usa-morning .panel { background: linear-gradient(180deg,#0066cc11,#00000099) !important; }
+      body.geo-usa-afternoon { background: linear-gradient(180deg,#001a4d,#003366,#0f1f3a) !important; }
+      body.geo-savanna { background: linear-gradient(180deg,#3d2817,#7a5a14,#cc8a14) !important; }
+    `;
+    document.head.appendChild(css);
+  },
+
+  // ---------- ADVANCED PANEL ----------
+  showPanel(){
+    if (typeof showModal !== 'function') return;
+    const body = `
+      <div style="display:grid;gap:10px;font-size:13px">
+        <button class="btn" onclick="MobileTitan.showWeeklyLB();">📊 Mobile Week Leaderboard</button>
+        <button class="btn" onclick="MobileTitan.voiceShoot=!MobileTitan.voiceShoot;MobileTitan.save();MobileTitan.voiceShoot?MobileTitan.startVoice():MobileTitan.stopVoice();MobileTitan.showPanel();">${this.voiceShoot?'✓ ':''}🎙 Voice command shoot</button>
+        <button class="btn" onclick="MobileTitan.micCrowd=!MobileTitan.micCrowd;MobileTitan.save();MobileTitan.micCrowd?MobileTitan.startMic():MobileTitan.stopMic();MobileTitan.showPanel();">${this.micCrowd?'✓ ':''}👂 Mic → crowd hype</button>
+        <div style="display:grid;gap:6px;padding:8px;background:#0006;border-radius:10px">
+          <div style="font-size:12px;opacity:.85"><b>🎮 Joystick deadzone:</b> ${(this.joystickDeadzone*100).toFixed(0)}%</div>
+          <input type="range" min="0.05" max="0.40" step="0.01" value="${this.joystickDeadzone}" style="width:100%" oninput="MobileTitan.joystickDeadzone=this.valueAsNumber;MobileTitan.save();this.previousElementSibling.innerHTML='<b>🎮 Joystick deadzone:</b> '+(this.value*100).toFixed(0)+'%'"/>
+        </div>
+        <button class="btn" onclick="MobileTitan.inertialScroll=!MobileTitan.inertialScroll;MobileTitan.save();MobileTitan.applyInertialScroll();MobileTitan.showPanel();">${this.inertialScroll?'✓ ':''}🔄 Inertial menu scrolling</button>
+        <button class="btn" onclick="MobileTitan.edgeSwipeBack=!MobileTitan.edgeSwipeBack;MobileTitan.save();MobileTitan.showPanel();">${this.edgeSwipeBack?'✓ ':''}⬅ Edge-swipe back nav</button>
+        <button class="btn" onclick="MobileTitan.geoTheme=!MobileTitan.geoTheme;MobileTitan.save();MobileTitan.bindGeoTheme();MobileTitan.showPanel();">${this.geoTheme?'✓ ':''}🌎 Geo-based daily theme</button>
+        <button class="btn" onclick="MobileTitan.perButtonHaptics=!MobileTitan.perButtonHaptics;MobileTitan.save();MobileTitan.hapticPattern('shoot');MobileTitan.showPanel();">${this.perButtonHaptics?'✓ ':''}🎨 Per-button haptic patterns</button>
+        <button class="btn" onclick="MobileTitan.showReplay(1);">🪞 Last shot replay</button>
+        <button class="btn" onclick="MobileTitan.arHoop();">🤳 AR Hoop preview</button>
+        <div style="font-size:11px;opacity:.7;text-align:center;padding:8px;background:#ffd76e22;border-radius:8px;line-height:1.4">
+          📊 Stats: ${this.voiceShotCount} voice shots · ${this.cheerCount} cheers · ${this.edgeSwipeCount} edge-swipes · ${this.timezones.size} TZs<br>
+          "Make a joyful noise unto the LORD" — Psalm 100:1
+        </div>
+      </div>`;
+    showModal('🦾 MOBILE TITAN · v3.26', body, [{label:'CLOSE', tone:'gold'}]);
+  }
+};
+setTimeout(() => { try { MobileTitan.init(); } catch(e){ console.warn('MobileTitan init failed', e); } }, 900);
+
+// 🆕 v3.26.0 — wire MOBILE TITAN button into Mobile Beast advanced panel
+(function extendBeast(){
+  setTimeout(() => {
+    if (typeof MobileBeast !== 'undefined' && MobileBeast.showAdvancedPanel){
+      const orig = MobileBeast.showAdvancedPanel.bind(MobileBeast);
+      MobileBeast.showAdvancedPanel = function(){
+        orig();
+        setTimeout(() => {
+          const card = document.querySelector('.modalCard');
+          if (card && !card.querySelector('#mtTitanBtn')){
+            const btn = document.createElement('button');
+            btn.id = 'mtTitanBtn';
+            btn.className = 'btn';
+            btn.style.cssText = 'width:100%;margin-top:8px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900';
+            btn.textContent = '🦾 MOBILE TITAN (v3.26) →';
+            btn.onclick = () => { closeModal && closeModal(); setTimeout(()=>MobileTitan.showPanel(), 200); };
+            const body = card.querySelector('.body') || card;
+            body.appendChild(btn);
+          }
+        }, 80);
+      };
+    }
+  }, 1700);
+})();
+
+// 🆕 v3.26.0 — record weekly LB on every match win
+(function hookWeeklyLB(){
+  setTimeout(() => {
+    if (typeof window._wudHookedWeeklyLB !== 'undefined') return;
+    window._wudHookedWeeklyLB = true;
+    setInterval(() => { try { MobileTitan.recordWeekly(); } catch(e){} }, 30000);
+  }, 2000);
+})();
+
 // GAP 5: Quick-start floating play button on mobile
 (function quickStartBtn(){
   setTimeout(() => {
