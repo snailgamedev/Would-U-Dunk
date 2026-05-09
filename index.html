@@ -6003,6 +6003,9 @@ class MatchScene extends Phaser.Scene {
     State._momentum += (scorerIdx === 0 ? 1 : -1) * Math.min(3, points);
     State._momentum = Math.max(-15, Math.min(15, State._momentum));
     if (typeof updateMomentumBar === 'function') updateMomentumBar(this);
+    // 🆕 v3.0.0 — DEFICIT tracking for UNDERDOG bet + comeback achievement
+    const deficit = (State.scores[1]||0) - (State.scores[0]||0);
+    if (deficit > (State._maxDeficit||0)) State._maxDeficit = deficit;
     // 🆕 v2.13.28 — daily objective progress
     if (scorerIdx === 0 && typeof trackDailyObjective === 'function'){
       trackDailyObjective('buckets', 1);
