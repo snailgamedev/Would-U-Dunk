@@ -5792,6 +5792,9 @@ function placeBet(typeId, wager, opts){
   const recentLosses = hist.slice(-3).every(h => !h.won);
   if (hist.length >= 3 && recentLosses) mult += 0.5;
   State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult, payout: Math.round(wager * mult), confidence: !!(opts && opts.confidence), bonus: mult - t.mult };
+  // 🏅 v3.13.0 — bet-size achievements
+  if (wager >= 1000 && typeof unlockAchievement === 'function') unlockAchievement('first_1k_bet');
+  if (wager >= 10000 && typeof unlockAchievement === 'function') unlockAchievement('first_10k_bet');
   return true;
 }
 function resolveBet(){
