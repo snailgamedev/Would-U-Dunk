@@ -3139,6 +3139,22 @@ function renderMyCareerScreen(){
         <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">📜 NARRATIVE BEATS (last 10)</div>
         ${beatsHtml || '<div style="color:#aab;text-align:center;padding:10px">play matches to unlock beats</div>'}
       </div>
+      <!-- 🆕 v3.4.0 — ENDORSEMENT DEALS section -->
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e;border-radius:10px;max-height:280px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">💼 ENDORSEMENT DEALS</div>
+        ${ENDORSEMENTS.map(e => {
+          const signed = loadEndorsements().signed.includes(e.id);
+          const eligible = e.req(c);
+          return `<div style="display:flex;align-items:center;padding:8px;margin:3px 0;background:${signed?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0006'};border-left:4px solid ${signed?'#4cf07a':eligible?'#ffd76e':'#444'};border-radius:4px">
+            <div style="flex:1;color:${signed?'#fff':eligible?'#fff':'#666'};font-size:12px">
+              <b>${e.name}</b> · <span style="color:#aab">+$${e.payout}</span>
+            </div>
+            ${signed
+              ? '<span style="color:#4cf07a;font-size:10px;letter-spacing:2px">✅ SIGNED</span>'
+              : eligible ? `<button class="btn signEndorsement" data-eid="${e.id}" style="font-size:10px;padding:4px 10px;background:#4cf07a;color:#000;font-weight:900">SIGN</button>` : '<span style="color:#666;font-size:10px">🔒 not eligible</span>'}
+          </div>`;
+        }).join('')}
+      </div>
       <button class="btn hot" id="mcPlay" style="width:100%;font-size:16px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);color:#000">🏀 PLAY NEXT CAREER GAME</button>
       <button class="btn" id="mcBack" style="margin-top:8px;width:100%">← BACK</button>
     </div>`;
@@ -3150,6 +3166,9 @@ function renderMyCareerScreen(){
     setTimeout(() => startMatch(), 200);
   };
   document.getElementById('mcBack').onclick = showSplash;
+  document.querySelectorAll('.signEndorsement').forEach(b => b.onclick = () => {
+    if (signEndorsement(b.dataset.eid)) renderMyCareerScreen();
+  });
 }
 
 // 🆕 v3.3.0 — UI THEMES (6 total) · CSS injection per theme
