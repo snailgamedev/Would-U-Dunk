@@ -12594,6 +12594,8 @@ async function startRound(){
     }));
   }
   State.rolls = rolls; State.cfg = cfg;
+  // 🆕 v3.4.0 — show rival intro card if matched up against declared rival
+  if (typeof maybeShowRivalIntro === 'function') setTimeout(() => maybeShowRivalIntro(), 100);
   // 🆕 v2.8.1 — FRANCHISE OVERRIDE — pick CPU tier from league pool when franchise active
   if (State._franchiseActive && State._franchiseLeagueId){
     const baseTier = pickLeagueTier(State._franchiseLeagueId);
