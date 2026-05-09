@@ -9677,6 +9677,95 @@ function renderGambleScreen(){
     setTimeout(() => startMatch(), 220);
   };
 }
+// 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER full screen
+function renderFaithCornerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('worship');
+  const f = tickFaithStreak();
+  const dev = dailyDevotional();
+  const pray = dailyPrayer();
+  const verse = verseOfTheDay();
+  recordVerseSeen(verse);
+  // Increment counters once per day
+  const todayKey = new Date().toISOString().slice(0,10);
+  if (f._lastDevDay !== todayKey){ f.devotionsRead = (f.devotionsRead||0)+1; f._lastDevDay = todayKey; saveFaith(f); }
+  const fav = loadFaith().favorites;
+  const favRows = fav.length
+    ? fav.slice().reverse().map(v => `<div class="favRow" data-ref="${v.ref}" style="padding:8px;margin:4px 0;background:#0008;border-left:3px solid #ffd76e;border-radius:4px;cursor:pointer">
+        <div style="font-style:italic;color:#fff;font-size:12px">"${v.text}"</div>
+        <div style="color:#ffd76e;font-size:10px;letter-spacing:2px;margin-top:2px">— ${v.ref} ❤️</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:14px;font-size:11px">no favorites yet · tap ❤️ on any verse to save it forever</div>';
+  const histVerses = loadFaith().history.slice(-10).reverse();
+  const histRows = histVerses.length
+    ? histVerses.map(v => `<div style="padding:6px 8px;margin:2px 0;background:#0006;border-radius:4px;font-size:11px;color:#fff">"${v.text}" <span style="color:#ffd76e">— ${v.ref}</span></div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:10px;font-size:11px">no history yet · play a match boi 🏀</div>';
+  const catBtns = Object.keys(SCRIPTURE_CAT).filter(k => k !== '_all').map(k =>
+    `<button class="btn catBtn" data-cat="${k}" style="font-size:11px;padding:8px 12px;margin:3px;text-transform:uppercase;letter-spacing:2px">${k}</button>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:680px;text-align:left">
+      <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🙏 FAITH CORNER</div>
+      <div class="subtitle" style="text-align:center">scripture · prayer · devotional · favorites</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:12px;text-align:center;color:#000;font-weight:900">
+        🔥 FAITH STREAK · ${f.streak} day${f.streak!==1?'s':''} · ${f.devotionsRead||0} devotionals read · ${(loadFaith().history||[]).length} verses seen
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px solid #ffd76e;border-radius:10px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">🌅 VERSE OF THE DAY</div>
+        <div style="font-style:italic;font-size:16px;color:#fff;line-height:1.5">"${verse.text}"</div>
+        <div style="color:#ffd76e;font-size:12px;margin-top:8px;letter-spacing:2px">— ${verse.ref}</div>
+        <button class="btn" id="favVotd" style="margin-top:10px;font-size:11px;padding:6px 12px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff">${isFavoriteVerse(verse.ref)?'💔 unfavorite':'❤️ favorite'}</button>
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px solid #4cf07a;border-radius:10px">
+        <div style="color:#4cf07a;font-size:11px;letter-spacing:3px;margin-bottom:6px">📖 DAILY DEVOTIONAL · ${dev.title}</div>
+        <div style="font-size:13px;color:#fff;line-height:1.55">${dev.body}</div>
+        <div style="color:#4cf07a;font-size:11px;margin-top:8px;letter-spacing:2px">→ ${dev.verse}</div>
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px solid #4f9eff;border-radius:10px">
+        <div style="color:#4f9eff;font-size:11px;letter-spacing:3px;margin-bottom:6px">🙏 PRAYER OF THE DAY · ${pray.title}</div>
+        <div style="font-size:13px;color:#fff;line-height:1.55;font-style:italic">${pray.body}</div>
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:1px solid #ffd76e44;border-radius:10px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">📜 BROWSE BY CATEGORY (${totalVerseCount()} total verses)</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center">${catBtns}</div>
+        <div id="catVerseBox" style="margin-top:10px;padding:10px;background:#000c;border-radius:6px;min-height:50px;font-size:12px;color:#aab;text-align:center;font-style:italic">↑ tap a category to draw a verse</div>
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:1px solid #ffd76e44;border-radius:10px;max-height:240px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">❤️ YOUR FAVORITES (${fav.length})</div>
+        ${favRows}
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:1px solid #ffd76e44;border-radius:10px;max-height:200px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">📋 RECENT VERSE HISTORY</div>
+        ${histRows}
+      </div>
+      <div style="text-align:center;margin-top:18px;font-size:11px;color:#aab;line-height:1.6">
+        "Whoever sows generously will also reap generously" — 2 Cor 9:6<br>
+        every day you visit · the streak grows · grace abounds 🙏✨
+      </div>
+      <button class="btn" id="faithBack" style="margin-top:14px;width:100%">← BACK TO MAIN</button>
+    </div>`;
+  document.getElementById('faithBack').onclick = showSplash;
+  document.getElementById('favVotd').onclick = () => {
+    toggleFavoriteVerse(verse);
+    if (typeof showToast === 'function') showToast(isFavoriteVerse(verse.ref) ? '❤️ FAVORITED' : '💔 REMOVED', 'level');
+    renderFaithCornerScreen();
+  };
+  document.querySelectorAll('.catBtn').forEach(b => b.onclick = () => {
+    const v = verseByCategory(b.dataset.cat);
+    recordVerseSeen(v);
+    const isFav = isFavoriteVerse(v.ref);
+    document.getElementById('catVerseBox').innerHTML = `
+      <div style="font-style:italic;color:#fff;font-size:13px;line-height:1.5">"${v.text}"</div>
+      <div style="color:#ffd76e;font-size:11px;margin-top:8px;letter-spacing:2px">— ${v.ref}</div>
+      <button class="btn" id="favCat" style="margin-top:8px;font-size:10px;padding:5px 10px">${isFav?'💔 unfavorite':'❤️ favorite'}</button>`;
+    document.getElementById('favCat').onclick = () => { toggleFavoriteVerse(v); b.click(); };
+  });
+  document.querySelectorAll('.favRow').forEach(r => r.onclick = () => {
+    const ref = r.dataset.ref;
+    const v = loadFaith().favorites.find(x => x.ref === ref);
+    if (!v) return;
+    if (confirm(`Remove "${v.ref}" from favorites?`)){ toggleFavoriteVerse(v); renderFaithCornerScreen(); }
+  });
+}
+
 function showModeSelect(){
   musicForScreen('modeselect'); // 🆕 v2.21.0
   const lv = levelFromXp(Career.xp);
