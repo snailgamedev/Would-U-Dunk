@@ -194,6 +194,10 @@
   #menu.hide{display:none}
   .panel{background:#0008;border:2px solid var(--gold);border-radius:14px;padding:24px;text-align:center;max-width:92vw}
   .title{font-size:46px;font-weight:900;letter-spacing:3px;color:var(--hot);text-shadow:0 0 20px #ff3b3b,0 4px 0 #000;margin:0 0 4px;line-height:1}
+  /* 🆕 v3.28.0 — splash title visibility fix · theme-safe · always readable */
+  @keyframes titlePulse{0%,100%{filter:drop-shadow(0 4px 12px rgba(0,0,0,0.7)) brightness(1)}50%{filter:drop-shadow(0 6px 24px rgba(255,215,110,0.6)) brightness(1.15)}}
+  .splashTitle{position:relative;z-index:5}
+  .splashTitle::before{content:attr(data-text);position:absolute;left:0;right:0;top:0;color:#000;-webkit-text-stroke:0;text-shadow:none;background:none !important;-webkit-background-clip:initial !important;-webkit-text-fill-color:#000 !important;z-index:-1;transform:translate(2px,2px);opacity:.7}
   .subtitle{font-size:14px;color:var(--gold);letter-spacing:6px;margin-bottom:18px}
   .verse{font-size:11px;color:#aab;margin-bottom:18px;font-style:italic}
   .btn{display:block;width:100%;background:#0006;color:#fff;border:2px solid #ffd76e;border-radius:10px;padding:14px 18px;font-family:inherit;font-size:18px;font-weight:900;letter-spacing:2px;margin:8px 0;cursor:pointer;text-shadow:0 2px 0 #000;transition:transform .08s, background .15s}
