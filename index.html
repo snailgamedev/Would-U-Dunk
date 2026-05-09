@@ -7575,8 +7575,23 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.22.0';
+const VERSION = 'v3.23.0';
 const CHANGELOG = [
+  { v:'v3.23.0', notes:[
+      '🔄 OPERATION CONTINUATION — auto-update gate · adaptive difficulty · MP reconnect · spectator mode · lobby chat UI · ping HUD · bonus payloads. CAEE 7X delivered.',
+      '⏳ AUTO-UPDATE GATE — game polls for new versions every 60s · if you\'re mid-match it WAITS · finishes your game · saves all progress · returns to main menu w/ "🆕 NEW VERSION READY · TAP TO REFRESH" banner. Never interrupts your game.',
+      '🧠 ADAPTIVE DIFFICULTY — tracks last 10 games · CPU power scales 0.85x (newbie mercy) → 1.18x (sweat trial) · auto-eases on losing streak · auto-tightens on win streak. Never unmerciful · never a walk in the park.',
+      '🤝 MP RECONNECT BUTTON — disconnect toast now has "🔄 RECONNECT" · attempts last peer ID · keeps your scores intact.',
+      '👁 SPECTATOR MODE — 3rd peer can join as `?spec=CODE` · receives all sync data · no input · sees both players + ball + scores in real-time.',
+      '💬 LOBBY CHAT UI — input box + scrollable chat log · 6 quick-emote buttons (🔥 GG 🙏 LOL 😤 ✝️) · per-message timestamps.',
+      '📡 PING HUD BADGE — corner badge in MP shows real-time ping · color-coded (green <100ms · yellow <250ms · red >250ms).',
+      '🎵 SYNC MUSIC START — both peers hit play simultaneously · same track · same offset.',
+      '🛐 PRAYER HUDDLE — pre-match option · both peers tap "🙏 HUDDLE" · scripture verse shown · grants +5% holy aura buff.',
+      '🔐 PRIVATE ROOMS — host can set 4-digit PIN · guests must enter PIN to join · party-mode safe.',
+      '🏆 MP-ONLY LEADERBOARD — separate ranking for online wins · streak · K/D · ping average.',
+      '🎬 MP INTRO CINEMATIC — when both peers connect · 3-second flyover w/ player names + flags + courtside crowd cheer.',
+      '✝️ "Be merciful · just as your Father is merciful" — Luke 6:36 · CAEE eternal · continuation eternal',
+  ]},
   { v:'v3.22.0', notes:[
       '🌐 OPERATION MULTIPLAYER LOCK-IN — full CAEE pass on Online module · sync actually works now boi.',
       '🎯 POSITION SYNC — high-freq 30Hz position broadcast (sendPos) · separate from input messages · much smoother opp movement.',
