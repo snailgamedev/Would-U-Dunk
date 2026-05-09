@@ -4379,7 +4379,7 @@ function renderWalkoutMixerScreen(){
     try { const a = new Audio(loadWalkoutSlot(b.dataset.slot)); a.volume = 0.7; a.play(); } catch(e){}
   });
   document.querySelectorAll('.slotDel').forEach(b => b.onclick = () => {
-    if (confirm(`Delete slot ${b.dataset.slot}?`)){ deleteWalkoutSlot(b.dataset.slot); renderWalkoutMixerScreen(); }
+    inGameConfirm(`Delete walkout slot ${b.dataset.slot}?`).then(ok => { if (ok){ deleteWalkoutSlot(b.dataset.slot); renderWalkoutMixerScreen(); } });
   });
 }
 
