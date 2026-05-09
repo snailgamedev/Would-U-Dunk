@@ -6977,7 +6977,8 @@ class MatchScene extends Phaser.Scene {
     if (p._enigmaArch && !archIds.includes(p._enigmaArch)) archIds.push(p._enigmaArch);
 
     const ball = this.ball;
-    const opp = this.p1;
+    // 🆕 v2.26.0 — opponent is the OTHER player. In CPU vs CPU, P1 calling runCpu must target P2.
+    const opp = (p === this.p1) ? this.p2 : this.p1;
     const target = p.scoringHoop;
     const distToHoop = Math.abs(target.x - p.x);
 
