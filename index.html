@@ -5746,8 +5746,20 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.11.0';
+const VERSION = 'v3.12.0';
 const CHANGELOG = [
+  { v:'v3.12.0', notes:[
+      '🏀 OPERATION SCORE-ALWAYS + BR-VIBES — guaranteed scoreability + basketrandom variety + 2K meter + nav fixes.',
+      '🛡 ALWAYS-SCORE GUARANTEE — sanitizeCfg now CULLS scoreability-breaking modifiers entirely (not just clamps): tiny_court · slim_rim · tight_rim · half_court · sticky · molasses · ball-tight rim with shrink_ball + giant_court combos. NEVER again will a roll prevent scoring.',
+      '🏀 9 NEW BALL TYPES — extending MODS.ball: 🏐 VOLLEYBALL · 🎾 TENNIS BALL · ⚽ SOCCER BALL · 🎳 BOWLING BALL · ◼️ CUBE BALL · 💡 NEON BALL · 🪩 DISCO BALL · 🍉 WATERMELON · ⚛ ATOM BALL — each w/ unique physics like basketrandom but better.',
+      '🎯 2K-STYLE METER — charge bar redesigned: red zone (early miss) · yellow zone (slightly low) · GREEN ZONE (perfect tick mark visible) · purple zone (overcharge late). Visual feedback on release color.',
+      '⬅ NAV BACK STACK — back button on every screen now pops to PREVIOUS screen (not always splash). Track up to 10 deep · sessionStorage backed.',
+      '🎰 PARLAY UI + EXPLAINER — gamble screen now has "🏆 BUILD A PARLAY" toggle · pick multiple bets · all must hit · payout multiplies (5x · 25x · 125x · 625x). Explainer panel teaches the system.',
+      '💰 GAMBLE PAYOUT VERIFIED — audited resolveBet() · awardCash(payout) DOES fire on win · added cash-flash visible toast confirming `+$X RECEIVED · cash now $Y` so you SEE the money land.',
+      '✨ CLEANER CHAOS REVEAL — SUPER CHAOS now hides scouting reports + counter hints (too much info) · only mod cards + opponent name + skip · less visual noise.',
+      '🛑 NO-OVERLAP Z-INDEX SWEEP — letterbox bars 9050 · halftime 9100 · install prompt 9000 · landscape 9500 · event banner 9000 · save dot 9999 · in-game popups 9999 · clean stacking · no covering.',
+      '✝️ "He gives strength to the weary · increases the power of the weak" — Isa 40:29 · always able to score · keep playing',
+  ]},
   { v:'v3.11.0', notes:[
       '🟢 OPERATION GREEN-MEANS-MAKE — green meter now LITERALLY guarantees the bucket. plus screen-shake/flash removal pass + smooth music verification.',
       '🎯 GREEN METER = GUARANTEED SCORE — when you release in the green window (charge 0.66-0.74) · trajectory locks to the hoop center · aim chaos ignored · gravity assist nudges ball into rim · ALWAYS scores. +1 bonus point + GREEN! popup + special green particle trail still apply.',
