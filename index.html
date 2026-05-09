@@ -13497,6 +13497,18 @@ function renderGambleScreen(){
           ${parlayPayoutChart(100).map(p => `<tr><td style="padding:4px 6px">${p.picks} pick${p.picks>1?'s':''}</td><td style="padding:4px 6px;color:#ffd76e">${p.mult}x</td><td style="padding:4px 6px;color:#4cf07a;text-align:right">$${p.payout.toLocaleString()}</td></tr>`).join('')}
         </table>
       </div>
+      <!-- 🆕 v3.12.0 — PARLAY EXPLAINER -->
+      <div style="margin-top:14px;padding:12px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:2px solid #fff;border-radius:8px;color:#000">
+        <div style="font-weight:900;letter-spacing:3px;font-size:12px;margin-bottom:6px">📖 HOW PARLAYS WORK</div>
+        <div style="font-size:11px;line-height:1.7;letter-spacing:1px">
+          1. pick a champion in <b>TOURNAMENT screen</b> · click "MY PICK" before bracket starts<br>
+          2. each $100 wager gives 5x payout if they win it all<br>
+          3. <b>chain across multiple tournaments</b> · all picks must hit · payout MULTIPLIES<br>
+          4. 1 pick → 5x · 2 picks → 25x · 3 picks → 125x · 4 picks → <b>625x</b><br>
+          5. one bust = whole parlay loses · high risk · high reward<br>
+          ✝️ "the plans of the diligent lead to profit" — Prov 21:5
+        </div>
+      </div>
       <div style="margin-top:10px;font-size:10px;color:#aab;text-align:center;line-height:1.6">
         💡 bet pairs naturally with 🎬 CPU vs CPU · sportsbook style<br>
         ✝️ "be content with what you have" — Heb 13:5 · this is a game · play wise
