@@ -11213,6 +11213,10 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v2.7.0 — clamp score to MIN_SCORE so cursed mode can't bottom-out indefinitely
     State.scores[scorerIdx] = clampScore((State.scores[scorerIdx] || 0) + points);
     State.matchPoints[scorerIdx] = clampScore((State.matchPoints[scorerIdx] || 0) + points);
+    // 🆕 v3.22.0 — broadcast score in MP after every bucket
+    if (State.mode === 'ONLINE' && typeof Online !== 'undefined' && Online.connected){
+      Online.send({ type:'score', scores:State.scores, matchPoints:State.matchPoints });
+    }
     // 🆕 v2.13.26 — BUZZER BEATER detection — last 3 sec of round = 2× points + special FX
     const remainingNow = (this.roundSecs || 120) - (this.elapsed || 0);
     if (remainingNow > 0 && remainingNow < 3){
