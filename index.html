@@ -3669,7 +3669,8 @@ const COURT_VENUES_V340 = [
   { id:'court_rooftop',    name:'ROOFTOP COURT',   cat:'COURT', price:4000, icon:'🌆', desc:'sunset skyline backdrop · big-city vibes' },
   { id:'court_cage',       name:'THE CAGE NYC',    cat:'COURT', price:5000, icon:'🔗', desc:'West 4th St · the hardest court in America' },
 ];
-SHOP_ITEMS.push(...COURT_VENUES_V340);
+// 🩹 v3.6.0 TDZ FIX — defer the push until after entire script parses (SHOP_ITEMS declared later in source)
+setTimeout(() => { try { SHOP_ITEMS.push(...COURT_VENUES_V340); } catch(e){ console.warn('[v3.6 fix] SHOP_ITEMS push deferred', e); } }, 0);
 
 // 🆕 v3.4.0 — TTS EVENT ANNOUNCER (SpeechSynthesis)
 function announceText(text, opts){
