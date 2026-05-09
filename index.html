@@ -2668,6 +2668,239 @@ function fullResetProfile(){
   Object.keys(localStorage).filter(k => k.includes(`:${name}`)).forEach(k => localStorage.removeItem(k));
 }
 
+// 🆕 v3.2.0 — GOLDILOCKS · adaptive difficulty based on rolling 5-game player win rate
+function loadRecentResults(){
+  try { return JSON.parse(localStorage.getItem(`wud:recentResults:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
+}
+function saveRecentResults(arr){
+  try { localStorage.setItem(`wud:recentResults:${currentProfileName()}`, JSON.stringify(arr.slice(-20))); } catch(e){}
+}
+function recordMatchResult(won){
+  const arr = loadRecentResults();
+  arr.push({ won, at: Date.now() });
+  saveRecentResults(arr);
+}
+function goldilocksTierShift(){
+  const arr = loadRecentResults().slice(-5);
+  if (arr.length < 3) return 0;   // need 3+ games to calibrate
+  const wins = arr.filter(r => r.won).length;
+  if (wins >= 4) return +1;       // dominating · raise difficulty
+  if (wins <= 1) return -1;       // struggling · lower difficulty
+  return 0;
+}
+function applyGoldilocksToTiers(rolls){
+  if (!Settings.goldilocks) return rolls;
+  const shift = goldilocksTierShift();
+  if (shift === 0 || !rolls?.cpuTiers) return rolls;
+  rolls.cpuTiers = rolls.cpuTiers.map(t => {
+    const idx = CPU_TIERS.findIndex(x => x.id === (t.id || '').replace(/^[★😈] /,''));
+    if (idx < 0) return t;
+    const newIdx = Math.max(0, Math.min(CPU_TIERS.length - 1, idx + shift));
+    const shifted = CPU_TIERS[newIdx];
+    return { ...t, ...shifted, name: (shift > 0 ? '⬆ ' : '⬇ ') + shifted.name, _goldilocks: shift };
+  });
+  return rolls;
+}
+
+// 🆕 v3.2.0 — MYSTERY BOX system · drops every 5 wins
+function loadMysteryBoxes(){
+  try { return JSON.parse(localStorage.getItem(`wud:mboxes:${currentProfileName()}`)||'{"opened":0,"pending":0,"history":[]}'); } catch(e){ return {opened:0,pending:0,history:[]}; }
+}
+function saveMysteryBoxes(b){
+  try { localStorage.setItem(`wud:mboxes:${currentProfileName()}`, JSON.stringify(b)); } catch(e){}
+}
+function maybeAwardMysteryBox(){
+  const wins = Career.wins || 0;
+  if (wins === 0 || wins % 5 !== 0) return;
+  const b = loadMysteryBoxes();
+  // de-dup: if last box was for this win count, skip
+  if (b._lastWinTrigger === wins) return;
+  b._lastWinTrigger = wins;
+  b.pending = (b.pending || 0) + 1;
+  saveMysteryBoxes(b);
+  if (typeof showToast === 'function') showToast(`🎁 MYSTERY BOX EARNED · ${b.pending} pending · open in Records`, 'level');
+}
+function openMysteryBox(){
+  const b = loadMysteryBoxes();
+  if ((b.pending||0) <= 0) return null;
+  b.pending -= 1;
+  b.opened = (b.opened||0) + 1;
+  // weighted reward roll
+  const r = Math.random();
+  let reward;
+  if (r < 0.40)      reward = { type:'cash',  amt: 100 + (Math.random()*200|0), label:'$CASH BURST' };
+  else if (r < 0.65) reward = { type:'cash',  amt: 500 + (Math.random()*500|0), label:'BIG $CASH' };
+  else if (r < 0.80) reward = { type:'card',  card: rollNewCard(), label:'CARD PACK' };
+  else if (r < 0.92) reward = { type:'verse', verse: verseByCategory('victory'), label:'RARE VERSE' };
+  else if (r < 0.98) reward = { type:'cash',  amt: 2000, label:'💎 LEGENDARY $2000' };
+  else               reward = { type:'card',  card: { tier:'invincible', name:'MYSTERY GOAT', arch:'baller', at:Date.now() }, label:'🌌 INVINCIBLE CARD' };
+  if (reward.type === 'cash') awardCash(reward.amt);
+  if (reward.type === 'card'){ const t = loadMyTeam(); t.push(reward.card); saveMyTeam(t); }
+  b.history.push({ at:Date.now(), reward });
+  if (b.history.length > 50) b.history = b.history.slice(-50);
+  saveMysteryBoxes(b);
+  return reward;
+}
+
+// 🆕 v3.2.0 — RANDOM EVENTS mid-round (12% per round)
+const RANDOM_EVENTS = [
+  { id:'hot_hand',   label:'🔥 HOT HAND',           desc:'2× pts for next 30s',           cfgPatch:{ _eventScoreMul:2, _eventEndsAt: 30 } },
+  { id:'cold_snap',  label:'❄️ COLD SNAP',           desc:'-1pt accuracy nerf 30s',        cfgPatch:{ _eventAimChaos:0.15, _eventEndsAt: 30 } },
+  { id:'crowd_wave', label:'👋 CROWD WAVE',          desc:'+$25 per bucket next 30s',     cfgPatch:{ _eventCashBonus:25, _eventEndsAt: 30 } },
+  { id:'miracle_3',  label:'🌟 MIRACLE 3',           desc:'+1 bonus pt on 3+ shots 30s',  cfgPatch:{ _eventThreeBonus:1, _eventEndsAt: 30 } },
+  { id:'mom_swing',  label:'⚡ MOMENTUM SWING',      desc:'momentum flips polarity',       cfgPatch:{ _eventMomFlip:true } },
+  { id:'ghostball',  label:'👻 GHOSTBALL FLICKER',   desc:'ball flickers transparent 20s', cfgPatch:{ _eventGhost:true, _eventEndsAt: 20 } },
+];
+function maybeFireRandomEvent(scene){
+  if (Math.random() > 0.12) return;
+  if (scene._lastEventRound === scene._currentRoundIdx) return;   // 1 event per round max
+  scene._lastEventRound = scene._currentRoundIdx;
+  const ev = RANDOM_EVENTS[(Math.random()*RANDOM_EVENTS.length)|0];
+  scene._activeEvent = { ...ev, startedAt: scene.time.now };
+  // visual banner
+  let banner = document.getElementById('eventBanner');
+  if (!banner){
+    banner = document.createElement('div');
+    banner.id = 'eventBanner';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `${ev.label}<br><span style="font-size:11px;opacity:0.85">${ev.desc}</span>`;
+  banner.classList.add('on');
+  setTimeout(() => banner.classList.remove('on'), 2800);
+  // audio
+  try { if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger('random'); } catch(e){}
+  // momentum flip
+  if (ev.cfgPatch._eventMomFlip) State._momentum = -(State._momentum || 0);
+  // bump record
+  const r = loadRecords();
+  r.eventsTriggered = (r.eventsTriggered || 0) + 1;
+  saveRecords(r);
+}
+
+// 🆕 v3.2.0 — DAILY VARIETY rotation (date-seeded)
+function dailyVariety(){
+  const d = new Date();
+  const seed = d.getFullYear()*1000 + (d.getMonth()+1)*32 + d.getDate();
+  const featuredMode = GAME_MODES[seed % GAME_MODES.length];
+  const featuredCpu = CPU_TIERS[(seed * 7) % CPU_TIERS.length];
+  return {
+    seed,
+    featuredMode,
+    featuredCpu,
+    bonusXpMode: featuredMode.id,
+    rivalCash: 250,
+    devotional: dailyDevotional(),
+    prayer: dailyPrayer(),
+    verse: verseOfTheDay(),
+  };
+}
+
+// 🆕 v3.2.0 — UNLOCK CHAINS · 16 progression chains tied to specific behaviors
+const UNLOCK_CHAINS = [
+  { id:'chill_master',     name:'😴 CHILL MASTER',       req:c => (c.gameModesPlayed?.practice?.plays||0) >= 10, reward:'unlock SLEEP CHILL exclusive verse rotation' },
+  { id:'spectator_baron',  name:'🎬 SPECTATOR BARON',     req:c => (loadRecords().spectated||0) >= 25,            reward:'unlock SPECTATOR HALL screen' },
+  { id:'verse_collector',  name:'📜 VERSE COLLECTOR',     req:c => (loadFaith().favorites||[]).length >= 50,      reward:'unlock ANGELIC scripture rotation tier' },
+  { id:'card_hoarder',     name:'🃏 CARD HOARDER',        req:c => loadMyTeam().length >= 30,                     reward:'unlock CARD VAULT screen' },
+  { id:'rim_destroyer',    name:'💥 RIM DESTROYER',       req:c => (loadRecords().dunks||0) >= 100,               reward:'unlock POSTERIZE celebration' },
+  { id:'block_master',     name:'🛡 BLOCK MASTER',         req:c => (loadRecords().blocks||0) >= 50,               reward:'unlock SHOT-DENIER badge' },
+  { id:'logo_legend',      name:'🌍 LOGO LEGEND',         req:c => (loadRecords().logoMade||0) >= 25,             reward:'unlock LOGO BALL skin' },
+  { id:'gambler_king',     name:'🎰 GAMBLER KING',        req:c => (loadGambleHistory().filter(h=>h.won).length) >= 50, reward:'unlock HIGH-STAKES tier' },
+  { id:'streak_god',       name:'🔥 STREAK GOD',          req:c => (c.longestStreak||0) >= 15,                    reward:'unlock GODLIKE combo tier' },
+  { id:'devotion_streak',  name:'🙏 DEVOTION STREAK',     req:c => (loadFaith().streak||0) >= 14,                  reward:'unlock DEVOTIONAL ARCHIVE' },
+  { id:'mystery_opener',   name:'🎁 MYSTERY OPENER',      req:c => (loadMysteryBoxes().opened||0) >= 10,           reward:'unlock GOLDEN MYSTERY BOX tier' },
+  { id:'event_chaser',     name:'⚡ EVENT CHASER',         req:c => (loadRecords().eventsTriggered||0) >= 25,       reward:'unlock event freq +50%' },
+  { id:'tier_climber',     name:'⬆ TIER CLIMBER',         req:c => Object.keys(c.cpuTiersBeaten||{}).length >= 20, reward:'unlock GOAT-TIER preview' },
+  { id:'ai_tamer',         name:'🧠 AI TAMER',            req:c => (c.wins||0) >= 100 && Settings.goldilocks,      reward:'unlock GTA6 elite AI overlay' },
+  { id:'centennial',       name:'💯 CENTENNIAL',          req:c => (c.games||0) >= 100,                            reward:'unlock 100-CLUB title' },
+  { id:'prestige_one',     name:'⭐ FIRST PRESTIGE',       req:c => (c.prestige||0) >= 1,                           reward:'unlock prestige aura on profile' },
+];
+function unlockedChains(){ return UNLOCK_CHAINS.filter(c => { try { return c.req(Career); } catch(e){ return false; } }); }
+function renderUnlockChainsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const unlocked = unlockedChains();
+  const rows = UNLOCK_CHAINS.map(c => {
+    const isU = unlocked.find(u => u.id === c.id);
+    return `<div style="padding:10px;margin:6px 0;background:${isU?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0008'};border-left:5px solid ${isU?'#4cf07a':'#ffd76e44'};border-radius:6px;color:#fff">
+      <div style="font-weight:900;letter-spacing:2px;font-size:13px;color:${isU?'#4cf07a':'#ffd76e'}">${isU?'✅ ':''}${c.name}${isU?'':' 🔒'}</div>
+      <div style="font-size:11px;color:#aab;margin-top:4px">→ ${c.reward}</div>
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#a040ff,#ff66cc,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🔓 UNLOCK CHAINS</div>
+      <div class="subtitle" style="text-align:center">${unlocked.length} / ${UNLOCK_CHAINS.length} unlocked · grow your arsenal</div>
+      <div style="margin:14px 0;max-height:65vh;overflow-y:auto">${rows}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "He who began a good work in you will carry it on" — Phil 1:6</div>
+      <button class="btn" id="ucBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('ucBack').onclick = showSplash;
+}
+
+// 🆕 v3.2.0 — ESCALATING WIN BONUS · per consecutive win
+function escalatingWinBonusMul(){
+  const streak = Career.currentStreak || 0;
+  return 1 + Math.min(1.0, streak * 0.10);   // 10% per streak win, capped at 100% (10 streak)
+}
+
+// 🆕 v3.2.0 — WAGER STREAK COMBO mult
+function wagerStreakComboMul(){
+  const hist = loadGambleHistory();
+  let streak = 0;
+  for (let i = hist.length - 1; i >= 0; i--){
+    if (hist[i].won) streak++;
+    else break;
+  }
+  if (streak >= 10) return 3.0;
+  if (streak >= 5) return 2.0;
+  if (streak >= 3) return 1.5;
+  return 1.0;
+}
+
+// 🆕 v3.2.0 — MYSTERY BOX OPEN screen
+function renderMysteryBoxScreen(){
+  const b = loadMysteryBoxes();
+  const pending = b.pending || 0;
+  if (pending <= 0){
+    menuEl.innerHTML = `
+      <div class="panel" style="max-width:520px;text-align:center">
+        <div class="title" style="font-size:32px">🎁 MYSTERY BOXES</div>
+        <div style="margin:18px 0;color:#fff">No boxes pending. Win 5 more matches to earn your next box.</div>
+        <div style="margin:14px 0;padding:14px;background:#0008;border:2px dashed #ffd76e;border-radius:10px;color:#ffd76e">
+          📦 Total opened so far: <b>${b.opened || 0}</b>
+        </div>
+        <button class="btn" id="mbBack" style="width:100%">← BACK</button>
+      </div>`;
+    document.getElementById('mbBack').onclick = showSplash;
+    return;
+  }
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px;text-align:center">
+      <div class="title" style="font-size:32px;background:linear-gradient(135deg,#ffd76e,#ff66cc,#fff);-webkit-background-clip:text;background-clip:text;color:transparent">🎁 MYSTERY BOX</div>
+      <div class="subtitle">${pending} pending · open them up boi</div>
+      <div id="mbStage" style="margin:24px 0;padding:30px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:18px;color:#000;font-weight:900">
+        <div style="font-size:80px">📦</div>
+        <div style="font-size:16px;letter-spacing:3px;margin-top:10px">TAP TO OPEN</div>
+      </div>
+      <button class="btn" id="mbBack" style="width:100%">← BACK</button>
+    </div>`;
+  const stage = document.getElementById('mbStage');
+  stage.style.cursor = 'pointer';
+  stage.onclick = () => {
+    const reward = openMysteryBox();
+    if (!reward) return;
+    let html = '';
+    if (reward.type === 'cash') html = `<div style="font-size:60px">💰</div><div style="font-size:24px;margin-top:10px">+$${reward.amt}</div><div style="font-size:11px;letter-spacing:3px;margin-top:8px;opacity:0.7">${reward.label}</div>`;
+    else if (reward.type === 'card'){
+      const tier = CARD_TIERS.find(x => x.id === reward.card.tier);
+      html = `<div style="font-size:60px">🃏</div><div style="font-size:18px;color:${tier.color};margin-top:10px;text-shadow:0 0 14px ${tier.glow}">${tier.name} · ${reward.card.name}</div><div style="font-size:11px;letter-spacing:3px;margin-top:8px;opacity:0.7">${reward.label}</div>`;
+    } else if (reward.type === 'verse') html = `<div style="font-size:60px">📜</div><div style="font-style:italic;margin-top:10px;font-size:13px">"${reward.verse.text}"</div><div style="font-size:12px;color:#000a;margin-top:6px">— ${reward.verse.ref}</div>`;
+    stage.innerHTML = html;
+    if (typeof showToast === 'function') showToast(`🎁 ${reward.label}!`, 'level');
+    setTimeout(() => renderMysteryBoxScreen(), 2500);
+  };
+  document.getElementById('mbBack').onclick = showSplash;
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
