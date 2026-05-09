@@ -2491,6 +2491,11 @@ const BET_TYPES = [
   { id:'thirty',  label:'30+ PERSONAL PTS',    desc:'P1 totals 30+ points across the whole match', mult:4.0, icon:'🔥' },
   { id:'logo',    label:'LOGO SPLASH',         desc:'P1 sinks at least one 5pt logo shot',         mult:8.0, icon:'🌍' },
   { id:'sweep',   label:'SHUTOUT (SWEEP)',     desc:'P2 ends the match with 0 points',             mult:3.5, icon:'🚿' },
+  // 🆕 v3.0.0 — WAGER EXPANSION (additive — original 6 stay)
+  { id:'underdog',label:'UNDERDOG (10x)',      desc:'P1 wins after being down 10+ at any point',  mult:10.0, icon:'🐕' },
+  { id:'parlay',  label:'PARLAY 3x',           desc:'win match · margin 5+ · first to score (all 3 must hit)', mult:6.0, icon:'🎲' },
+  { id:'donothing',label:'DOUBLE OR NOTHING',  desc:'requires hot-streak ≥ 1 already · 2x win',   mult:2.0, icon:'🎰' },
+  { id:'cinematic',label:'CINEMATIC FINISH',   desc:'P1 wins after cinematic mode triggers',      mult:5.0, icon:'🎬' },
 ];
 function loadGambleHistory(){
   try { return JSON.parse(localStorage.getItem(`wud:gambleHistory:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
