@@ -8959,6 +8959,19 @@ class MatchScene extends Phaser.Scene {
     const power = State.cfg.shotPower || 1;
     vx *= power; vy *= power;
 
+    // 🟢 v3.11.0 — GREEN MEANS MAKE · perfect release locks trajectory to hoop center · ALWAYS scores
+    if (isPerfect){
+      const targetX = target.x;
+      const targetY = target.y - 12;   // just above rim · clean drop
+      const ddx = targetX - player.x;
+      const ddy = targetY - player.y;
+      const flightT = 0.55;
+      const g = 1500 * (State.cfg.gravMul || 1);
+      vx = ddx / flightT;
+      vy = (ddy - 0.5 * g * flightT * flightT) / flightT;
+      ball.setData('guaranteedMake', true);   // magnetism kicks in mid-flight as backup
+    }
+
     ball.body.setVelocity(vx, vy);
     ball.setData('lockUntil', this.time.now + 200);
     ball.setData('lastTouchSide', player.idx);
