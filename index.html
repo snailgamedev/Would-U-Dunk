@@ -12285,6 +12285,11 @@ function showSplash(){
   // 🆕 v3.6.0 — TTS scripture reader (once per session, gated by setting)
   if (typeof maybeSpeakVerseOfDay === 'function') setTimeout(maybeSpeakVerseOfDay, 1500);
   document.getElementById('btnPlay').onclick = showModeSelect;
+  // 🆕 v3.8.0 — 4 hub buttons
+  const btnHubPlay = document.getElementById('btnHubPlay');     if (btnHubPlay) btnHubPlay.onclick = renderHubPlay;
+  const btnHubProgress = document.getElementById('btnHubProgress'); if (btnHubProgress) btnHubProgress.onclick = renderHubProgress;
+  const btnHubEconomy = document.getElementById('btnHubEconomy');  if (btnHubEconomy) btnHubEconomy.onclick = renderHubEconomy;
+  const btnHubMore = document.getElementById('btnHubMore');      if (btnHubMore) btnHubMore.onclick = renderHubMore;
   document.getElementById('btnStats').onclick = renderStatsScreen;
   document.getElementById('btnAch').onclick   = renderAchievementsScreen;
   document.getElementById('btnBoard').onclick = renderLeaderboardScreen;
