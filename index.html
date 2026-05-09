@@ -5815,8 +5815,22 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.12.0';
+const VERSION = 'v3.13.0';
 const CHANGELOG = [
+  { v:'v3.13.0', notes:[
+      '💰 OPERATION MILLIONAIRE MODE — gambling expanded · parlays deepened · leaderboards everywhere · ball-stuck killed · CPU vs CPU squashed · pixel overlap audit.',
+      '🩹 BALL-STUCK-AT-TOP FIX — auto-detector watches ball Y · if pinned in top 30px for 2s w/o player contact → force vy=400 + grav reset. works for ALL ball types + grav configs incl ballGravFlip + zero_grav + atom_ball edge cases.',
+      '🎬 CPU vs CPU BUG SWEEP — TTS announcer THROTTLED in spectator (1 line per 5s max not per event) · sound stinger volumes capped at 0.4× during spectator · ball-stuck guard active · camera auto-restore between rounds · pre-game intro card no longer fires twice.',
+      '📐 PIXEL-PERFECT OVERLAP AUTO-AUDIT — every banner/HUD/popup gets a unique slot · #saveDot moved to non-blocking corner · #installPrompt offset 80px from #saveDot · #landscapeBanner + #eventBanner + halftime never stack visually · z-index hierarchy enforced: HUD<reveal<event<halftime<install<save<popups<error.',
+      '💎 5 NEW BET TYPES — 🎯 PERFECT GAME (no missed shots · 12x) · 🔥 STREAK BET (3+ wins in row · 4x) · 💯 CENTURY (100+ pts in single match · 6x) · 🌌 IMPOSSIBLE (win at MIN difficulty · 15x) · 🚀 ROCKET (4× more pts than opp · 7x).',
+      '🤖 AUTO-RECURRING BET UI — checkbox in gamble screen · once enabled · same bet auto-places before every match · cancel anytime · cap at 50 auto-bets to prevent runaway loss.',
+      '🏆 PARLAY ACTIVE TRACKER — new screen lists all active multi-tournament parlays · current legs · payout if next leg hits · payout if all hit · cancel parlay button.',
+      '📜 PARLAY HISTORY SCREEN — every chained parlay logged · won/lost · which leg busted · biggest parlay payout ever.',
+      '💼 SAVED PARLAY PRESETS — 3 favorite preset parlays · 1-tap re-bet.',
+      '🏅 15 NEW ACHIEVEMENTS — first $1k single bet · first $10k single bet · 1M lifetime cash · first parlay won · 4-leg parlay won · top daily leaderboard · 100 wins · 1000 buckets · 50 dunks single match · 7-day login streak · etc.',
+      '📊 LEADERBOARDS · ALL CATEGORIES · ALL TIME WINDOWS — local cross-profile leaderboard system. Categories: 💰 cash earned · 🏆 wins · 🔥 longest streak · 💯 highest single-game · 🎰 biggest single bet won · 🃏 cards collected · 🟢 lifetime greens · 📅 daily challenge wins · 🏛 tournament wins · 🎬 spectator games · ⭐ XP · 👑 titles unlocked. Time windows: 🌅 daily · 📅 weekly · 📆 monthly · 🌍 all-time.',
+      '✝️ "Each one should give what they have decided in their heart" — 2 Cor 9:7 · play wise · keep cooking',
+  ]},
   { v:'v3.12.0', notes:[
       '🏀 OPERATION SCORE-ALWAYS + BR-VIBES — guaranteed scoreability + basketrandom variety + 2K meter + nav fixes.',
       '🛡 ALWAYS-SCORE GUARANTEE — sanitizeCfg now CULLS scoreability-breaking modifiers entirely (not just clamps): tiny_court · slim_rim · tight_rim · half_court · sticky · molasses · ball-tight rim with shrink_ball + giant_court combos. NEVER again will a roll prevent scoring.',
