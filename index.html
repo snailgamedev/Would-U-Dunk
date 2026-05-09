@@ -9576,7 +9576,7 @@ function renderAboutScreen(){
         <div class="stat"><div class="lbl">CPU TIERS</div><div class="val">28</div></div>
         <div class="stat"><div class="lbl">MODES</div><div class="val">${(typeof GAME_MODES !== 'undefined') ? GAME_MODES.length : 12}</div></div>
         <div class="stat"><div class="lbl">ACHIEVEMENTS</div><div class="val">${ACH_LIST.length}</div></div>
-        <div class="stat"><div class="lbl">SCRIPTURES</div><div class="val">${SCRIPTURES.length}</div></div>
+        <div class="stat"><div class="lbl">SCRIPTURES</div><div class="val">${typeof totalVerseCount === 'function' ? totalVerseCount() : SCRIPTURES.length}</div></div>
         <div class="stat"><div class="lbl">YOU'VE EARNED</div><div class="val">${got}</div></div>
       </div>
       <div class="small" style="margin-top:14px">
