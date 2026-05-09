@@ -6915,6 +6915,7 @@ function renderFriendsHubScreen(){
         <button class="btn" data-fh="lb" style="padding:14px;background:linear-gradient(135deg,#a040ff,#ff66cc);color:#fff;font-weight:900">📊 LEADERBOARD</button>
         <button class="btn" data-fh="feed" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">📰 FEED</button>
         <button class="btn" data-fh="add" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">➕ ADD FRIEND</button>
+        <button class="btn hot" data-fh="reqs" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">✉ REQUESTS${(typeof pendingRequestCount === 'function' && pendingRequestCount() > 0) ? ` (${pendingRequestCount()})` : ''}</button>
         <button class="btn" data-fh="qr" style="padding:14px;background:linear-gradient(135deg,#000,#222);color:#4cf07a;font-weight:900">📲 SHOW QR</button>
         <button class="btn" data-fh="export" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900;grid-column:span 2">📤 EXPORT MY PROFILE PAYLOAD</button>
       </div>
