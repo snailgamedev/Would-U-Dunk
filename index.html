@@ -11189,6 +11189,41 @@ function showEndCard(){
     winner = State.wins[0] > State.wins[1] ? 'P1' : (State.wins[1] > State.wins[0] ? 'P2' : 'TIE');
   }
 
+  // 🆕 v3.0.0 — ASCENSION · MyTEAM card on every win + records + faith achievement hooks
+  if (matchDone && !State._cardAwarded){
+    State._cardAwarded = true;
+    const myPts = State.matchPoints?.[0] || 0;
+    const oppPts = State.matchPoints?.[1] || 0;
+    const won = myPts > oppPts;
+    if (won && typeof awardCardOnWin === 'function') awardCardOnWin();
+    // bumpRecord biggestComeback if applicable
+    if (won && State._maxDeficit >= 10 && typeof bumpRecord === 'function') bumpRecord('biggestComeback', State._maxDeficit);
+    if (won && typeof bumpRecord === 'function') bumpRecord('biggestMargin', myPts - oppPts);
+    // bump spectated record for cpu vs cpu mode
+    if (State.cfg && State.cfg.cpuVsCpu && typeof bumpRecord === 'function'){
+      const r = loadRecords(); r.spectated = (r.spectated||0) + 1; saveRecords(r);
+    }
+    // bump dunks/blocks records
+    if (State.matchStats?.[0] && typeof bumpRecord === 'function'){
+      const r = loadRecords();
+      r.dunks  = (r.dunks||0)  + (State.matchStats[0].dunks  || 0);
+      r.blocks = (r.blocks||0) + (State.matchStats[0].blocks || 0);
+      saveRecords(r);
+    }
+    // 🙏 Faith achievement triggers
+    if (won && (Career.currentStreak||0) >= 10 && typeof unlockAchievement === 'function') unlockAchievement('anointed');
+    if (won && State._maxDeficit >= 20 && typeof unlockAchievement === 'function') unlockAchievement('more_than_conqueror');
+    if (won && State.modeId === 'allchaos' && typeof unlockAchievement === 'function') unlockAchievement('walking_on_water');
+    if (State.modeId === 'practice' && typeof unlockAchievement === 'function') unlockAchievement('peace_passes');
+    if ((Career.level||1) >= 50 && typeof unlockAchievement === 'function') unlockAchievement('chosen_lvl');
+    if ((loadFaith().favorites||[]).length >= 12 && typeof unlockAchievement === 'function') unlockAchievement('king_of_kings');
+    if ((loadFaith().streak||0) >= 7 && typeof unlockAchievement === 'function') unlockAchievement('blessed_highly_favored');
+    if ((loadFaith().streak||0) >= 30 && typeof unlockAchievement === 'function') unlockAchievement('mercies_new');
+    if (won && State._activeBet && State._activeBet.wager >= 1000 && typeof unlockAchievement === 'function') unlockAchievement('faith_over_fear');
+    // Refiner's Fire — won 5 in a row after losing 5 in a row
+    if (won && (Career.currentStreak||0) >= 5 && State._postLossStreakStart) unlockAchievement('refiners_fire');
+    if ((Career.currentLossStreak||0) >= 5) State._postLossStreakStart = true;
+  }
   // 🆕 v2.26.0 — GAMBLE bet resolution. Runs ONCE per match-done. Toast + persisted history.
   if (matchDone && State._activeBet && !State._betResolved){
     State._betResolved = true;
