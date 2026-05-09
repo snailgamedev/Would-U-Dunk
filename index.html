@@ -2286,6 +2286,135 @@ function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${curr
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
 function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
 
+// 🆕 v3.0.0 — ASCENSION · COMBO NAME ENGINE — escalating popups w/ scriptural finishers
+const COMBO_NAMES = [
+  { at:2,  label:'SWISH',         color:'#fff' },
+  { at:3,  label:'COLD BLOODED',  color:'#4f9eff' },
+  { at:4,  label:'HEAT CHECK',    color:'#ff8a3c' },
+  { at:5,  label:'BLAZIN',        color:'#ff3b3b' },
+  { at:6,  label:'UNCONSCIOUS',   color:'#ffd76e' },
+  { at:7,  label:'LEGENDARY',     color:'#a040ff' },
+  { at:8,  label:'GODLIKE',       color:'#ff66cc' },
+  { at:9,  label:'ON GOD 🙏',     color:'#ffd76e' },
+  { at:10, label:'ANOINTED 👑',   color:'#fff' },
+  { at:12, label:'PROPHETIC 🔥',  color:'#ffd76e' },
+  { at:15, label:'CHARIOT OF FIRE', color:'#fff' },
+];
+function fireComboName(scene, scorerIdx, streak){
+  const combo = COMBO_NAMES.slice().reverse().find(c => streak >= c.at);
+  if (!combo) return;
+  const player = scorerIdx === 0 ? scene.p1 : scene.p2;
+  const t = scene.add.text(player.x, player.y - 200, combo.label, {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:42, color:combo.color, stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION).setScale(0.4);
+  scene.tweens.add({ targets:t, scale:1.2, duration:180, ease:'Back.out', onComplete:()=>{
+    scene.tweens.add({ targets:t, alpha:0, y:t.y - 80, duration:1100, onComplete:()=>t.destroy() });
+  }});
+  if (streak >= 7) try { scene.cameras.main.shake(180, 0.005); } catch(e){}
+}
+
+// 🆕 v3.0.0 — ASCENSION · CROWD REACTION ENGINE — toast strings react to plays
+const CROWD_DUNK = ['🔊 OOHHHHH!!','🔊 POSTERIZED!!','🔊 GET HIM OUTTA HERE!','🔊 RIM-WRECKER!','🔊 HE FLEW!!'];
+const CROWD_LOGO = ['🌍 FROM DEEEEEP!!','🌍 LOGO SPLASH!!','🌍 RIDICULOUS RANGE!!','🌍 ARE YOU KIDDING?!'];
+const CROWD_3PT  = ['🎯 SPLASH!','🎯 BANG!','🎯 WET!','🎯 CASH!','🎯 GOOD!','🎯 LIGHTS OUT!'];
+const CROWD_BLOCK= ['🛡 GET THAT OUTTA HERE!','🛡 NO NO NO!','🛡 DENIED!','🛡 REJECTED!'];
+const CROWD_MISS = ['😬 BRICKED!','😬 AIRBALL!','😬 COULDA HAD IT','😬 OOOFFF'];
+const CROWD_CLUTCH = ['⏱️ CLUTCH GENE!','⏱️ ICE IN THE VEINS!','⏱️ DAGGER!','⏱️ HE WANTED IT!'];
+const CROWD_RUN = ['📈 ON A RUN!','📈 MOMENTUM SHIFT!','📈 HE\'S COOKING!','📈 HEATING UP!'];
+function fireCrowdReaction(scene, points, zoneVal, streak){
+  let pool = null;
+  if (zoneVal >= 5) pool = CROWD_LOGO;
+  else if (zoneVal >= 3) pool = CROWD_3PT;
+  else if (streak >= 4) pool = CROWD_RUN;
+  if (!pool) return;
+  const line = pool[(Math.random()*pool.length)|0];
+  const t = scene.add.text(VIEW_W/2, 60, line, {fontFamily:'monospace', fontSize:18, color:'#ffd76e', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5,0).setDepth(DEPTH.HUD_FIXED).setScrollFactor(0);
+  scene.tweens.add({ targets:t, alpha:0, y:t.y - 30, duration:1600, onComplete:()=>t.destroy() });
+}
+
+// 🆕 v3.0.0 — ASCENSION · SPECTATOR COMMENTARY engine — running text feed for CPU vs CPU
+function pushCommentary(scene, scorerIdx, points, zoneVal){
+  if (!scene._commentary){
+    // Build feed container in top-right area
+    scene._commentary = [];
+    scene._commentaryFeed = scene.add.container(VIEW_W - 8, 120).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+  }
+  const lines = [];
+  const tier = State.rolls?.cpuTiers?.[scorerIdx];
+  const tierName = tier?.name || (scorerIdx === 0 ? 'P1' : 'P2');
+  if (zoneVal >= 5) lines.push(`🎙 ${tierName} from the LOGO?! ARE YOU SERIOUS?!`);
+  else if (zoneVal >= 4) lines.push(`🎙 ${tierName} drops a HALFCOURT BOMB!`);
+  else if (zoneVal >= 3) lines.push(`🎙 ${tierName} pulls up from THREE — DOWNTOWN!`);
+  else lines.push(`🎙 ${tierName} gets the bucket inside.`);
+  const streak = State.bucketStreak[scorerIdx];
+  if (streak >= 4) lines.push(`🎙 That's ${streak} in a row — ${tierName} is COOKIN!`);
+  if (streak >= 7) lines.push(`🎙 ${tierName} is ANOINTED right now!`);
+  const line = lines[lines.length - 1]; // pick most-hype
+  scene._commentary.push(line);
+  if (scene._commentary.length > 5) scene._commentary.shift();
+  // Re-render feed
+  scene._commentaryFeed.removeAll(true);
+  scene._commentary.forEach((ln, i) => {
+    const bg = scene.add.rectangle(0, i*22, 320, 20, 0x000000, 0.7).setOrigin(1,0);
+    const txt = scene.add.text(-6, i*22 + 4, ln, {fontFamily:'monospace', fontSize:11, color:'#4cf07a', wordWrap:{width:300}}).setOrigin(1,0);
+    scene._commentaryFeed.add([bg, txt]);
+  });
+}
+
+// 🆕 v3.0.0 — ASCENSION · MOMENTUM BAR HUD (top-center, between scoreboard + commentary)
+function updateMomentumBar(scene){
+  const mom = State._momentum || 0;
+  if (!scene._momentumBar){
+    scene._momentumBar = {};
+    const cx = VIEW_W/2;
+    const y = 50;
+    scene._momentumBar.bg = scene.add.rectangle(cx, y, 200, 12, 0x000000, 0.7).setStrokeStyle(2, 0xffd76e).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+    scene._momentumBar.fillL = scene.add.rectangle(cx - 100, y, 0, 8, 0xff3b3b).setOrigin(0, 0.5).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+    scene._momentumBar.fillR = scene.add.rectangle(cx, y, 0, 8, 0x4f9eff).setOrigin(0, 0.5).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+    scene._momentumBar.lbl  = scene.add.text(cx, y - 14, 'MOMENTUM', {fontFamily:'monospace', fontSize:9, color:'#ffd76e', fontStyle:'bold'}).setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+  }
+  const cx = VIEW_W/2;
+  // mom -15..+15 → fill -100..+100
+  const fillPx = (Math.abs(mom) / 15) * 100;
+  if (mom >= 0){
+    scene._momentumBar.fillL.width = 0;
+    scene._momentumBar.fillR.x = cx;
+    scene._momentumBar.fillR.width = fillPx;
+  } else {
+    scene._momentumBar.fillR.width = 0;
+    scene._momentumBar.fillL.x = cx - fillPx;
+    scene._momentumBar.fillL.width = fillPx;
+  }
+}
+
+// 🆕 v3.0.0 — ASCENSION · CINEMATIC MODE — final 30s of close games go slow-mo dramatic
+function maybeCinematicMode(scene){
+  if (scene._cinematicOn) return;
+  const remaining = (scene.roundSecs || 120) - (scene.elapsed || 0);
+  const margin = Math.abs((State.scores[0]||0) - (State.scores[1]||0));
+  if (remaining > 0 && remaining <= 30 && margin <= 5){
+    scene._cinematicOn = true;
+    try {
+      const vignette = scene.add.rectangle(VIEW_W/2, VIEW_H/2, VIEW_W, VIEW_H, 0x000000, 0).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED - 1);
+      scene.tweens.add({ targets:vignette, alpha:0.25, duration:600 });
+      scene.cameras.main.flash(220, 255, 215, 110);
+      const banner = scene.add.text(VIEW_W/2, 90, '⏱️ CINEMATIC TIME', {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:32, color:'#ffd76e', stroke:'#000', strokeThickness:8}).setOrigin(0.5,0).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
+      scene.tweens.add({ targets:banner, alpha:0, y:banner.y - 30, duration:2400, onComplete:()=>banner.destroy() });
+    } catch(e){}
+  }
+}
+
+// 🆕 v3.0.0 — ASCENSION · FATIGUE SYSTEM
+function tickFatigue(player, dt){
+  if (!player) return;
+  if (player._fatigue == null) player._fatigue = 1.0;   // 1.0 = fresh, 0 = exhausted
+  // Drain when holding the ball (sprinting)
+  const holding = (player.scene?.ball?.getData?.('held') === player);
+  const drain = holding ? 0.04 * dt : -0.06 * dt;       // recover faster than drain
+  player._fatigue = Math.max(0.55, Math.min(1.0, player._fatigue - drain));
+}
+function fatigueAccuracyMul(player){
+  return player?._fatigue == null ? 1.0 : (0.85 + player._fatigue * 0.15);
+}
+
 // 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER module (devotional · prayer · favorites · streak · history)
 const FAITH_KEY = () => `wud:faith:${currentProfileName()}`;
 function defaultFaithState(){
