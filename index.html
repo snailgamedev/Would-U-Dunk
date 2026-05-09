@@ -7717,6 +7717,63 @@ class MatchScene extends Phaser.Scene {
       if (remaining < 30){ shootProbMul *= 1.5; tier.accuracy = Math.min(1, tier.accuracy * 1.3); }
     }
 
+    // 🆕 v3.1.0 — GTA6-tier SMART BRAIN — auto-on for tiers w/ accuracy ≥0.85 (MVP and up)
+    // Injects: clutch IQ · momentum awareness · contested-shot avoidance · pump fakes · score-aware aggression · ball fakes · pull-up jumpers · scout-based decisions
+    const smartBrain = tier.accuracy >= 0.85;
+    if (smartBrain){
+      // SCORE-AWARE: if losing → more aggression, more shots; if winning by 10+ → shot discipline
+      const myScore = State.scores[p.idx] || 0;
+      const oppScore = State.scores[opp.idx] || 0;
+      const scoreDiff = myScore - oppScore;
+      if (scoreDiff <= -10){ shootProbMul *= 1.4; driveBias += 0.3; chaseStealMul *= 1.3; }   // chase
+      else if (scoreDiff >= 10){ shootProbMul *= 0.7; shootRangeMul *= 0.85; }                  // protect lead, smart shots only
+      // TIME-AWARE: clutch boost in final 30s (universal — not just CLOSER archetype)
+      const remaining = (this.roundSecs || 120) - (this.elapsed || 0);
+      if (remaining < 30){ shootProbMul *= 1.35; tier.accuracy = Math.min(1, tier.accuracy * 1.15); }
+      if (remaining < 10){ shootProbMul *= 1.6; }   // extreme clutch
+      // CONTESTED-SHOT AVOIDANCE: if opp is mid-air close to me, DONT shoot — pump fake instead (skip this tick)
+      const oppGrounded = opp.body.blocked.down || opp.body.touching.down;
+      const oppDistFromMe = Phaser.Math.Distance.Between(p.x, p.y, opp.x, opp.y);
+      const oppContesting = !oppGrounded && oppDistFromMe < 180;
+      if (oppContesting){
+        shootProbMul *= 0.05;   // basically don't shoot — opp can block
+        // Pump fake: visual flutter + reposition toward open space
+        if (!p._pumpFakeAt || this.time.now - p._pumpFakeAt > 1500){
+          p._pumpFakeAt = this.time.now;
+          try {
+            const pf = this.add.text(p.x, p.y - 90, '🎭 PUMP', {fontFamily:'monospace', fontSize:11, color:'#ffd76e', stroke:'#000', strokeThickness:3, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+            this.tweens.add({ targets:pf, y:pf.y - 30, alpha:0, duration:700, onComplete:()=>pf.destroy() });
+          } catch(e){}
+        }
+      }
+      // BALL-FAKE: occasionally feint a shoot then reset (visual only — confuses spectator commentary too)
+      if (ball.getData('held') === p && oppDistFromMe < 220 && Math.random() < 0.012 && !p._ballFakeAt){
+        p._ballFakeAt = this.time.now;
+        setTimeout(() => { p._ballFakeAt = 0; }, 800);
+        try {
+          const bf = this.add.text(p.x, p.y - 80, '⚡ BALL-FAKE', {fontFamily:'monospace', fontSize:11, color:'#4f9eff', stroke:'#000', strokeThickness:3, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+          this.tweens.add({ targets:bf, y:bf.y - 30, alpha:0, duration:700, onComplete:()=>bf.destroy() });
+        } catch(e){}
+      }
+      // MOMENTUM AWARENESS: exploit if I have momentum, conservative if I don't
+      const mom = (State._momentum || 0) * (p.idx === 0 ? 1 : -1);
+      if (mom > 5){ shootProbMul *= 1.2; }    // ride the wave
+      else if (mom < -5){ shootProbMul *= 0.9; shootRangeMul *= 0.92; }   // slow it down
+      // CLOSEOUT DEFENSE: when opp is charging shot, JUMP to contest (universal — not just ORACLE)
+      if (ball.getData('held') === opp && opp._charging && (opp._chargeAmount||0) > 0.4){
+        const cpuGroundedNow = p.body.blocked.down || p.body.touching.down;
+        if (cpuGroundedNow && oppDistFromMe < 200){
+          p.body.setVelocityY(-PLAYER_BASE_JUMP * (State.cfg.jumpMul||1) * 1.1);
+        }
+      }
+      // PULL-UP JUMPERS: if no defender close and in good range, snap-shoot (no excessive driving)
+      if (ball.getData('held') === p && !oppContesting && distToHoop < tier.shootRange * 0.85 && oppDistFromMe > 250){
+        if (Math.random() < tier.accuracy * 0.08){ this.shoot(p, 0.7); /* pull up at near-perfect */ }
+      }
+      // FATIGUE-AWARE: if energy < 0.65, dial back driving (conserve)
+      if ((p._fatigue||1.0) < 0.65){ driveBias *= 0.7; }
+    }
+
     let dirX = 0;
     if (ball.getData('held') === p){
       // 🆕 v2.7.3 — MICROWAVE fires instantly on first pickup
