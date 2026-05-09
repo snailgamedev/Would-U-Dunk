@@ -13303,6 +13303,8 @@ class MatchScene extends Phaser.Scene {
     showSplash();
     // confirm to user that match really ended
     if (typeof showToast === 'function') showToast('🏠 Returned to main menu — match ended', 'level');
+    // 🆕 v3.23.0 — show update banner if pending
+    try { UpdateGate.notifyMatchEnd(); } catch(e){}
   }
 }
 
