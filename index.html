@@ -2276,6 +2276,74 @@ function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${curr
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
 function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
 
+// 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER module (devotional · prayer · favorites · streak · history)
+const FAITH_KEY = () => `wud:faith:${currentProfileName()}`;
+function defaultFaithState(){
+  return { favorites:[], history:[], streak:0, lastDay:null, devotionsRead:0, prayersRead:0 };
+}
+function loadFaith(){
+  try { const raw = localStorage.getItem(FAITH_KEY()); return raw ? Object.assign(defaultFaithState(), JSON.parse(raw)) : defaultFaithState(); }
+  catch(e){ return defaultFaithState(); }
+}
+function saveFaith(f){ try { localStorage.setItem(FAITH_KEY(), JSON.stringify(f)); } catch(e){} }
+function recordVerseSeen(v){
+  if (!v || !v.ref) return;
+  const f = loadFaith();
+  const exists = f.history.some(h => h.ref === v.ref);
+  if (!exists){
+    f.history.push({ ref:v.ref, text:v.text, at: Date.now() });
+    if (f.history.length > 200) f.history = f.history.slice(-200);
+    saveFaith(f);
+  }
+}
+function toggleFavoriteVerse(v){
+  if (!v || !v.ref) return false;
+  const f = loadFaith();
+  const idx = f.favorites.findIndex(x => x.ref === v.ref);
+  if (idx >= 0){ f.favorites.splice(idx, 1); saveFaith(f); return false; }
+  f.favorites.push({ ref:v.ref, text:v.text, at:Date.now() });
+  saveFaith(f); return true;
+}
+function isFavoriteVerse(ref){ return loadFaith().favorites.some(x => x.ref === ref); }
+function tickFaithStreak(){
+  const f = loadFaith();
+  const today = new Date().toISOString().slice(0,10);
+  if (f.lastDay === today) return f;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  f.streak = (f.lastDay === yesterday) ? (f.streak + 1) : 1;
+  f.lastDay = today;
+  saveFaith(f);
+  return f;
+}
+const DEVOTIONALS = [
+  { title:'Run Your Race', body:'Every game is your race. Don\'t look at who\'s next to you — look at the prize set before you. The same God who picked you up after the last loss is with you in this next play.', verse:'Heb 12:1' },
+  { title:'Renewed Strength', body:'When the legs feel heavy and the shot won\'t fall, remember: the Lord renews strength. Wait on Him before you wait on yourself.', verse:'Isa 40:31' },
+  { title:'Plans for Good', body:'God\'s plans for you don\'t depend on tonight\'s scoreline. Win or lose, the plans hold. Play freely.', verse:'Jer 29:11' },
+  { title:'Be Strong & Courageous', body:'Step into the gym, the moment, the matchup — God goes WITH you. Not behind. Not after. WITH.', verse:'Josh 1:9' },
+  { title:'New Mercies', body:'Yesterday\'s missed shots are not today\'s identity. New mercies, new game, new chance to be faithful.', verse:'Lam 3:23' },
+  { title:'More Than Conquerors', body:'You are MORE than a conqueror. Not just a winner — overflowing with victory through Christ. That\'s the cushion you play with.', verse:'Rom 8:37' },
+  { title:'Peace That Passes', body:'Even in clutch time — peace. The world\'s peace depends on the score. God\'s peace doesn\'t.', verse:'John 14:27' },
+];
+const PRAYERS = [
+  { title:'Before Tip', body:'Father, thank You for the breath in my lungs and the strength in these legs. Whatever happens this match — winning or losing — I want my play to honor You. Keep me joyful, keep me kind, keep me free. Amen.' },
+  { title:'After a Loss', body:'Lord, I\'m disappointed. But I trust You. You waste nothing — not even this. Refine me through it. Lift my head and let me play again with joy. Amen.' },
+  { title:'After a Win', body:'God, all praise to You. Every made shot is grace. Help me carry this with humility. Bless those I beat. Amen.' },
+  { title:'For Patience', body:'Father, when the rounds drag and the chaos piles up, give me patience. Slow my heart. Steady my hands. You are not in a hurry. Amen.' },
+  { title:'For Joy', body:'Lord, restore the joy of my play. Let me delight in this gift the way a child delights in a new ball. Amen.' },
+  { title:'For Others', body:'Father, bless every player I face today. Bless their families. Bless their dreams. Use this game to draw us toward You. Amen.' },
+  { title:'For the Real Game', body:'Lord, this is just basketball. Help me play hard but never confuse the scoreboard with the soul. Win or lose, I belong to You. Amen.' },
+];
+const dailyDevotional = () => {
+  const d = new Date();
+  const seed = d.getFullYear()*1000 + (d.getMonth()+1)*32 + d.getDate();
+  return DEVOTIONALS[seed % DEVOTIONALS.length];
+};
+const dailyPrayer = () => {
+  const d = new Date();
+  const seed = d.getFullYear()*1000 + (d.getMonth()+1)*32 + d.getDate() + 7;
+  return PRAYERS[seed % PRAYERS.length];
+};
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
