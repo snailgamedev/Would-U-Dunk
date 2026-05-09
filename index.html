@@ -2262,8 +2262,15 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v2.25.0';
+const VERSION = 'v2.26.0';
 const CHANGELOG = [
+  { v:'v2.26.0', notes:[
+      '🛡 SANITIZE-CFG GUARD — every chaos roll now passes through sanitizeCfg() that clamps unscoreable combos: rim never below 0.55x · player speed never below 0.4x · jump never below 0.5x · ballGravFlip+zeroGrav forced to 0.5 grav · cursed disabled in target/race modes & with reverseScore/oneShot · invertedScore disabled with suddenDeath · halfCourtRule disabled in dunkOnly mode · holdLimit floor 2s · scoreMul floor 1 · tempo floor 0.5 · ballScale floor 0.4. NO MORE DEAD ROUNDS.',
+      '🎰 GAMBLE MODE — full betting parlay system. 6 bet types: Win Match (1.8x) · Margin>5 (3x) · First-to-Score (2.2x) · 30+ Personal Pts (4x) · Logo Splash (8x) · Sweep (3.5x). Wager from your $cash bankroll pre-match. Resolves on end-card with payout banner.',
+      '🎬 CPU vs CPU SPECTATOR — sit back grab popcorn boiii. Both teams full AI, you watch. Pairs natural with GAMBLE for sportsbook-style action. New mode card on splash + in mode select.',
+      '🔘 SPLASH BUTTONS — 🎰 GAMBLE + 🎬 WATCH live on the splash bottom row.',
+      '✝️ "He sees the end from the beginning" · safety + spectacle in one drop. Is 46:10',
+  ]},
   { v:'v2.25.0', notes:[
       '🔊 LOWPASS SLIDER — dial the master tone 3000–12000 Hz right in Settings → MUSIC. Live-update; warmer at 4000 Hz · brighter at 10000 Hz.',
       '🎧 HEADPHONE MODE — toggle in Settings. Synthesized convolver impulse (1.6s decay) gives every track a hall reverb tail. Best with cans on.',
