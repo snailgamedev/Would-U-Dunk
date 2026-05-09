@@ -412,6 +412,20 @@
   #landscapeBanner.on { display:block; }
   /* save-dot hidden in data-saver */
   body.data-saver #saveDot { display:none !important; }
+  /* 🆕 v3.9.0 — READABILITY PASS · stronger contrast everywhere */
+  .panel { background:rgba(8,10,18,0.95) !important; backdrop-filter:blur(2px); }
+  .panel .title { text-shadow:0 2px 0 #000, 0 0 16px #000c, 0 0 4px #000 !important; font-weight:900 !important; }
+  .panel .subtitle { color:#fff !important; text-shadow:0 1px 0 #000c !important; }
+  .panel .small, .panel p, .panel li { color:#e8e8e8 !important; line-height:1.65 !important; }
+  .panel button.btn { font-weight:900; text-shadow:0 1px 0 rgba(0,0,0,0.4); }
+  body.large-text .panel { font-size:16px; }
+  body.large-text .panel .title { font-size:36px !important; }
+  body.large-text .panel .subtitle { font-size:15px !important; }
+  body.large-text .panel button.btn { font-size:16px !important; min-height:54px !important; }
+  /* better focus rings for keyboard nav · accessibility */
+  .panel button.btn:focus-visible { outline:3px solid #4cf07a !important; outline-offset:2px; }
+  /* halftime banner improvements (z-index above other banners) */
+  [data-halftime-banner] { z-index:9100 !important; }
 </style>
 </head>
 <body>
