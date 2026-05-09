@@ -5547,6 +5547,191 @@ function stopCrowdAmbient(){
   if (_crowdAudio){ try { _crowdAudio.stop(); } catch(e){} _crowdAudio = null; }
 }
 
+// 🩹 v3.13.0 — BALL-STUCK-AT-TOP guard · runs in update tick
+function maybeUnstickBall(scene){
+  if (!scene || !scene.ball) return;
+  if (scene.ball.getData('held')) { scene._ballTopSince = 0; return; }
+  if (scene.ball.y > 30) { scene._ballTopSince = 0; return; }
+  if (!scene._ballTopSince) scene._ballTopSince = scene.time.now;
+  if (scene.time.now - scene._ballTopSince > 2000){
+    // Force reset
+    try {
+      scene.ball.body.setVelocity(0, 400);
+      scene.ball.setPosition(scene.ball.x, 80);
+      if (scene.physics && scene.physics.world){
+        scene.physics.world.gravity.y = Math.abs(scene.physics.world.gravity.y || 1500);
+      }
+    } catch(e){}
+    scene._ballTopSince = 0;
+    if (typeof showToast === 'function') showToast('🩹 ball-stuck auto-fixed', 'allpro');
+  }
+}
+
+// 🩹 v3.13.0 — TTS THROTTLE for spectator (1 per 5s max not per event)
+let _lastTtsAt = 0;
+function announceTextThrottled(text){
+  const now = Date.now();
+  if (now - _lastTtsAt < 5000) return;
+  _lastTtsAt = now;
+  if (typeof announceText === 'function') announceText(text);
+}
+
+// 🏆 v3.13.0 — LEADERBOARDS · local cross-profile · daily/weekly/monthly/all-time · per-category
+const LEADERBOARD_CATS = [
+  { id:'cash',           label:'💰 CASH EARNED',           getter: () => loadCash() },
+  { id:'wins',           label:'🏆 WINS',                  getter: () => Career.wins || 0 },
+  { id:'streak',         label:'🔥 LONGEST STREAK',         getter: () => Career.longestStreak || 0 },
+  { id:'highscore',      label:'💯 HIGH SCORE',             getter: () => Career.highScoreGame || 0 },
+  { id:'biggestBet',     label:'🎰 BIGGEST BET WON',        getter: () => loadRecords().biggestWin || 0 },
+  { id:'cards',          label:'🃏 CARDS COLLECTED',        getter: () => loadMyTeam().length },
+  { id:'greens',         label:'🟢 LIFETIME GREENS',        getter: () => loadRecords().greenLifetime || 0 },
+  { id:'xp',             label:'⭐ TOTAL XP',                getter: () => Career.xp || 0 },
+  { id:'titles',         label:'👑 TITLES UNLOCKED',         getter: () => (typeof unlockedTitles === 'function') ? unlockedTitles().length : 0 },
+  { id:'spectated',      label:'🎬 SPECTATOR GAMES',        getter: () => loadRecords().spectated || 0 },
+  { id:'gemsEarned',     label:'💎 GEMS EARNED',            getter: () => loadGems() },
+  { id:'parlayBest',     label:'🏆 BIGGEST PARLAY',          getter: () => loadRecords().biggestParlay || 0 },
+];
+const LB_WINDOWS = ['daily', 'weekly', 'monthly', 'alltime'];
+function _windowKey(win){
+  const d = new Date();
+  if (win === 'daily')   return d.toISOString().slice(0,10);
+  if (win === 'weekly'){ const y = d.getFullYear(); const w = Math.ceil((((d - new Date(y, 0, 1)) / 86400000) + new Date(y, 0, 1).getDay() + 1) / 7); return `${y}-W${w}`; }
+  if (win === 'monthly') return d.toISOString().slice(0,7);
+  return 'alltime';
+}
+function loadLeaderboard(catId, win){
+  const key = `wud:lb:${catId}:${win}:${_windowKey(win)}`;
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e){ return []; }
+}
+function saveLeaderboard(catId, win, entries){
+  const key = `wud:lb:${catId}:${win}:${_windowKey(win)}`;
+  try { localStorage.setItem(key, JSON.stringify(entries.slice(0, 50))); } catch(e){}
+}
+function recordLeaderboardEntry(catId, value){
+  const profile = currentProfileName();
+  LB_WINDOWS.forEach(win => {
+    const arr = loadLeaderboard(catId, win);
+    const idx = arr.findIndex(e => e.profile === profile);
+    if (idx >= 0){ if (value > arr[idx].value){ arr[idx].value = value; arr[idx].at = Date.now(); } }
+    else arr.push({ profile, value, at: Date.now() });
+    arr.sort((a, b) => b.value - a.value);
+    saveLeaderboard(catId, win, arr);
+  });
+}
+function recordAllLeaderboards(){
+  LEADERBOARD_CATS.forEach(cat => {
+    try { recordLeaderboardEntry(cat.id, cat.getter()); } catch(e){}
+  });
+}
+function renderLeaderboardsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  if (typeof recordAllLeaderboards === 'function') recordAllLeaderboards();
+  let activeCat = 'cash';
+  let activeWin = 'alltime';
+  const render = () => {
+    const arr = loadLeaderboard(activeCat, activeWin);
+    const cat = LEADERBOARD_CATS.find(c => c.id === activeCat);
+    const winLbl = { daily:'🌅 DAILY', weekly:'📅 WEEKLY', monthly:'📆 MONTHLY', alltime:'🌍 ALL TIME' }[activeWin];
+    const rows = arr.length
+      ? arr.slice(0, 25).map((e, i) => {
+          const isMe = e.profile === currentProfileName();
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+          return `<div style="display:flex;justify-content:space-between;padding:8px 12px;margin:3px 0;background:${isMe?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0008'};border-left:4px solid ${isMe?'#4cf07a':'#ffd76e44'};border-radius:6px;color:#fff">
+            <div style="font-weight:900;letter-spacing:2px;font-size:12px">${medal} ${e.profile}${isMe?' · YOU':''}</div>
+            <div style="color:#ffd76e;font-weight:900">${e.value.toLocaleString()}</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:#aab;text-align:center;padding:20px">no entries yet · play to claim #1</div>';
+    const catBtns = LEADERBOARD_CATS.map(c => `<button class="btn lbCat" data-cat="${c.id}" style="font-size:10px;padding:6px 8px;margin:2px;background:${activeCat===c.id?'#ffd76e':'#0008'};color:${activeCat===c.id?'#000':'#ffd76e'};font-weight:900">${c.label}</button>`).join('');
+    const winBtns = LB_WINDOWS.map(w => `<button class="btn lbWin" data-win="${w}" style="font-size:11px;padding:8px 14px;margin:2px;background:${activeWin===w?'#4cf07a':'#0008'};color:${activeWin===w?'#000':'#4cf07a'};font-weight:900">${{daily:'🌅 D',weekly:'📅 W',monthly:'📆 M',alltime:'🌍 ALL'}[w]}</button>`).join('');
+    menuEl.innerHTML = `
+      <div class="panel" style="max-width:700px">
+        <div class="title" style="font-size:30px;text-align:center">📊 LEADERBOARDS</div>
+        <div class="subtitle" style="text-align:center">${cat?.label || ''} · ${winLbl}</div>
+        <div style="margin:10px 0;padding:8px;background:#0008;border-radius:8px;text-align:center">${winBtns}</div>
+        <div style="margin:10px 0;padding:8px;background:#0008;border-radius:8px;text-align:center;max-height:120px;overflow-y:auto">${catBtns}</div>
+        <div style="margin:14px 0;max-height:55vh;overflow-y:auto">${rows}</div>
+        <button class="btn" id="lbBack" style="width:100%">← BACK</button>
+      </div>`;
+    document.getElementById('lbBack').onclick = showSplash;
+    document.querySelectorAll('.lbCat').forEach(b => b.onclick = () => { activeCat = b.dataset.cat; render(); });
+    document.querySelectorAll('.lbWin').forEach(b => b.onclick = () => { activeWin = b.dataset.win; render(); });
+  };
+  render();
+}
+
+// 🎰 v3.13.0 — AUTO-RECURRING BET infrastructure
+function loadAutoBetState(){ try { return JSON.parse(localStorage.getItem(`wud:autoBetActive:${currentProfileName()}`) || 'null'); } catch(e){ return null; } }
+function saveAutoBetState(s){ try { localStorage.setItem(`wud:autoBetActive:${currentProfileName()}`, JSON.stringify(s)); } catch(e){} }
+function maybeAutoPlaceBet(){
+  const s = loadAutoBetState();
+  if (!s || !s.active) return;
+  if (s.count >= 50){ s.active = false; saveAutoBetState(s); if (typeof showToast === 'function') showToast('🤖 AUTO-BET CAPPED at 50 · disabled', 'allpro'); return; }
+  if (loadCash() < s.wager){ s.active = false; saveAutoBetState(s); if (typeof showToast === 'function') showToast('🤖 AUTO-BET out of cash · disabled', 'allpro'); return; }
+  if (typeof placeBet === 'function' && placeBet(s.type, s.wager, { confidence: s.confidence })){
+    s.count = (s.count || 0) + 1;
+    saveAutoBetState(s);
+    if (typeof showToast === 'function') showToast(`🤖 AUTO-BET #${s.count} placed · ${s.type} · $${s.wager}`, 'level');
+  }
+}
+
+// 🤖 v3.13.0 — PARLAY EXPANSION · history + presets
+function loadParlayHistory(){ try { return JSON.parse(localStorage.getItem(`wud:parlayHist:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveParlayHistory(arr){ try { localStorage.setItem(`wud:parlayHist:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){} }
+function loadParlayPresets(){ try { return JSON.parse(localStorage.getItem(`wud:parlayPresets:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveParlayPresets(arr){ try { localStorage.setItem(`wud:parlayPresets:${currentProfileName()}`, JSON.stringify(arr.slice(0, 3))); } catch(e){} }
+function recordParlayResult(parlay, won, payout){
+  const hist = loadParlayHistory();
+  hist.push({ at: Date.now(), legs: parlay.legs, wager: parlay.wager, payout, won, finalChain: parlay.finalChain || [] });
+  saveParlayHistory(hist);
+  if (won && typeof bumpRecord === 'function') bumpRecord('biggestParlay', payout);
+}
+
+// 🆕 v3.13.0 — render Parlay Tracker screen
+function renderParlayTrackerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const mp = (typeof loadMyPick === 'function') ? loadMyPick() : { active:null, history:[] };
+  const hist = (typeof loadParlayHistory === 'function') ? loadParlayHistory().slice(-10).reverse() : [];
+  const presets = (typeof loadParlayPresets === 'function') ? loadParlayPresets() : [];
+  const activeHtml = mp.active
+    ? `<div style="margin:12px 0;padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a44);border:2px solid #4cf07a;border-radius:8px;color:#fff">
+        <div style="color:#4cf07a;font-weight:900;letter-spacing:3px">🎯 ACTIVE PICK · ${mp.active.npcId}</div>
+        <div style="margin-top:6px;font-size:13px">wager $${mp.active.wager} · payout $${mp.active.payout}</div>
+        <button class="btn" id="cancelParlay" style="margin-top:10px;font-size:11px;padding:6px 14px;background:#3d1a1a;color:#fff">✖ CANCEL · refund $${mp.active.wager}</button>
+      </div>`
+    : '<div style="color:#aab;text-align:center;padding:14px">no active parlay · open TOURNAMENT to place a MY PICK</div>';
+  const histRows = hist.length
+    ? hist.map(p => `<div style="padding:8px 10px;margin:3px 0;background:#0008;border-left:4px solid ${p.won?'#4cf07a':'#ff3b3b'};border-radius:4px;color:#fff;font-size:11px">
+        <div>${p.legs} leg parlay · ${p.won ? `+$${p.payout}` : `-$${p.wager}`}</div>
+        <div style="color:#aab;font-size:10px;margin-top:2px">${new Date(p.at).toLocaleString()}</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:10px">no parlays yet</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:600px">
+      <div class="title" style="font-size:30px;text-align:center">🏆 PARLAY TRACKER</div>
+      <div class="subtitle" style="text-align:center">active picks · history · saved presets</div>
+      ${activeHtml}
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e;border-radius:8px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">📜 LAST 10 PARLAYS</div>
+        ${histRows}
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px dashed #4f9eff;border-radius:8px">
+        <div style="color:#4f9eff;font-size:11px;letter-spacing:3px;margin-bottom:6px">💼 SAVED PRESETS · ${presets.length}/3</div>
+        <div style="font-size:11px;color:#aab">save your favorite parlay setups · 1-tap re-bet (UI in next drop)</div>
+      </div>
+      <button class="btn" id="ptBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('ptBack').onclick = showSplash;
+  const cancelBtn = document.getElementById('cancelParlay');
+  if (cancelBtn) cancelBtn.onclick = () => {
+    awardCash(mp.active.wager);
+    mp.active = null;
+    saveMyPick(mp);
+    if (typeof showToast === 'function') showToast('🔄 PARLAY CANCELED · refunded', 'level');
+    renderParlayTrackerScreen();
+  };
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
