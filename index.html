@@ -15973,6 +15973,11 @@ const MobileBeast = {
     if (typeof showModal !== 'function') return;
     const body = `
       <div style="display:grid;gap:10px;font-size:13px">
+        <div style="display:grid;gap:6px;padding:8px;background:#0006;border-radius:10px;text-align:center">
+          <div style="font-size:12px;opacity:.85"><b>🕹 Joystick visualizer (live)</b></div>
+          <canvas id="jsVizCanvas" width="120" height="120" style="margin:0 auto;background:radial-gradient(circle,#222,#000);border-radius:50%"></canvas>
+          <div style="font-size:10px;opacity:.6">drag the joystick on screen — movement appears here</div>
+        </div>
         <div style="display:grid;gap:6px;padding:8px;background:#0006;border-radius:10px">
           <div style="font-size:12px;opacity:.85"><b>📐 Tilt sensitivity:</b> ${this.tiltSensitivity}°</div>
           <input type="range" min="5" max="60" step="5" value="${this.tiltSensitivity}" style="width:100%" oninput="MobileBeast.tiltSensitivity=this.valueAsNumber;MobileBeast.save();this.previousElementSibling.innerHTML='<b>📐 Tilt sensitivity:</b> '+this.value+'°'"/>
