@@ -6769,6 +6769,352 @@ function renderCpuFateScreen(){
   };
 }
 
+// 👥 v3.19.0 — FRIEND CAEE · rich payloads · hub · profiles · feed · QR · nicknames · gifts · cheers · rivalry · MVP
+const FRIEND_CHEERS = [
+  '🐐 you da GOAT',
+  '🍳 let him cook',
+  '💦 splash brother',
+  '🙌 respect king',
+  '🔥 keep firing',
+  '🏆 carry the W',
+  '👑 wear the crown',
+  '✝️ blessed bucket'
+];
+
+// Rich friend payload encoder (snapshot of profile state)
+function buildFriendPayload(){
+  const snap = {
+    code: generateFriendCode(),
+    name: currentProfileName(),
+    cash: loadCash(),
+    gems: loadGems(),
+    tier: (typeof currentWealthTier === 'function') ? currentWealthTier().id : 'rookie',
+    vip: (typeof currentVipTier === 'function') ? currentVipTier().id : 'none',
+    streak: Career.currentStreak || 0,
+    longestStreak: Career.longestStreak || 0,
+    wins: Career.wins || 0,
+    games: Career.games || 0,
+    aches: Object.keys(Career.achievements || {}).length,
+    topAch: getTopAchievement(),
+    at: Date.now(),
+  };
+  try { return btoa(JSON.stringify(snap)); } catch(e){ return ''; }
+}
+function parseFriendPayload(b64){
+  try { return JSON.parse(atob(b64)); } catch(e){ return null; }
+}
+function getTopAchievement(){
+  const got = Object.keys(Career.achievements || {});
+  if (got.length === 0) return null;
+  // Pick most-recent ach as "top"
+  const recent = Object.entries(Career.achievements).sort((a, b) => (b[1].at || 0) - (a[1].at || 0))[0];
+  return recent ? recent[0] : null;
+}
+
+// Friend storage extended (add nickname · activity · cheers · gifts queue)
+function getFriendByCode(code){
+  return loadFriends().find(f => f.code === code);
+}
+function updateFriend(code, patch){
+  const arr = loadFriends();
+  const idx = arr.findIndex(f => f.code === code);
+  if (idx < 0) return false;
+  Object.assign(arr[idx], patch);
+  saveFriends(arr);
+  return true;
+}
+function importFriendPayload(b64){
+  const snap = parseFriendPayload(b64);
+  if (!snap || !snap.code) return false;
+  const existing = getFriendByCode(snap.code);
+  if (existing){
+    // Update w/ snapshot
+    Object.assign(existing, snap, { lastSync: Date.now() });
+    saveFriends(loadFriends().map(f => f.code === snap.code ? existing : f));
+  } else {
+    const arr = loadFriends();
+    arr.push({ ...snap, score: snap.cash || 0, addedAt: Date.now(), lastSync: Date.now(), nickname: '', cheers: [], gifts: [] });
+    saveFriends(arr);
+  }
+  return snap;
+}
+
+// Friend gift / cheer queue
+function loadGiftLog(){ try { return JSON.parse(localStorage.getItem(`wud:giftLog:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveGiftLog(arr){ try { localStorage.setItem(`wud:giftLog:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){} }
+function sendFriendGift(code, gems){
+  if (gems <= 0 || gems > 3) return false;
+  if (loadGems() < gems) return false;
+  const today = new Date().toISOString().slice(0,10);
+  const log = loadGiftLog();
+  const dayCount = log.filter(g => g.toCode === code && g.day === today).length;
+  if (dayCount >= 3) return false;   // 3 gem cap per friend per day
+  if (!spendGems(gems)) return false;
+  log.push({ toCode: code, gems, day: today, at: Date.now() });
+  saveGiftLog(log);
+  if (typeof showToast === 'function') showToast(`🎁 SENT ${gems} 💎 to ${code}`, 'level');
+  return true;
+}
+function sendFriendCheer(code, cheerIdx){
+  const cheer = FRIEND_CHEERS[cheerIdx];
+  if (!cheer) return false;
+  const log = loadGiftLog();
+  log.push({ toCode: code, cheer, at: Date.now() });
+  saveGiftLog(log);
+  if (typeof showToast === 'function') showToast(`💬 CHEER SENT · "${cheer}" → ${code}`, 'level');
+  return true;
+}
+
+// Friend rivalry diff
+function friendDiff(friend){
+  const myCash = loadCash();
+  const myStreak = Career.longestStreak || 0;
+  return {
+    cashGap: myCash - (friend.cash || 0),
+    streakGap: myStreak - (friend.longestStreak || 0),
+    winsGap: (Career.wins || 0) - (friend.wins || 0),
+    trending: (friend.cash || 0) > myCash ? 'up' : 'down',
+  };
+}
+
+// Friend MVP of the week (synthetic · based on imported snapshots)
+function friendMvpOfWeek(){
+  const friends = loadFriends();
+  if (friends.length === 0) return null;
+  // Pick highest cash · synthetic "growth"
+  return friends.reduce((mvp, f) => (f.cash > (mvp?.cash || 0)) ? f : mvp, null);
+}
+
+// Remove friend
+function removeFriend(code){
+  const arr = loadFriends().filter(f => f.code !== code);
+  saveFriends(arr);
+}
+
+// Render Friends Hub
+function renderFriendsHubScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const friends = loadFriends();
+  const mvp = friendMvpOfWeek();
+  const myCode = generateFriendCode();
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#fff);-webkit-background-clip:text;background-clip:text;color:transparent">👥 FRIENDS HUB</div>
+      <div class="subtitle" style="text-align:center">${friends.length} friends · share your code anywhere</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:10px;text-align:center;color:#000">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">YOUR FRIEND CODE</div>
+        <div style="font-size:36px;font-weight:900;margin-top:6px;letter-spacing:6px;font-family:monospace">${myCode}</div>
+      </div>
+      ${mvp ? `<div style="margin:14px 0;padding:12px;background:linear-gradient(135deg,#7a5a14,#ffd76e);border:2px solid #fff;border-radius:10px;text-align:center;color:#000">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">🏆 FRIEND MVP OF THE WEEK</div>
+        <div style="font-size:18px;font-weight:900;margin-top:4px">${mvp.nickname || mvp.name || mvp.code}</div>
+        <div style="font-size:11px;margin-top:2px">$${(mvp.cash || 0).toLocaleString()} cash · ${mvp.wins || 0} wins</div>
+      </div>` : ''}
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-fh="profiles" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900;grid-column:span 2">👤 FRIENDS LIST · ${friends.length}</button>
+        <button class="btn" data-fh="lb" style="padding:14px;background:linear-gradient(135deg,#a040ff,#ff66cc);color:#fff;font-weight:900">📊 LEADERBOARD</button>
+        <button class="btn" data-fh="feed" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">📰 FEED</button>
+        <button class="btn" data-fh="add" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">➕ ADD FRIEND</button>
+        <button class="btn" data-fh="qr" style="padding:14px;background:linear-gradient(135deg,#000,#222);color:#4cf07a;font-weight:900">📲 SHOW QR</button>
+        <button class="btn" data-fh="export" style="padding:14px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900;grid-column:span 2">📤 EXPORT MY PROFILE PAYLOAD</button>
+      </div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "As iron sharpens iron" — Prov 27:17</div>
+      <button class="btn" id="fhBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('fhBack').onclick = showSplash;
+  const handlers = {
+    profiles: renderFriendsListScreen,
+    lb: renderFriendLeaderboardScreen,
+    feed: renderFriendsFeedScreen,
+    add: renderAddFriendScreen,
+    qr: renderFriendQrScreen,
+    export: () => {
+      const payload = buildFriendPayload();
+      try { navigator.clipboard.writeText(payload); if (typeof showToast === 'function') showToast(`📋 PAYLOAD COPIED · ${payload.length} chars`, 'level'); } catch(e){}
+      if (typeof inGameAlert === 'function') inGameAlert(`Your friend payload (paste this to share):\n\n${payload.slice(0, 80)}...\n\n(copied to clipboard)`);
+    },
+  };
+  document.querySelectorAll('[data-fh]').forEach(b => b.onclick = () => { const fn = handlers[b.dataset.fh]; if (fn) fn(); });
+}
+
+// Render Friends List
+function renderFriendsListScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const friends = loadFriends();
+  const rows = friends.length
+    ? friends.map(f => {
+        const display = f.nickname || f.name || f.code;
+        const tier = (typeof WEALTH_TIERS !== 'undefined') ? (WEALTH_TIERS.find(t => t.id === f.tier) || WEALTH_TIERS[0]) : { label:'?', color:'#aab' };
+        return `<div class="friendRow" data-fcode="${f.code}" style="padding:10px 14px;margin:4px 0;background:#0008;border:2px solid #ffd76e44;border-radius:8px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:900;font-size:13px">${display} <span style="color:#aab;font-size:10px">${f.code}</span></div>
+            <div style="font-size:11px;color:#aab;margin-top:2px">${tier.label} · $${(f.cash || 0).toLocaleString()} · ${f.wins || 0}W</div>
+          </div>
+          <div style="font-size:24px">${friendDiff(f).trending === 'up' ? '⬆' : '⬇'}</div>
+        </div>`;
+      }).join('')
+    : '<div style="color:#aab;text-align:center;padding:20px">no friends yet · add one from FRIENDS HUB</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">👤 FRIENDS LIST</div>
+      <div class="subtitle" style="text-align:center">tap any friend for full profile</div>
+      <div style="margin:14px 0;max-height:65vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="flBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('flBack').onclick = renderFriendsHubScreen;
+  document.querySelectorAll('.friendRow').forEach(r => r.onclick = () => renderFriendProfileScreen(r.dataset.fcode));
+}
+
+// Render Friend Profile (drill-in)
+function renderFriendProfileScreen(code){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const f = getFriendByCode(code);
+  if (!f){ renderFriendsListScreen(); return; }
+  const diff = friendDiff(f);
+  const tier = (typeof WEALTH_TIERS !== 'undefined') ? (WEALTH_TIERS.find(t => t.id === f.tier) || WEALTH_TIERS[0]) : { label:'?' };
+  const cheerBtns = FRIEND_CHEERS.map((c, i) => `<button class="btn cheerBtn" data-idx="${i}" style="font-size:10px;padding:8px;margin:2px;background:#0008;color:#ffd76e;border:1px solid #ffd76e44">${c}</button>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">${f.nickname || f.name || f.code}</div>
+      <div class="subtitle" style="text-align:center">${f.code} · last sync ${new Date(f.lastSync || f.addedAt || Date.now()).toLocaleString()}</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="padding:10px;background:#0008;border-left:4px solid #ffd76e;border-radius:6px;color:#fff">
+          <div style="color:#ffd76e;font-size:10px;letter-spacing:2px">WEALTH TIER</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">${tier.label}</div>
+        </div>
+        <div style="padding:10px;background:#0008;border-left:4px solid #4cf07a;border-radius:6px;color:#fff">
+          <div style="color:#4cf07a;font-size:10px;letter-spacing:2px">CASH</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">$${(f.cash || 0).toLocaleString()}</div>
+        </div>
+        <div style="padding:10px;background:#0008;border-left:4px solid #ff8a3c;border-radius:6px;color:#fff">
+          <div style="color:#ff8a3c;font-size:10px;letter-spacing:2px">WINS</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">${f.wins || 0} / ${f.games || 0}</div>
+        </div>
+        <div style="padding:10px;background:#0008;border-left:4px solid #4f9eff;border-radius:6px;color:#fff">
+          <div style="color:#4f9eff;font-size:10px;letter-spacing:2px">LONGEST STREAK</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">${f.longestStreak || 0}</div>
+        </div>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:2px solid ${diff.cashGap > 0 ? '#4cf07a' : '#ff3b3b'};border-radius:8px;color:#fff">
+        <div style="font-weight:900;letter-spacing:3px;text-align:center;color:${diff.cashGap > 0 ? '#4cf07a' : '#ff3b3b'}">⚔ VS YOU</div>
+        <div style="margin-top:8px;font-size:12px;line-height:1.6">cash ${diff.cashGap > 0 ? '+' : ''}$${diff.cashGap.toLocaleString()} · wins ${diff.winsGap > 0 ? '+' : ''}${diff.winsGap} · streak ${diff.streakGap > 0 ? '+' : ''}${diff.streakGap}</div>
+      </div>
+      <div style="margin:14px 0;padding:10px;background:#0008;border:1px dashed #ffd76e;border-radius:8px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">💬 SEND CHEER</div>
+        <div>${cheerBtns}</div>
+      </div>
+      <div style="margin:14px 0;display:flex;gap:6px">
+        <button class="btn" id="fpGift1" style="flex:1;padding:10px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">🎁 GIFT 1 💎</button>
+        <button class="btn" id="fpGift3" style="flex:1;padding:10px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">🎁 GIFT 3 💎</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="fpRename" style="flex:1;padding:10px;background:#0008;color:#ffd76e;border:1px solid #ffd76e">✏ RENAME</button>
+        <button class="btn" id="fpRemove" style="flex:1;padding:10px;background:#3d1a1a;color:#fff;font-weight:900">🗑 REMOVE</button>
+      </div>
+      <button class="btn" id="fpBack" style="margin-top:8px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('fpBack').onclick = renderFriendsListScreen;
+  document.querySelectorAll('.cheerBtn').forEach(b => b.onclick = () => { sendFriendCheer(code, parseInt(b.dataset.idx, 10)); });
+  document.getElementById('fpGift1').onclick = () => { if (sendFriendGift(code, 1)) renderFriendProfileScreen(code); else if (typeof showToast === 'function') showToast('💸 NEED MORE GEMS or DAILY CAP HIT', 'allpro'); };
+  document.getElementById('fpGift3').onclick = () => { if (sendFriendGift(code, 3)) renderFriendProfileScreen(code); else if (typeof showToast === 'function') showToast('💸 NEED MORE GEMS or DAILY CAP HIT', 'allpro'); };
+  document.getElementById('fpRename').onclick = () => {
+    if (typeof inGamePrompt === 'function'){
+      inGamePrompt(`New nickname for ${f.code}:`, f.nickname || f.name || '').then(name => {
+        if (name){ updateFriend(code, { nickname: name }); renderFriendProfileScreen(code); }
+      });
+    }
+  };
+  document.getElementById('fpRemove').onclick = () => {
+    if (typeof inGameConfirm === 'function'){
+      inGameConfirm(`Remove ${f.nickname || f.name || code}?`).then(ok => {
+        if (ok){ removeFriend(code); renderFriendsListScreen(); }
+      });
+    }
+  };
+}
+
+// Render Add Friend
+function renderAddFriendScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px">
+      <div class="title" style="font-size:30px;text-align:center">➕ ADD FRIEND</div>
+      <div class="subtitle" style="text-align:center">paste 6-char code OR full payload</div>
+      <textarea id="afInput" placeholder="paste friend code (6 chars) or full payload here..." style="width:100%;height:100px;margin:14px 0;padding:12px;background:#0008;color:#fff;border:2px solid #ffd76e44;border-radius:8px;font-family:monospace;font-size:12px"></textarea>
+      <button class="btn hot" id="afAdd" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900;letter-spacing:3px">➕ ADD</button>
+      <button class="btn" id="afBack" style="margin-top:8px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('afBack').onclick = renderFriendsHubScreen;
+  document.getElementById('afAdd').onclick = () => {
+    const v = (document.getElementById('afInput').value || '').trim();
+    if (!v) return;
+    if (v.length === 6){
+      // 6-char code mode (old)
+      if (typeof addFriend === 'function' && addFriend(v.toUpperCase())){
+        if (typeof showToast === 'function') showToast(`👥 FRIEND ${v.toUpperCase()} ADDED`, 'level');
+        renderFriendsHubScreen();
+      } else {
+        if (typeof showToast === 'function') showToast('already friends or invalid', 'allpro');
+      }
+    } else {
+      // Full payload paste
+      const snap = importFriendPayload(v);
+      if (snap){
+        if (typeof showToast === 'function') showToast(`👥 ${snap.name || snap.code} ADDED · synced fully`, 'level');
+        renderFriendsHubScreen();
+      } else {
+        if (typeof showToast === 'function') showToast('invalid payload', 'allpro');
+      }
+    }
+  };
+}
+
+// Render Friends Feed
+function renderFriendsFeedScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const friends = loadFriends();
+  const events = friends.flatMap(f => {
+    const evs = [];
+    if (f.tier && f.tier !== 'rookie') evs.push({ at: f.lastSync || f.addedAt, who: f.nickname || f.name || f.code, label: `🏆 ${(WEALTH_TIERS.find(t => t.id === f.tier) || {}).label || f.tier}` });
+    if ((f.longestStreak || 0) >= 5) evs.push({ at: f.lastSync || f.addedAt, who: f.nickname || f.name || f.code, label: `🔥 ${f.longestStreak} streak` });
+    if ((f.aches || 0) >= 50) evs.push({ at: f.lastSync || f.addedAt, who: f.nickname || f.name || f.code, label: `🏅 ${f.aches} achievements` });
+    return evs;
+  }).sort((a, b) => b.at - a.at).slice(0, 30);
+  const rows = events.length
+    ? events.map(e => `<div style="padding:8px 12px;margin:3px 0;background:#0008;border-left:4px solid #ffd76e;border-radius:4px;color:#fff;font-size:12px">
+        <div><b>${e.who}</b> · ${e.label}</div>
+        <div style="color:#aab;font-size:10px;margin-top:2px">${new Date(e.at).toLocaleString()}</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:20px">add friends to see their activity here</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">📰 FRIEND FEED</div>
+      <div class="subtitle" style="text-align:center">recent activity from your friends</div>
+      <div style="margin:14px 0;max-height:65vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="ffBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('ffBack').onclick = renderFriendsHubScreen;
+}
+
+// Render QR code (canvas-based · simple grid)
+function renderFriendQrScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const code = generateFriendCode();
+  // Simple QR-like grid (visual code · not actual QR · scan-friendly visual)
+  const grid = [];
+  for (let r = 0; r < 12; r++){ const row = []; for (let c = 0; c < 12; c++){ const seed = (r * 12 + c) ^ Array.from(code).reduce((h, ch) => h * 31 + ch.charCodeAt(0), 0); row.push(seed % 2 === 0); } grid.push(row); }
+  const cells = grid.map(row => `<div style="display:flex">${row.map(cell => `<div style="width:18px;height:18px;background:${cell ? '#000' : '#fff'}"></div>`).join('')}</div>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:420px;text-align:center">
+      <div class="title" style="font-size:30px">📲 SCAN ME</div>
+      <div class="subtitle">friend code · ${code}</div>
+      <div style="margin:18px auto;display:inline-block;padding:14px;background:#fff;border:4px solid #ffd76e;border-radius:14px">${cells}</div>
+      <div style="font-size:14px;color:#fff;margin-top:14px;letter-spacing:6px;font-family:monospace;font-weight:900">${code}</div>
+      <button class="btn" id="qrBack" style="margin-top:14px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('qrBack').onclick = renderFriendsHubScreen;
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
