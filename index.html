@@ -12921,6 +12921,8 @@ async function startRound(){
   sanitizeCfg(cfg, mode);
   // 🆕 v3.2.0 — GOLDILOCKS adaptive difficulty (additive · default ON)
   if (typeof applyGoldilocksToTiers === 'function') applyGoldilocksToTiers(rolls);
+  // 🆕 v3.5.0 — court-specific physics (additive · stacks on chaos cfg)
+  if (typeof applyCourtPhysics === 'function') applyCourtPhysics(cfg);
   // 🆕 v2.26.0 — CPU vs CPU: roll a 2nd tier so each side has a distinct brain
   if (cfg.cpuVsCpu && rolls.cpuTiers.length < 2){
     const useRoster2 = (typeof npcToTier === 'function') && Math.random() < 0.7;
