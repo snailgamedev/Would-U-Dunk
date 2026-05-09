@@ -6455,7 +6455,9 @@ class MatchScene extends Phaser.Scene {
     const p1Left  = soloMode ? [this.keys.A, this.keys.LEFT]  : [this.keys.A];
     const p1Right = soloMode ? [this.keys.D, this.keys.RIGHT] : [this.keys.D];
     const p1Jump  = soloMode ? [this.keys.W, this.keys.UP]    : [this.keys.W];
-    this.handleHumanInput(this.p1, p1Left, p1Right, p1Jump);
+    // 🆕 v2.26.0 — CPU vs CPU spectator: P1 also runs the CPU brain
+    if (this.p1.isCpu) this.runCpu(this.p1, dt);
+    else this.handleHumanInput(this.p1, p1Left, p1Right, p1Jump);
     if (this.p2.isRemote) this.handleRemoteInput(this.p2);
     else if (this.p2.isCpu) this.runCpu(this.p2, dt);
     else this.handleHumanInput(this.p2, [this.keys.LEFT], [this.keys.RIGHT], [this.keys.UP]);
