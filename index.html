@@ -10125,19 +10125,38 @@ function renderGambleScreen(){
     updatePreview();
   });
   document.getElementById('gambleBack').onclick = showSplash;
+  // 🆕 v3.1.0 — PLAY vs WATCH selector
+  let pickedMode = 'play';
+  document.querySelectorAll('.modeChoice').forEach(b => b.onclick = () => {
+    pickedMode = b.dataset.mode;
+    document.querySelectorAll('.modeChoice').forEach(x => { x.style.borderColor = '#ffd76e44'; x.style.background = '#0008'; x.style.color = '#fff'; });
+    b.style.borderColor = pickedMode === 'play' ? '#4cf07a' : '#ff8a3c';
+    b.style.background = pickedMode === 'play' ? 'linear-gradient(135deg,#1a3d2c,#4cf07a)' : 'linear-gradient(135deg,#3d1a1a,#ff8a3c,#ffd76e)';
+    b.style.color = '#000';
+    document.getElementById('modeChoiceLbl').textContent = pickedMode === 'play'
+      ? 'selected: 🕹 PLAY · you control P1 · CPU plays P2'
+      : 'selected: 🎬 WATCH · pure spectator · both CPU';
+  });
   placeBtn.onclick = () => {
     if (!pickedType) return;
-    if (!placeBet(pickedType, pickedWager)){
+    const conf = document.getElementById('confidenceLock').checked;
+    if (!placeBet(pickedType, pickedWager, { confidence: conf })){
       showToast('💸 NOT ENOUGH CASH', 'allpro'); return;
     }
     const t = BET_TYPES.find(b => b.id === pickedType);
-    showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → win $${Math.round(pickedWager*t.mult)}`, 'level');
-    // Pick a CPU-vs-CPU match by default since gamble vibes with watching
-    State.modeId = 'cpu_vs_cpu';
-    State.mode = 'CPU';
-    State.looks[0] = rollRandomLook(0);
-    State.looks[1] = rollRandomLook(1);
-    setTimeout(() => startMatch(), 220);
+    const msg = State._activeBet.bonus > 0 ? ` (+${(State._activeBet.bonus).toFixed(2)}x bonus)` : '';
+    showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → $${State._activeBet.payout}${msg}`, 'level');
+    if (pickedMode === 'watch'){
+      // route into CPU vs CPU spectator
+      startCpuVsCpuMatch();
+    } else {
+      // PLAY YOURSELF — preserve player look · vs CPU 1v1
+      State.modeId = '5x5';
+      State.mode = 'CPU';
+      // keep State.looks[0] (player's saved look) untouched
+      State.looks[1] = rollRandomLook(1);
+      setTimeout(() => startMatch(), 220);
+    }
   };
 }
 // 🆕 v3.0.0 — ASCENSION · SKILLS CHALLENGE hub (3-PT + DUNK + HORSE + SPEED + SHOT CLOCK)
