@@ -7158,6 +7158,9 @@ class MatchScene extends Phaser.Scene {
 
     // Round timer
     this.elapsed += dt;
+    // 🆕 v3.0.0 — ASCENSION · fatigue tick + cinematic check
+    if (typeof tickFatigue === 'function'){ tickFatigue(this.p1, dt); tickFatigue(this.p2, dt); }
+    if (typeof maybeCinematicMode === 'function') maybeCinematicMode(this);
     const remain = Math.max(0, this.roundSecs - this.elapsed);
     document.getElementById('timer').textContent = formatTime(remain);
     const u1 = (State.looks[0]?.username || 'P1').toUpperCase();
