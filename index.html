@@ -5180,6 +5180,302 @@ function restoreScroll(name){
 // Auto-bind to back button clicks
 window.addEventListener('beforeunload', () => { try { sessionStorage.setItem('wud:scroll:lastPage', String(window.scrollY)); } catch(e){} });
 
+// 🆕 v3.10.0 — CINEMATIC LETTERBOX (16:9 bars during clutch)
+function setLetterbox(scene, on){
+  let top = document.getElementById('letterboxTop');
+  let bot = document.getElementById('letterboxBot');
+  if (!top){
+    top = document.createElement('div');
+    top.id = 'letterboxTop';
+    top.style.cssText = 'position:fixed;top:0;left:0;right:0;height:0;background:#000;z-index:9050;transition:height .25s ease;pointer-events:none';
+    document.body.appendChild(top);
+  }
+  if (!bot){
+    bot = document.createElement('div');
+    bot.id = 'letterboxBot';
+    bot.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:0;background:#000;z-index:9050;transition:height .25s ease;pointer-events:none';
+    document.body.appendChild(bot);
+  }
+  const h = on ? '8vh' : '0';
+  top.style.height = h;
+  bot.style.height = h;
+}
+function maybeLetterboxClutch(scene){
+  if (!scene) return;
+  const remaining = (scene.roundSecs || 120) - (scene.elapsed || 0);
+  const margin = Math.abs((State.scores[0]||0) - (State.scores[1]||0));
+  const clutch = remaining > 0 && remaining <= 10 && margin <= 5;
+  if (scene._letterboxOn !== clutch){
+    scene._letterboxOn = clutch;
+    setLetterbox(scene, clutch);
+  }
+}
+
+// 🆕 v3.10.0 — GAME-WINNING SLOWMO
+function fireGameWinningSlowmo(scene, scorerIdx, points){
+  try {
+    const matchTarget = (typeof MODE_BY_ID !== 'undefined' && MODE_BY_ID[State.modeId]?.target) || 0;
+    const myPts = State.scores[0] || 0;
+    const oppPts = State.scores[1] || 0;
+    const justWon = matchTarget > 0 && ((scorerIdx === 0 && myPts >= matchTarget) || (scorerIdx === 1 && oppPts >= matchTarget));
+    if (!justWon) return;
+    // Slow world to 0.5x for 1.5s
+    if (scene.physics && scene.physics.world){
+      const orig = scene.physics.world.timeScale || 1;
+      scene.physics.world.timeScale = 2.0;   // higher = slower in Phaser
+      setTimeout(() => { try { scene.physics.world.timeScale = orig; } catch(e){} }, 1500);
+    }
+    // Camera zoom on game-winner
+    try { scene.cameras.main.zoomTo(1.25, 400, 'Sine.easeInOut'); } catch(e){}
+    setTimeout(() => { try { scene.cameras.main.zoomTo(1.0, 600, 'Sine.easeInOut'); } catch(e){} }, 1600);
+    // Verse popup
+    if (typeof fireAutoVerse === 'function') fireAutoVerse(scene, 'championship');
+    if (typeof haptic === 'function') haptic([100, 50, 100, 50, 200]);
+  } catch(e){}
+}
+
+// 🆕 v3.10.0 — PRE-GAME CINEMATIC INTRO CARD (CPU matches)
+function showPreGameIntro(){
+  if (!State.rolls?.cpuTiers) return;
+  const tier = State.rolls.cpuTiers[0];
+  const npc = tier?._npc;
+  if (!npc) return;
+  try {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:radial-gradient(circle,#000a,#000d);display:flex;align-items:center;justify-content:center;animation:introFadeIn .4s ease;pointer-events:none';
+    overlay.innerHTML = `
+      <div style="text-align:center;color:#fff;font-family:Bebas Neue,Impact,sans-serif">
+        <div style="font-size:14px;color:#aab;letter-spacing:6px;margin-bottom:8px">PRESENTING</div>
+        <div style="font-size:60px;color:#ffd76e;text-shadow:0 0 30px #ffd76e;letter-spacing:6px">${npc.name || 'CPU'}</div>
+        <div style="font-size:18px;color:#fff;margin-top:8px;letter-spacing:4px">${(npc.archetypeBaseId || 'baller').toUpperCase()}</div>
+        <div style="font-size:14px;color:#aab;margin-top:6px">${tier.name || ''}</div>
+      </div>`;
+    if (!document.getElementById('introKey')){
+      const s = document.createElement('style'); s.id = 'introKey';
+      s.textContent = '@keyframes introFadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes introFadeOut{from{opacity:1}to{opacity:0}}';
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(overlay);
+    setTimeout(() => { overlay.style.animation = 'introFadeOut .4s ease'; setTimeout(() => overlay.remove(), 400); }, 1800);
+  } catch(e){}
+}
+
+// 🆕 v3.10.0 — DUNK PARTICLE BURST
+function dunkParticleBurst(scene, x, y, color){
+  try {
+    for (let i = 0; i < 24; i++){
+      const angle = (i / 24) * Math.PI * 2;
+      const speed = 80 + Math.random() * 120;
+      const p = scene.add.text(x, y, '✦', { fontSize: 14 + Math.random()*10, color: color || '#ffd76e' }).setOrigin(0.5).setDepth(DEPTH.EFFECT_FRONT);
+      scene.tweens.add({
+        targets: p,
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed - 50,
+        alpha: 0,
+        scale: 0.3,
+        duration: 1200,
+        ease: 'Cubic.out',
+        onComplete: () => p.destroy(),
+      });
+    }
+  } catch(e){}
+}
+
+// 🆕 v3.10.0 — SCOREBOARD PULSE
+function pulseScoreboard(scorerIdx, points){
+  try {
+    const id = scorerIdx === 0 ? 'scoreL' : 'scoreR';
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'transform 0.2s ease, color 0.2s ease';
+    const color = points >= 5 ? '#ff66cc' : points >= 4 ? '#ff8a3c' : points >= 3 ? '#4f9eff' : '#fff';
+    el.style.transform = 'scale(1.4)';
+    el.style.color = color;
+    setTimeout(() => { el.style.transform = 'scale(1)'; el.style.color = ''; }, 300);
+  } catch(e){}
+}
+
+// 🆕 v3.10.0 — 4 NEW MOOD/CALM RANDOM EVENTS (additive · pushed deferred)
+const RANDOM_EVENTS_V3100 = [
+  { id:'zen_mode',     label:'🧘 ZEN MODE',         desc:'calm · low gravity · steady',           cfgPatch:{ _eventCalmMode: 30 } },
+  { id:'rage_mode',    label:'😡 RAGE MODE',        desc:'all stats +20% · fast pace 30s',         cfgPatch:{ _eventRageMode: 30 } },
+  { id:'fog',          label:'🌫 FOG',              desc:'vision dim · spotlight only 30s',        cfgPatch:{ _eventFog: 30 } },
+  { id:'inspiration',  label:'🌟 INSPIRATION',      desc:'perfect releases auto for 30s',          cfgPatch:{ _eventInspiration: 30 } },
+];
+setTimeout(() => { try { RANDOM_EVENTS.push(...RANDOM_EVENTS_V3100); } catch(e){ console.warn('[v3.10] RANDOM_EVENTS push deferred', e); } }, 0);
+
+// 🆕 v3.10.0 — FESTIVE / MOURNING SEASONS (calendar-based)
+function currentSeason(){
+  const d = new Date();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  // Christmas week
+  if (m === 12 && day >= 18 && day <= 31) return { id:'christmas', label:'🎄 CHRISTMAS', color:'#ffd76e', verse:'Luke 2:11', mood:'festive' };
+  // Easter week (approximate · use first Sunday in April · simplified)
+  if (m === 4 && day >= 1 && day <= 12) return { id:'easter', label:'✝️ EASTER', color:'#ffd76e', verse:'Matt 28:6', mood:'festive' };
+  // Lent (40 days before Easter approx)
+  if ((m === 2 && day >= 18) || (m === 3)) return { id:'lent', label:'🕊 LENT', color:'#aab', verse:'Joel 2:13', mood:'reflective' };
+  // Independence Week
+  if (m === 7 && day >= 1 && day <= 7) return { id:'july4', label:'🎆 INDEPENDENCE', color:'#ff3b3b', verse:'2 Cor 3:17', mood:'festive' };
+  // Thanksgiving Week (4th Thursday Nov)
+  if (m === 11 && day >= 22 && day <= 30) return { id:'thanksgiving', label:'🦃 THANKSGIVING', color:'#ff8a3c', verse:'Ps 100:4', mood:'festive' };
+  return { id:'normal', label:'', color:'#aab', verse:null, mood:'normal' };
+}
+
+// 🆕 v3.10.0 — DAY/NIGHT AUTO SWITCH (visual theme swap at sunset)
+function applyDayNightTheme(){
+  const h = new Date().getHours();
+  if (h >= 18 || h < 6){
+    document.body.classList.add('night-theme');
+  } else {
+    document.body.classList.remove('night-theme');
+  }
+}
+setInterval(applyDayNightTheme, 60000);   // re-check every minute
+setTimeout(applyDayNightTheme, 100);
+
+// 🆕 v3.10.0 — WEEKLY BONUS SPIN (Friday +1 · weekend +2)
+function maxFortuneSpinsToday(){
+  const d = new Date().getDay();
+  if (d === 5) return 2;        // Friday
+  if (d === 6 || d === 0) return 3;  // Saturday/Sunday
+  return 1;
+}
+// Override canSpinFortune to honor the weekly cap
+const _origCanSpin = canSpinFortune;
+window.canSpinFortune = function(){
+  const f = loadFortune();
+  const today = new Date().toISOString().slice(0,10);
+  const todaySpins = (f.history || []).filter(h => new Date(h.at).toISOString().slice(0,10) === today).length;
+  return todaySpins < maxFortuneSpinsToday();
+};
+// Override spinFortune to use new cap logic
+const _origSpinFortune = spinFortune;
+window.spinFortune = function(){
+  if (!canSpinFortune()) return null;
+  const f = loadFortune();
+  const wedge = FORTUNE_WEDGES[(Math.random() * FORTUNE_WEDGES.length) | 0];
+  try { wedge.reward(); } catch(e){}
+  f.lastSpin = new Date().toISOString().slice(0,10);
+  f.history = (f.history || []);
+  f.history.push({ at: Date.now(), wedge: wedge.id, label: wedge.label });
+  if (f.history.length > 50) f.history = f.history.slice(-50);
+  saveFortune(f);
+  return wedge;
+};
+
+// 🆕 v3.10.0 — CROWN UNLOCK SKINS (extends streakCrown)
+function streakCrownAdvanced(){
+  const streak = Career.currentStreak || 0;
+  if (streak >= 50) return '🌟 LEGEND OF LEGENDS';
+  if (streak >= 25) return '✝ ANOINTED CROWN';
+  if (streak >= 15) return '👑 STREAK GOAT';
+  if (streak >= 10) return '👑 STREAK KING';
+  if (streak >= 5) return '👑 ON FIRE';
+  return '';
+}
+
+// 🆕 v3.10.0 — MENTOR WISDOM VERSES
+const MENTOR_WISDOM_VERSES = [
+  { ref:'Prov 27:17', text:'as iron sharpens iron · so one person sharpens another' },
+  { ref:'Prov 1:5',   text:'let the wise listen and add to their learning' },
+  { ref:'Prov 9:9',   text:'instruct the wise and they will be wiser still' },
+  { ref:'Heb 12:11',  text:'no discipline seems pleasant at the time · but later it produces a harvest' },
+  { ref:'James 1:4',  text:'let perseverance finish its work so that you may be mature and complete' },
+  { ref:'2 Tim 2:2',  text:'the things you have heard from me · entrust to reliable people' },
+];
+function mentorWisdomVerse(){ return MENTOR_WISDOM_VERSES[(Math.random()*MENTOR_WISDOM_VERSES.length)|0]; }
+
+// 🆕 v3.10.0 — OPPOSITES DASHBOARD — single screen showing all 8 mirror states
+function renderOppositesDashboardScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const z = (typeof loadHotZones === 'function') ? loadHotZones() : {};
+  const luck = (typeof loadLuckState === 'function') ? loadLuckState() : {};
+  const rep = (typeof loadRep === 'function') ? loadRep() : {hero:0, villain:0};
+  const mood = (typeof rollCourtMood === 'function') ? rollCourtMood() : { label:'-' };
+  const mentors = (typeof loadMentors === 'function') ? loadMentors() : {};
+  const rivals = (typeof loadRivalries === 'function') ? loadRivalries() : {};
+  const mentorCount = Object.values(mentors).filter(m => m.declared).length;
+  const rivalCount = Object.values(rivals).filter(r => r.declared).length;
+  const hotZones = Object.entries(z).filter(([k, v]) => v.makes >= 5 && (v.makes / v.attempts) >= 0.5).length;
+  const coldZones = Object.entries(z).filter(([k, v]) => v.attempts >= 8 && (v.makes / v.attempts) < 0.25).length;
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#4f9eff,#ff66cc,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🌗 OPPOSITES DASHBOARD</div>
+      <div class="subtitle" style="text-align:center">all 8 mirror states · live values</div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="padding:12px;background:#0008;border-left:4px solid #ff3b3b;border-radius:6px;color:#fff">
+          <div style="color:#ff3b3b;font-size:11px;letter-spacing:2px">🔥 HOT ZONES</div>
+          <div style="font-size:18px;font-weight:900;margin-top:4px">${hotZones}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #4f9eff;border-radius:6px;color:#fff">
+          <div style="color:#4f9eff;font-size:11px;letter-spacing:2px">❄️ COLD ZONES</div>
+          <div style="font-size:18px;font-weight:900;margin-top:4px">${coldZones}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #4cf07a;border-radius:6px;color:#fff">
+          <div style="color:#4cf07a;font-size:11px;letter-spacing:2px">🍀 TODAY'S LUCK</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">${(luck.state || 'neutral').toUpperCase()}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #ffd76e;border-radius:6px;color:#fff">
+          <div style="color:#ffd76e;font-size:11px;letter-spacing:2px">🎭 REPUTATION</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">H:${rep.hero} · V:${rep.villain}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #ff8a3c;border-radius:6px;color:#fff">
+          <div style="color:#ff8a3c;font-size:11px;letter-spacing:2px">⚔ RIVALS</div>
+          <div style="font-size:18px;font-weight:900;margin-top:4px">${rivalCount}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #a040ff;border-radius:6px;color:#fff">
+          <div style="color:#a040ff;font-size:11px;letter-spacing:2px">🧙 MENTORS</div>
+          <div style="font-size:18px;font-weight:900;margin-top:4px">${mentorCount}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #fff;border-radius:6px;color:#fff">
+          <div style="color:#fff;font-size:11px;letter-spacing:2px">${mood.label || '🌤 COURT MOOD'}</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">×${mood.mul || 1.0}</div>
+        </div>
+        <div style="padding:12px;background:#0008;border-left:4px solid #ffd76e;border-radius:6px;color:#fff">
+          <div style="color:#ffd76e;font-size:11px;letter-spacing:2px">👑 STREAK</div>
+          <div style="font-size:14px;font-weight:900;margin-top:4px">${(typeof streakCrownAdvanced === 'function') ? streakCrownAdvanced() : ''}</div>
+        </div>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px dashed #ffd76e;border-radius:8px;text-align:center;color:#aab;font-size:11px;line-height:1.6">
+        ✝️ "He brings down · He raises up" — 1 Sam 2:7<br>
+        opposites in tension · all working for good
+      </div>
+      <button class="btn" id="odBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('odBack').onclick = showSplash;
+}
+
+// 🆕 v3.10.0 — BET AUTO-RECURRING toggle
+function loadAutoBet(){ try { return JSON.parse(localStorage.getItem(`wud:autoBet:${currentProfileName()}`) || 'null'); } catch(e){ return null; } }
+function saveAutoBet(p){ try { localStorage.setItem(`wud:autoBet:${currentProfileName()}`, JSON.stringify(p)); } catch(e){} }
+
+// 🆕 v3.10.0 — AMBIENT CROWD LOOP
+let _crowdAudio = null;
+function startCrowdAmbient(){
+  if (!Settings.crowdAmbient) return;
+  if (_crowdAudio) return;
+  try {
+    // Generate a short white-noise-like loop using oscillator + noise
+    const ac = (typeof MUSIC !== 'undefined' && MUSIC._ctx) ? MUSIC._ctx : new (window.AudioContext || window.webkitAudioContext)();
+    const buffer = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.04;   // very quiet
+    const src = ac.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    const filter = ac.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    src.connect(filter).connect(ac.destination);
+    src.start();
+    _crowdAudio = src;
+  } catch(e){}
+}
+function stopCrowdAmbient(){
+  if (_crowdAudio){ try { _crowdAudio.stop(); } catch(e){} _crowdAudio = null; }
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
