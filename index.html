@@ -12477,8 +12477,7 @@ class MatchScene extends Phaser.Scene {
     if (this._currentRoundIdx !== State.roundIdx){
       this._currentRoundIdx = State.roundIdx;
       if (typeof maybeFireRandomEvent === 'function') maybeFireRandomEvent(this);
-      // 🆕 v3.3.0 — halftime breakdown between rounds
-      if (typeof showHalftimeBreakdownIfDue === 'function') showHalftimeBreakdownIfDue(this);
+      // 🪦 v3.21.0 — halftime breakdown call PURGED
       // 🆕 v3.4.0 — injury check (MyCareer mode only)
       if (typeof maybeFireInjury === 'function') maybeFireInjury(this);
     }
