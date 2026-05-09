@@ -5809,6 +5809,7 @@ function renderCasinoLoungeScreen(){
     lb: renderProLeaderboardsScreen,
     hist: renderBetHistoryScreen,
     autobet: renderAutoBetStatusScreen,
+    cpufate: renderCpuFateScreen,
   };
   document.querySelectorAll('[data-cl]').forEach(b => b.onclick = () => {
     const fn = actions[b.dataset.cl];
