@@ -12368,6 +12368,20 @@ function showEndCard(){
     // 🆕 v3.2.0 — Goldilocks · mystery box · escalating bonus
     if (typeof recordMatchResult === 'function') recordMatchResult(won);
     if (won && typeof maybeAwardMysteryBox === 'function') maybeAwardMysteryBox();
+    // 🆕 v3.3.0 — rivalry tracking + auto-verses + MyCareer tick
+    if (won && State.rolls?.cpuTiers?.[0]?._npc?.id && typeof recordWinVsNpc === 'function'){
+      recordWinVsNpc(State.rolls.cpuTiers[0]._npc.id);
+      // 2× cash bonus on rival match wins
+      if (isRival(State.rolls.cpuTiers[0]._npc.id)){
+        awardCash(myPts * 5);
+        if (typeof showToast === 'function') showToast('⚔ RIVAL DEFEATED · 2× cash bonus', 'level');
+      }
+    }
+    if (won && (State._maxDeficit || 0) >= 10 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'comeback');
+    if (won && (Career.currentStreak || 0) >= 5 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'championship');
+    if (!won && (Career.currentLossStreak || 0) >= 3 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'loss_streak');
+    if (won && (State.matchPoints[0] || 0) >= 50 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'perfect');
+    if (State._myCareerActive && typeof tickMyCareer === 'function'){ tickMyCareer(won); State._myCareerActive = false; }
     if (won && typeof escalatingWinBonusMul === 'function'){
       const bonus = Math.round(myPts * 5 * (escalatingWinBonusMul() - 1));
       if (bonus > 0){ awardCash(bonus); if (typeof showToast === 'function') showToast(`💰 ESCALATING WIN BONUS · +$${bonus}`, 'level'); }
