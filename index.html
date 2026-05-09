@@ -10090,6 +10090,26 @@ function showEndCard(){
     winner = State.wins[0] > State.wins[1] ? 'P1' : (State.wins[1] > State.wins[0] ? 'P2' : 'TIE');
   }
 
+  // 🆕 v2.26.0 — GAMBLE bet resolution. Runs ONCE per match-done. Toast + persisted history.
+  if (matchDone && State._activeBet && !State._betResolved){
+    State._betResolved = true;
+    const result = resolveBet();
+    if (result){
+      const r = result;
+      const msg = r.won
+        ? `🎰 ${r.bet.icon} ${r.bet.label} HIT — +$${r.payout}!`
+        : `🎰 ${r.bet.icon} ${r.bet.label} BUSTED — -$${r.bet.wager}`;
+      if (typeof showToast === 'function') showToast(msg, r.won ? 'level' : 'allpro');
+      try { setTimeout(() => {
+        const banner = document.createElement('div');
+        banner.style.cssText = `position:fixed;top:18%;left:50%;transform:translateX(-50%);padding:18px 30px;background:linear-gradient(135deg,${r.won?'#1a3d2c,#4cf07a,#ffd76e':'#3d1a1a,#ff3b3b,#ffd76e'});border:3px solid #ffd76e;border-radius:14px;color:#fff;font-weight:900;letter-spacing:3px;font-size:18px;box-shadow:0 0 40px ${r.won?'#4cf07a88':'#ff3b3b88'};z-index:9999;text-align:center`;
+        banner.innerHTML = `<div style="font-size:11px;color:#ffd76e;letter-spacing:4px">🎰 GAMBLE RESULT</div><div style="margin-top:6px">${r.bet.icon} ${r.bet.label}</div><div style="margin-top:8px;font-size:24px">${r.won?`+$${r.payout}`:`-$${r.bet.wager}`}</div><div style="margin-top:6px;font-size:10px;color:#aab">tap to dismiss</div>`;
+        banner.onclick = () => banner.remove();
+        document.body.appendChild(banner);
+        setTimeout(() => banner.parentNode && banner.remove(), 6500);
+      }, 800); } catch(e){}
+    }
+  }
   // 🆕 v2.8.0 — FRANCHISE update on match-done
   if (matchDone && State._franchiseActive){
     const f = loadFranchise();
