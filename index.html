@@ -7575,8 +7575,20 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.21.0';
+const VERSION = 'v3.22.0';
 const CHANGELOG = [
+  { v:'v3.22.0', notes:[
+      '🌐 OPERATION MULTIPLAYER LOCK-IN — full CAEE pass on Online module · sync actually works now boi.',
+      '🎯 POSITION SYNC — high-freq 30Hz position broadcast (sendPos) · separate from input messages · much smoother opp movement.',
+      '🏀 BALL AUTHORITY — host is source of truth for ball state · broadcasts at 20Hz · guest interpolates toward authoritative position · no more ball desync.',
+      '📊 SCORE BROADCAST — every bucket fires score message to opponent · scores stay in lockstep.',
+      '💓 HEARTBEAT + PING — auto-heartbeat every 2s · disconnect detection (8s timeout) · ping/pong RTT measurement.',
+      '👋 DISCONNECT HANDLING — close events caught on both peers · "OPPONENT DISCONNECTED" toast · graceful state cleanup.',
+      '✅ READY UP — `setReady(true/false)` on each peer · `remoteReady` tracked · ready state visible.',
+      '💬 LOBBY CHAT — `sendChat(text)` · chatLog persisted in-session · "💬 OPP: ..." toast on receive.',
+      '🩹 EXTENDED ONLINE STATE — remotePos · remoteBall · ping · lastHeartbeat · ready · remoteReady · chatLog all on the Online singleton.',
+      '✝️ "Two are better than one · because they have a good return for their labor" — Eccl 4:9 · MP eternal',
+  ]},
   { v:'v3.21.0', notes:[
       '🔒 OPERATION ETERNAL MEMORY + HALFTIME PURGE — binding memory continuity oath saved · halftime FULLY DELETED · last CAEE for memories.',
       '🪦 HALFTIME PURGED ENTIRELY — `showHalftimeBreakdownIfDue` body deleted (skeleton noop kept) · `showHalftime()` between-rounds call removed from endRound · games go straight to next round · no banner · no pause · no breakdown · GONE.',
