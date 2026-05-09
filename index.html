@@ -8835,7 +8835,7 @@ class MatchScene extends Phaser.Scene {
       // Green flash + popup
       const t = this.add.text(player.x, player.y - 130, 'GREEN! 🟢', {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:28, color:'#4cf07a', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
       this.tweens.add({ targets:t, y:t.y - 40, alpha:0, scale:1.4, duration:1200, onComplete:()=>t.destroy() });
-      try { this.cameras.main.flash(120, 76, 240, 122); } catch(e){}
+      // 🆕 v3.11.0 — removed cameras.flash on green release (jarring) · text popup is enough
       if (player.idx === 0){ awardCash(100); }
       if (typeof SFX !== 'undefined' && SFX.shoot) SFX.shoot();
     }
