@@ -3656,11 +3656,13 @@ function renderHotZonesScreen(){
   document.getElementById('hzBack').onclick = showSplash;
 }
 
-// 🆕 v3.3.0 — HALFTIME BREAKDOWN screen (auto-shows between rounds)
+// 🪦 v3.21.0 — HALFTIME BREAKDOWN PURGED · function deleted · skeleton kept for backwards-compat noop
 function showHalftimeBreakdownIfDue(scene){
-  // 🪦 v3.18.0 — HALFTIME DELETED · was cluttering mid-match · noop
   return;
-  if (!State.cfg || State.cfg.cpuVsCpu) return;   // skip in spectator (already has commentary)
+}
+function _halftime_purged(){ // dead code below kept stripped
+  if (false){
+  if (!State.cfg || State.cfg.cpuVsCpu) return;
   if (scene._halftimeShownRound === State.roundIdx) return;
   // 🩹 v3.9.0 — skip round 0 + round 1 (no halftime when we just started)
   if (State.roundIdx <= 1) { scene._halftimeShownRound = State.roundIdx; return; }
