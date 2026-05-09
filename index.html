@@ -9810,6 +9810,8 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v3.0.0 — ASCENSION · fatigue tick + cinematic check
     if (typeof tickFatigue === 'function'){ tickFatigue(this.p1, dt); tickFatigue(this.p2, dt); }
     if (typeof maybeCinematicMode === 'function') maybeCinematicMode(this);
+    // 🩹 v3.8.0 — restore stuck dunk-cam zoom safety
+    if (typeof maybeRestoreCameraZoom === 'function') maybeRestoreCameraZoom(this);
     // 🆕 v3.2.0 — random events (12% per round, max 1 per round)
     if (this._currentRoundIdx == null) this._currentRoundIdx = State.roundIdx || 0;
     if (this._currentRoundIdx !== State.roundIdx){
