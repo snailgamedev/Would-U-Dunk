@@ -6461,7 +6461,9 @@ function placeBet(typeId, wager, opts){
   const recentLosses = hist.slice(-3).every(h => !h.won);
   if (hist.length >= 3 && recentLosses) mult += 0.5;
   // 💎 v3.15.0 — VIP boost + card boost stack
-  if (typeof vipBetBoost === 'function') mult *= vipBetBoost();
+  // 💎 v3.16.0 — use STACKED VIP boost (compounds bronze+silver+gold+diamond)
+  if (typeof vipBetBoostStacked === 'function') mult *= vipBetBoostStacked();
+  else if (typeof vipBetBoost === 'function') mult *= vipBetBoost();
   if (typeof cardBetBoost === 'function') mult *= cardBetBoost();
   State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult, payout: Math.round(wager * mult), confidence: !!(opts && opts.confidence), bonus: mult - t.mult };
   // 🏅 v3.13.0 — bet-size achievements
