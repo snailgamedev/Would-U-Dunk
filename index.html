@@ -2381,6 +2381,8 @@ const COMBO_NAMES = [
 function fireComboName(scene, scorerIdx, streak){
   const combo = COMBO_NAMES.slice().reverse().find(c => streak >= c.at);
   if (!combo) return;
+  // 🆕 v3.5.0 — TTS speak the combo name
+  if (typeof announceText === 'function') announceText(combo.label.replace(/[^\w\s]/g,'').trim());
   const player = scorerIdx === 0 ? scene.p1 : scene.p2;
   const t = scene.add.text(player.x, player.y - 200, combo.label, {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:42, color:combo.color, stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION).setScale(0.4);
   scene.tweens.add({ targets:t, scale:1.2, duration:180, ease:'Back.out', onComplete:()=>{
