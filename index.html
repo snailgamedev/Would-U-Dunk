@@ -6645,6 +6645,129 @@ function renderCrownCollectionScreen(){
   document.getElementById('ccBack').onclick = showSplash;
 }
 
+// ⚙ v3.18.0 — BET REQUIREMENT auto-apply gameplay settings (CAEE pass)
+const BET_REQ_OVERRIDES = {
+  perfect_game: { cfg:{ aimChaos: 0, rimScale: 1.0, courtScale: 1.0 }, note: 'aim assist + normal rim' },
+  century:      { cfg:{ shotPower: 1.15, scoreMul: Math.max },                                                                       /* boost ability to score 100+ */
+                  note: 'extra shot power' },
+  underdog:     { tierShift: -1, note: 'CPU difficulty -1' },
+  rocket:       { cfg:{ shotPower: 1.10 }, note: 'shot power up · 4x opp pts easier' },
+  diamond:      { cfg:{ aimChaos: 0 }, note: 'aim chaos off · perfect form possible' },
+  ultra:        { cfg:{ aimChaos: 0, rimScale: 1.0 }, note: 'perfect game possible' },
+  highroller:   { cfg:{ shotPower: 1.05 }, note: 'small power boost · margin easier' },
+  jackpot:      { cfg:{ aimChaos: 0, rimScale: 1.0 }, note: 'perfect game required · max forgiveness' },
+  logo:         { cfg:{ shotPower: 1.20 }, note: 'extra power for logo shots' },
+};
+function applyBetRequirementCfg(typeId){
+  const ov = BET_REQ_OVERRIDES[typeId];
+  if (!ov || !State.cfg) return;
+  if (ov.cfg){
+    Object.entries(ov.cfg).forEach(([k, v]) => {
+      if (typeof v === 'function') return;
+      State.cfg[k] = v;
+    });
+  }
+  if (ov.tierShift && State.rolls?.cpuTiers && typeof CPU_TIERS !== 'undefined'){
+    State.rolls.cpuTiers = State.rolls.cpuTiers.map(t => {
+      const idx = CPU_TIERS.findIndex(x => x.id === (t.id || '').replace(/^[★😈⬆⬇] /,''));
+      if (idx < 0) return t;
+      const newIdx = Math.max(0, Math.min(CPU_TIERS.length - 1, idx + ov.tierShift));
+      return { ...t, ...CPU_TIERS[newIdx], name: '⬇ ' + CPU_TIERS[newIdx].name };
+    });
+  }
+  if (typeof showToast === 'function') showToast(`⚙ BET CONDITIONS APPLIED · ${ov.note}`, 'level');
+}
+
+// 🎰 v3.18.0 — CPU's FATE PARLAY · pre-match prediction parlay across CPU vs CPU games
+const CPU_FATE_PAYOUTS = [3, 12, 48, 192, 768];   // 1=3x · 2=12x · 3=48x · 4=192x · 5=768x
+function loadCpuFate(){ try { return JSON.parse(localStorage.getItem(`wud:cpuFate:${currentProfileName()}`) || '{"active":null,"history":[]}'); } catch(e){ return {active:null,history:[]}; } }
+function saveCpuFate(s){ try { localStorage.setItem(`wud:cpuFate:${currentProfileName()}`, JSON.stringify(s)); } catch(e){} }
+function startCpuFateParlay(wager){
+  if (!spendCash(wager)) return false;
+  const s = loadCpuFate();
+  s.active = { wager, picks:[], legs:0, currentMul:1.0, startedAt:Date.now() };
+  saveCpuFate(s);
+  return true;
+}
+function recordCpuFateLeg(predictedWinnerIdx, actualWinnerIdx){
+  const s = loadCpuFate();
+  if (!s.active) return null;
+  const correct = predictedWinnerIdx === actualWinnerIdx;
+  s.active.picks.push({ predicted: predictedWinnerIdx, actual: actualWinnerIdx, correct });
+  s.active.legs += 1;
+  if (correct){
+    s.active.currentMul = CPU_FATE_PAYOUTS[Math.min(s.active.legs, CPU_FATE_PAYOUTS.length) - 1];
+    saveCpuFate(s);
+    return { ok:true, currentMul: s.active.currentMul, payout: Math.round(s.active.wager * s.active.currentMul) };
+  } else {
+    // Bust
+    s.history = s.history || [];
+    s.history.push({ ...s.active, lostAt:Date.now(), final:'bust' });
+    s.active = null;
+    saveCpuFate(s);
+    return { ok:false, bust:true };
+  }
+}
+function cashOutCpuFate(){
+  const s = loadCpuFate();
+  if (!s.active || s.active.legs === 0) return null;
+  const payout = Math.round(s.active.wager * s.active.currentMul);
+  awardCash(payout);
+  s.history = s.history || [];
+  s.history.push({ ...s.active, lostAt:Date.now(), final:'cashed', payout });
+  s.active = null;
+  saveCpuFate(s);
+  return payout;
+}
+function renderCpuFateScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const s = loadCpuFate();
+  const cash = loadCash();
+  const activeHtml = s.active
+    ? `<div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a44);border:3px solid #4cf07a;border-radius:10px;color:#fff">
+        <div style="font-weight:900;letter-spacing:3px;color:#4cf07a">🎰 ACTIVE PARLAY · ${s.active.legs} legs</div>
+        <div style="margin-top:8px;font-size:13px">wager $${s.active.wager} · current mult <b style="color:#ffd76e">${s.active.currentMul}x</b> · cashout payout <b style="color:#4cf07a">$${Math.round(s.active.wager * s.active.currentMul)}</b></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn hot" id="cpFateNext" style="flex:1;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900">▶ NEXT MATCH (predict)</button>
+          <button class="btn" id="cpFateCash" style="flex:1;padding:12px;background:#4cf07a;color:#000;font-weight:900">💰 CASH OUT $${Math.round(s.active.wager * s.active.currentMul)}</button>
+        </div>
+      </div>`
+    : `<div style="margin:14px 0;padding:14px;background:#0008;border:2px dashed #ffd76e;border-radius:10px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">START A PARLAY · base wager $100</div>
+        <div style="font-size:11px;color:#aab;margin-bottom:10px">predict winners across multiple CPU vs CPU games · payouts: 1=3x · 2=12x · 3=48x · 4=192x · 5=768x · ONE bust = lose all</div>
+        <button class="btn hot" id="cpFateStart" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff66cc,#ffd76e);color:#000;font-weight:900;letter-spacing:2px">🎰 START PARLAY · $100</button>
+      </div>`;
+  const histRows = (s.history || []).slice(-10).reverse().map(h => `<div style="padding:8px 10px;margin:3px 0;background:#0008;border-left:4px solid ${h.final==='cashed'?'#4cf07a':'#ff3b3b'};border-radius:4px;color:#fff;font-size:11px">${h.legs} legs · ${h.final === 'cashed' ? `+$${h.payout}` : `BUST -$${h.wager}`} · ${new Date(h.lostAt).toLocaleString()}</div>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:600px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#ff66cc,#ffd76e,#fff);-webkit-background-clip:text;background-clip:text;color:transparent">🎰 CPU's FATE</div>
+      <div class="subtitle" style="text-align:center">parlay across CPU vs CPU matches · cash $${cash.toLocaleString()}</div>
+      ${activeHtml}
+      <div style="margin:14px 0;padding:10px;background:#0008;border:1px dashed #ffd76e;border-radius:8px;max-height:280px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:10px;letter-spacing:3px;margin-bottom:6px">📜 LAST 10</div>
+        ${histRows || '<div style="color:#aab;text-align:center;padding:10px">no parlays yet</div>'}
+      </div>
+      <button class="btn" id="cfBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('cfBack').onclick = showSplash;
+  const startBtn = document.getElementById('cpFateStart');
+  if (startBtn) startBtn.onclick = () => {
+    if (cash < 100){ if (typeof showToast === 'function') showToast('💸 NEED $100', 'allpro'); return; }
+    if (startCpuFateParlay(100)){ if (typeof showToast === 'function') showToast('🎰 PARLAY STARTED · go win matches', 'level'); renderCpuFateScreen(); }
+  };
+  const nextBtn = document.getElementById('cpFateNext');
+  if (nextBtn) nextBtn.onclick = () => {
+    State._cpuFateActive = true;
+    if (typeof showToast === 'function') showToast('🎬 PICK A WINNER · CPU vs CPU starting', 'level');
+    if (typeof startCpuVsCpuMatch === 'function') startCpuVsCpuMatch();
+  };
+  const cashBtn = document.getElementById('cpFateCash');
+  if (cashBtn) cashBtn.onclick = () => {
+    const payout = cashOutCpuFate();
+    if (payout){ if (typeof showToast === 'function') showToast(`💰 CASHED OUT · +$${payout}`, 'level'); renderCpuFateScreen(); }
+  };
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
