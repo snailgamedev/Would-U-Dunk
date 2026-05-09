@@ -5199,6 +5199,44 @@ function loadBetPrefs(){
 }
 function saveBetPrefs(p){ try { localStorage.setItem(`wud:betPrefs:${currentProfileName()}`, JSON.stringify(p)); } catch(e){} }
 
+// 🆕 v3.12.0 — NAV STACK · back button respects history
+const _navStack = [];
+function pushNav(name){
+  if (!name) return;
+  if (_navStack[_navStack.length - 1] === name) return;
+  _navStack.push(name);
+  if (_navStack.length > 10) _navStack.shift();
+}
+function popNav(){
+  _navStack.pop();   // remove current
+  return _navStack.pop() || 'splash';   // return previous (will be re-pushed by next render)
+}
+function navBack(){
+  const prev = popNav();
+  const handlers = {
+    splash: showSplash,
+    hubPlay: renderHubPlay,
+    hubProgress: renderHubProgress,
+    hubEconomy: renderHubEconomy,
+    hubMore: renderHubMore,
+    settings: renderSettingsScreen,
+    accessibility: renderAccessibilityScreen,
+    faith: renderFaithCornerScreen,
+    shop: renderShopScreen,
+    gamble: renderGambleScreen,
+    myteam: renderMyTeamScreen,
+    mycareer: renderMyCareerScreen,
+    battlepass: renderBattlePassScreen,
+    records: renderRecordsScreen,
+    hof: renderHallOfFameScreen,
+    titles: renderTitlePickerScreen,
+    achievements: renderAchievementsScreen,
+    stats: renderStatsScreen,
+  };
+  const fn = handlers[prev] || showSplash;
+  fn();
+}
+
 // 🆕 v3.9.0 — SCROLL POSITION MEMORY
 function _scrollKey(name){ return `wud:scroll:${name}`; }
 function rememberScroll(name){
