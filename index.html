@@ -9353,6 +9353,17 @@ function showSplash(){
   if (btnGamble) btnGamble.onclick = renderGambleScreen;
   const btnWatch = document.getElementById('btnWatch');
   if (btnWatch) btnWatch.onclick = startCpuVsCpuMatch;
+  // 🆕 v3.0.0 — HOLY GROUND + ASCENSION buttons
+  const btnFaithCorner = document.getElementById('btnFaithCorner');
+  if (btnFaithCorner) btnFaithCorner.onclick = renderFaithCornerScreen;
+  const btnSkills = document.getElementById('btnSkills');
+  if (btnSkills) btnSkills.onclick = renderSkillsScreen;
+  const btnChill = document.getElementById('btnChill');
+  if (btnChill) btnChill.onclick = startChillMode;
+  const btnHallOfFame = document.getElementById('btnHallOfFame');
+  if (btnHallOfFame) btnHallOfFame.onclick = renderHallOfFameScreen;
+  const btnRecords = document.getElementById('btnRecords');
+  if (btnRecords) btnRecords.onclick = renderRecordsScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
