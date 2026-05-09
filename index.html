@@ -6777,6 +6777,8 @@ function resolveBet(){
     // 🎰 v3.15.0 — losing bet feeds the jackpot pool (3% of wager)
     if (typeof addToJackpot === 'function') addToJackpot(bet.wager);
     if (typeof tickWagerChallenge === 'function') tickWagerChallenge('loss', 0);
+    // 🛡 v3.17.0 — guard tracks daily loss
+    if (typeof tickGuard === 'function') tickGuard('loss', bet.wager);
   }
   const hist = loadGambleHistory();
   hist.push({ at:Date.now(), type:bet.type, label:bet.label, icon:bet.icon, wager:bet.wager, mult:bet.mult, payout, won, myPts, oppPts });
