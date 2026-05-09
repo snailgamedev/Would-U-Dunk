@@ -5744,8 +5744,19 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.10.0';
+const VERSION = 'v3.11.0';
 const CHANGELOG = [
+  { v:'v3.11.0', notes:[
+      '🟢 OPERATION GREEN-MEANS-MAKE — green meter now LITERALLY guarantees the bucket. plus screen-shake/flash removal pass + smooth music verification.',
+      '🎯 GREEN METER = GUARANTEED SCORE — when you release in the green window (charge 0.66-0.74) · trajectory locks to the hoop center · aim chaos ignored · gravity assist nudges ball into rim · ALWAYS scores. +1 bonus point + GREEN! popup + special green particle trail still apply.',
+      '✨ GREEN PARTICLE TRAIL — perfect-release shots now have a glowing green comet trail · 12 particles emit along the arc · dissolves on impact.',
+      '🌟 GREEN STREAK COUNTER — track consecutive green releases · displayed on HUD · 3-streak = 🔥 PURE SHOOTER bonus +25 cash · 5-streak = 🎯 SNIPER MODE +75 · 10-streak = 🌟 PROPHET +200 + special verse.',
+      '💎 GREEN ACHIEVEMENT — 50 lifetime green releases unlocks "PURE FORM" achievement.',
+      '🛑 NO MORE SCREEN SHAKE on cinematic dunks · blocks · sig labels — kept the labels (DENIED · POSTERIZED · etc) but removed `cameras.flash()` + `cameras.shake()` calls. Smooth zoom/pan kept · vibe maintained · no more eye-jarring color flips.',
+      '🎵 SMOOTH MUSIC VERIFIED — v3.8 crossfade now applies to ALL music start sites · also softens stinger volume so they dont overpower the new fade-in.',
+      '🩹 DUNK MISS BUG GUARD — removed jolting flash on the existing dunk-miss ricochet · keeps the bounce-out cleanly without screen-flash.',
+      '✝️ "He delights in those who hope in His unfailing love" — Ps 147:11 · pure form rewarded',
+  ]},
   { v:'v3.10.0', notes:[
       '🎬 OPERATION CINEMATIC SUPREME — every play feels like a highlight reel + 9 v3.9 next-ideas all shipped + critical null-bug squashed.',
       '🩹 NULL BUG FIXED — `document.getElementById(\'btnStats\').onclick` was failing in showSplash because v3.8 hub redesign moved that button to MORE hub. Wrapped ALL legacy splash button refs in safe `_wire()` helper · zero null errors now.',
