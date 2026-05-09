@@ -9698,6 +9698,188 @@ function renderGambleScreen(){
     setTimeout(() => startMatch(), 220);
   };
 }
+// 🆕 v3.0.0 — ASCENSION · SKILLS CHALLENGE hub (3-PT + DUNK + HORSE + SPEED + SHOT CLOCK)
+function renderSkillsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const skills = [
+    { id:'three_pt',  icon:'🎯', name:'3-POINT CONTEST',     desc:'5 racks · money ball · beat the buzzer', payout:'+200 cash · +50 XP · +1 gem' },
+    { id:'dunk',      icon:'💥', name:'DUNK CONTEST',         desc:'5 dunks · judges score 0-10 each',        payout:'+250 cash · +60 XP · +1 gem' },
+    { id:'horse',     icon:'🐴', name:'H-O-R-S-E',            desc:'spell HORSE first to lose · trick shots',  payout:'+150 cash · +40 XP' },
+    { id:'speed',     icon:'⚡', name:'SPEED DRIBBLING',      desc:'navigate cones with dribble moves',        payout:'+100 cash · +30 XP' },
+    { id:'shotclock', icon:'⏱️', name:'SHOT CLOCK CHALLENGE', desc:'always 3s left · live or die clutch',     payout:'+300 cash · +75 XP · +2 gems' },
+  ];
+  const cards = skills.map(s => `
+    <button class="btn skillCard" data-skill="${s.id}" style="display:block;width:100%;text-align:left;padding:14px;margin:6px 0;background:linear-gradient(135deg,#0a1a3a,#1a3a8a);border:2px solid #4f9eff;border-radius:10px;color:#fff;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-size:24px">${s.icon}</span> <span style="font-weight:900;letter-spacing:2px;font-size:14px">${s.name}</span></div>
+      </div>
+      <div style="font-size:11px;color:#aab;margin-top:6px;letter-spacing:1px">${s.desc}</div>
+      <div style="font-size:10px;color:#4cf07a;margin-top:4px;letter-spacing:2px">🎁 ${s.payout}</div>
+    </button>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:32px;text-align:center">🎯 SKILLS CHALLENGE</div>
+      <div class="subtitle" style="text-align:center">solo drills · pure execution · pure rewards</div>
+      <div style="margin:14px 0">${cards}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">
+        ✝️ "Whatever you do · work at it with all your heart" — Col 3:23
+      </div>
+      <button class="btn" id="skillsBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('skillsBack').onclick = showSplash;
+  document.querySelectorAll('.skillCard').forEach(b => b.onclick = () => {
+    const id = b.dataset.skill;
+    if (id === 'three_pt'){ State.modeId = 'drill_3pt'; State.mode = 'CPU'; }
+    else if (id === 'dunk'){ State.modeId = 'dunk_only'; State.mode = 'CPU'; }
+    else { State.modeId = 'drill_logo'; State.mode = 'CPU'; }
+    State.looks[1] = rollRandomLook(1);
+    if (typeof showToast === 'function') showToast(`🎯 SKILL · ${id.toUpperCase()} · GO`, 'level');
+    setTimeout(() => startMatch(), 200);
+  });
+}
+
+// 🆕 v3.0.0 — ASCENSION · CHILL MODE — no clock · no stakes · just shoot
+function startChillMode(){
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#4cf07a44,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#4cf07a;font-family:Bebas Neue,Impact,sans-serif;letter-spacing:6px';
+  overlay.innerHTML = `<div style="font-size:72px">😴</div><div style="font-size:32px;margin-top:18px">CHILL MODE</div><div style="font-size:13px;margin-top:14px;color:#fff;opacity:0.8">NO TIMER · NO STAKES · JUST SHOOT BOII</div>`;
+  document.body.appendChild(overlay);
+  State.looks[0] = State.looks[0] || rollRandomLook(0);
+  State.looks[1] = rollRandomLook(1);
+  State.mode = 'CPU';
+  State.modeId = 'practice';   // existing PRACTICE mode = no CPU · free shoot
+  setTimeout(() => {
+    overlay.style.transition = 'opacity 0.3s';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 320);
+    if (typeof showToast === 'function') showToast(`😴 CHILL · vibe out · Ps 23 vibes`, 'level');
+    startMatch();
+  }, 1200);
+}
+
+// 🆕 v3.0.0 — ASCENSION · HALL OF FAME — every CPU tier you've beaten + tournament champs + lifetime bests
+function renderHallOfFameScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const beaten = Career.cpuTiersBeaten || {};
+  const beatenIds = Object.keys(beaten).filter(id => beaten[id] > 0);
+  const tierRows = beatenIds.length
+    ? beatenIds.map(id => {
+        const tier = CPU_TIERS.find(t => t.id === id);
+        const name = tier ? tier.name : id.toUpperCase();
+        const wins = beaten[id];
+        return `<tr><td style="padding:6px 8px;color:#ffd76e">${name}</td><td style="padding:6px 8px;color:#fff">${wins}</td></tr>`;
+      }).join('')
+    : `<tr><td colspan="2" style="padding:12px;text-align:center;color:#aab">no tiers beaten yet · win some matches first boi 🏀</td></tr>`;
+  const totalBeaten = beatenIds.length;
+  const totalWins = Object.values(beaten).reduce((a,b)=>a+b, 0);
+  const myCareer = `${Career.wins||0} W · ${Career.losses||0} L · ${Career.ties||0} T · streak ${Career.currentStreak||0}`;
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🏛 HALL OF FAME</div>
+      <div class="subtitle" style="text-align:center">your eternal record</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:12px;text-align:center;color:#000;font-weight:900">
+        🏆 CPU TIERS DEFEATED · <span style="font-size:28px">${totalBeaten}</span> / ${CPU_TIERS.length}<br>
+        <span style="font-size:11px;letter-spacing:2px">${totalWins} total tier-wins logged</span>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:2px solid #ffd76e;border-radius:10px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">🎖 YOUR CAREER LINE</div>
+        <div style="color:#fff;font-size:14px;letter-spacing:2px">${myCareer}</div>
+        <div style="color:#aab;font-size:11px;margin-top:6px">High Score: ${Career.highScoreGame||0} · Longest Streak: ${Career.longestStreak||0}</div>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e44;border-radius:10px;max-height:340px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">🥇 TIER WIN LEDGER</div>
+        <table style="width:100%;font-size:12px;color:#fff;border-collapse:collapse">
+          <thead><tr style="background:#ffd76e22"><th style="padding:6px 8px;text-align:left">TIER</th><th style="padding:6px 8px;text-align:left">WINS</th></tr></thead>
+          <tbody>${tierRows}</tbody>
+        </table>
+      </div>
+      <div style="text-align:center;color:#aab;font-size:10px;margin:8px 0">✝️ "Well done · good and faithful servant" — Matt 25:23</div>
+      <button class="btn" id="hofBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('hofBack').onclick = showSplash;
+}
+
+// 🆕 v3.0.0 — ASCENSION · ALL-TIME RECORDS BOARD
+function loadRecords(){
+  try { return JSON.parse(localStorage.getItem(`wud:records:${currentProfileName()}`)||'{}'); } catch(e){ return {}; }
+}
+function saveRecords(r){ try { localStorage.setItem(`wud:records:${currentProfileName()}`, JSON.stringify(r)); } catch(e){} }
+function bumpRecord(key, val){
+  const r = loadRecords();
+  if (!r[key] || val > r[key]){ r[key] = val; saveRecords(r); return true; }
+  return false;
+}
+function renderRecordsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const r = loadRecords();
+  const c = Career || {};
+  const stats = [
+    { lbl:'🏆 Career Wins',                v:c.wins||0 },
+    { lbl:'🎮 Career Games',                v:c.games||0 },
+    { lbl:'🔥 Longest Bucket Streak',       v:c.longestStreak||0 },
+    { lbl:'💯 Highest Single-Game Score',   v:c.highScoreGame||0 },
+    { lbl:'🌍 Logo Splashes Made',          v:r.logoMade||0 },
+    { lbl:'💥 Total Dunks Logged',          v:r.dunks||0 },
+    { lbl:'🛡 Total Blocks Logged',         v:r.blocks||0 },
+    { lbl:'🎰 Biggest Single Wager Win',    v:'$'+(r.biggestWin||0) },
+    { lbl:'🎰 Biggest Single Wager Loss',   v:'$'+(r.biggestLoss||0) },
+    { lbl:'🎰 Lifetime Wager Profit',       v:'$'+(r.gambleProfit||0) },
+    { lbl:'🎬 CPU vs CPU Watched',          v:r.spectated||0 },
+    { lbl:'🙏 Devotionals Read',            v:(loadFaith().devotionsRead)||0 },
+    { lbl:'❤️ Verses Favorited',            v:(loadFaith().favorites||[]).length },
+    { lbl:'🌅 Faith Streak (best ever)',     v:r.bestFaithStreak||(loadFaith().streak||0) },
+    { lbl:'⚡ Fastest Win (sec)',            v:r.fastestWin||0 },
+    { lbl:'📏 Biggest Win Margin',           v:r.biggestMargin||0 },
+    { lbl:'🤖 Tiers Defeated',              v:Object.keys(c.cpuTiersBeaten||{}).length },
+    { lbl:'🃏 Cards Collected',              v:loadMyTeam().length },
+  ];
+  const rows = stats.map(s => `<tr><td style="padding:8px 12px;color:#ffd76e">${s.lbl}</td><td style="padding:8px 12px;text-align:right;color:#fff;font-weight:900">${s.v}</td></tr>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#a040ff,#ff66cc,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">📊 ALL-TIME RECORDS</div>
+      <div class="subtitle" style="text-align:center">every milestone · forever logged</div>
+      <table style="width:100%;font-size:13px;color:#fff;margin:14px 0;background:#0008;border-radius:10px;overflow:hidden">${rows}</table>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">
+        ✝️ "Run in such a way as to take the prize" — 1 Cor 9:24
+      </div>
+      <button class="btn" id="recBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('recBack').onclick = showSplash;
+}
+
+// 🆕 v3.0.0 — ASCENSION · MyTEAM card collection (skeleton w/ 10 tiers + chemistry preview)
+const CARD_TIERS = [
+  { id:'bronze',     name:'BRONZE',     color:'#cd7f32', glow:'#cd7f3266', dropChance:0.45 },
+  { id:'silver',     name:'SILVER',     color:'#c0c0c0', glow:'#c0c0c066', dropChance:0.25 },
+  { id:'gold',       name:'GOLD',       color:'#ffd700', glow:'#ffd70066', dropChance:0.13 },
+  { id:'emerald',    name:'EMERALD',    color:'#50c878', glow:'#50c87866', dropChance:0.07 },
+  { id:'sapphire',   name:'SAPPHIRE',   color:'#0f52ba', glow:'#0f52ba66', dropChance:0.05 },
+  { id:'ruby',       name:'RUBY',       color:'#e0115f', glow:'#e0115f66', dropChance:0.025 },
+  { id:'amethyst',   name:'AMETHYST',   color:'#9966cc', glow:'#9966cc66', dropChance:0.015 },
+  { id:'diamond',    name:'DIAMOND',    color:'#b9f2ff', glow:'#b9f2ff66', dropChance:0.007 },
+  { id:'galaxy_opal',name:'GALAXY OPAL',color:'#ff66cc', glow:'#ff66cc66', dropChance:0.002 },
+  { id:'invincible', name:'INVINCIBLE', color:'#000000', glow:'#ffffff66', dropChance:0.001 },
+];
+function loadMyTeam(){ try { return JSON.parse(localStorage.getItem(`wud:myteam:${currentProfileName()}`)||'[]'); } catch(e){ return []; } }
+function saveMyTeam(arr){ try { localStorage.setItem(`wud:myteam:${currentProfileName()}`, JSON.stringify(arr.slice(-200))); } catch(e){} }
+function rollNewCard(){
+  const r = Math.random();
+  let acc = 0;
+  let pickedTier = CARD_TIERS[0];
+  for (const t of CARD_TIERS){ acc += t.dropChance; if (r <= acc){ pickedTier = t; break; } }
+  const npc = (typeof pickRandomNpc === 'function') ? pickRandomNpc() : { name:'PLAYER ' + ((Math.random()*99)|0), archetypeBaseId:'sniper' };
+  return { tier:pickedTier.id, name:npc.name, arch:npc.archetypeBaseId || 'baller', at:Date.now() };
+}
+function awardCardOnWin(){
+  const card = rollNewCard();
+  const team = loadMyTeam();
+  team.push(card);
+  saveMyTeam(team);
+  const tier = CARD_TIERS.find(t => t.id === card.tier);
+  if (typeof showToast === 'function') showToast(`🃏 NEW CARD · ${tier.name} · ${card.name}`, 'level');
+  return card;
+}
+
 // 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER full screen
 function renderFaithCornerScreen(){
   if (typeof musicForScreen === 'function') musicForScreen('worship');
