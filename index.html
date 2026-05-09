@@ -2842,8 +2842,10 @@ function maybeFireRandomEvent(scene){
   scene._lastEventRound = scene._currentRoundIdx;
   const ev = RANDOM_EVENTS[(Math.random()*RANDOM_EVENTS.length)|0];
   scene._activeEvent = { ...ev, startedAt: scene.time.now };
-  // 🆕 v3.4.0 — TTS announce
-  if (typeof announceText === 'function') announceText(ev.label.replace(/[^\w\s]/g,'').trim());
+  // 🩹 v3.13.0 — TTS throttled in spectator (was firing too often)
+  if (State.cfg && State.cfg.cpuVsCpu){
+    if (typeof announceTextThrottled === 'function') announceTextThrottled(ev.label.replace(/[^\w\s]/g,'').trim());
+  } else if (typeof announceText === 'function') announceText(ev.label.replace(/[^\w\s]/g,'').trim());
   // visual banner
   let banner = document.getElementById('eventBanner');
   if (!banner){
