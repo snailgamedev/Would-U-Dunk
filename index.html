@@ -3842,6 +3842,283 @@ function renderDailyVarietyScreen(){
   document.getElementById('dvBack').onclick = showSplash;
 }
 
+// 🆕 v3.5.0 — REPLAY REEL · canvas snapshots for visual replay (in-memory · session-scoped)
+const _replayBuffer = [];   // { ts, dataUrl, label }
+function captureReplayFrame(scene, label){
+  try {
+    if (!scene || !scene.cameras) return;
+    const canvas = scene.sys.game.canvas;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.4);   // smaller jpeg for memory
+    _replayBuffer.push({ ts: Date.now(), label, dataUrl });
+    if (_replayBuffer.length > 30) _replayBuffer.shift();
+  } catch(e){}
+}
+function getReplayBuffer(){ return _replayBuffer.slice(); }
+
+// 🆕 v3.5.0 — ENDORSEMENT EXCLUSIVITY · categories + +50% bonus per signed cat
+const ENDORSEMENT_CATEGORIES = ['sneaker', 'drink', 'apparel', 'auto', 'media', 'gaming'];
+function endorsementCategoryFor(id){
+  // map endorsement id → category
+  return ({
+    sneaker_co:'sneaker',
+    energy_drink:'drink',
+    sports_drink:'drink',
+    apparel:'apparel',
+    auto:'auto',
+    fragrance:'apparel',
+    media:'media',
+    gaming:'gaming',
+  })[id] || 'media';
+}
+function endorsementsByCategory(){
+  const e = loadEndorsements();
+  const counts = {};
+  e.signed.forEach(id => { const c = endorsementCategoryFor(id); counts[c] = (counts[c]||0)+1; });
+  return counts;
+}
+function endorsementBonusMul(id){
+  // First in category = base · subsequent in same cat = +50%
+  const e = loadEndorsements();
+  const cat = endorsementCategoryFor(id);
+  const sameCatCount = e.signed.filter(s => endorsementCategoryFor(s) === cat).length;
+  return sameCatCount === 0 ? 1.0 : 1.5;
+}
+
+// 🆕 v3.5.0 — CARD TRADING · 3 dupes of same tier → 1 next-tier card
+function tradeCardsUp(tierId){
+  const team = loadMyTeam();
+  const idxs = [];
+  for (let i = 0; i < team.length && idxs.length < 3; i++){
+    if (team[i].tier === tierId) idxs.push(i);
+  }
+  if (idxs.length < 3) return null;
+  const tierIdx = CARD_TIERS.findIndex(t => t.id === tierId);
+  if (tierIdx < 0 || tierIdx >= CARD_TIERS.length - 1) return null;
+  const nextTier = CARD_TIERS[tierIdx + 1];
+  // remove 3 (in reverse so indices stay valid)
+  for (let i = idxs.length - 1; i >= 0; i--) team.splice(idxs[i], 1);
+  // add new card at next tier
+  const npc = (typeof pickRandomNpc === 'function') ? pickRandomNpc() : { name: 'TRADED' };
+  const newCard = { tier: nextTier.id, name: npc.name || 'TRADED', arch: npc.archetypeBaseId || 'baller', at: Date.now() };
+  team.push(newCard);
+  saveMyTeam(team);
+  return newCard;
+}
+function canTradeUp(tierId){
+  const team = loadMyTeam();
+  const tierIdx = CARD_TIERS.findIndex(t => t.id === tierId);
+  if (tierIdx < 0 || tierIdx >= CARD_TIERS.length - 1) return false;
+  return team.filter(c => c.tier === tierId).length >= 3;
+}
+
+// 🆕 v3.5.0 — COURT-SPECIFIC PHYSICS · applied during chaos cfg pipeline
+const COURT_PHYSICS = {
+  court_tokyo:    { label:'TOKYO',     gravMul: 0.85,                                             desc:'low gravity · neon vibes' },
+  court_rooftop:  { label:'ROOFTOP',   wind: (Math.random() < 0.5 ? -60 : 60),                   desc:'wind blowing the ball' },
+  court_venice:   { label:'VENICE',    floorFriction: 0.30,                                       desc:'sandy floor · slower slides' },
+  court_rucker:   { label:'RUCKER',    rimRattle: 1.3,                                            desc:'crowd noise · slight rim rattle' },
+  court_cage:     { label:'CAGE NYC',  courtScale: 0.92,                                          desc:'tight walls · close quarters' },
+  court_holy_ground:{ label:'HOLY GROUND', shotPower: 1.05,                                       desc:'+5% shot power · favored ground' },
+};
+function applyCourtPhysics(cfg){
+  const equippedCourt = (typeof loadEquipped === 'function') ? loadEquipped('COURT') : 'court_classic';
+  const phys = COURT_PHYSICS[equippedCourt];
+  if (!phys) return cfg;
+  if (phys.gravMul) cfg.gravMul = (cfg.gravMul || 1) * phys.gravMul;
+  if (phys.wind) cfg.wind = (cfg.wind || 0) + phys.wind;
+  if (phys.floorFriction != null) cfg.floorFriction = (cfg.floorFriction != null) ? Math.min(cfg.floorFriction, phys.floorFriction) : phys.floorFriction;
+  if (phys.rimRattle) cfg.rimRattle = (cfg.rimRattle || 1) * phys.rimRattle;
+  if (phys.courtScale) cfg.courtScale = (cfg.courtScale || 1) * phys.courtScale;
+  if (phys.shotPower) cfg.shotPower = (cfg.shotPower || 1) * phys.shotPower;
+  cfg._courtPhys = phys.label;
+  return cfg;
+}
+
+// 🆕 v3.5.0 — BATTLE PASS SEASON ROTATION (30 days)
+const SEASON_LEN_DAYS = 30;
+function getCurrentBpSeason(){
+  const start = new Date('2026-01-01').getTime();
+  const elapsedDays = Math.floor((Date.now() - start) / (86400000));
+  const seasonNum = Math.floor(elapsedDays / SEASON_LEN_DAYS) + 1;
+  const dayInSeason = elapsedDays % SEASON_LEN_DAYS;
+  return { seasonNum, dayInSeason, daysRemaining: SEASON_LEN_DAYS - dayInSeason };
+}
+const BP_SEASON_THEMES = [
+  { name:'GLORY', color:'#ffd76e', verse:'Phil 4:13' },
+  { name:'BREAKAWAY', color:'#4cf07a', verse:'Isa 40:31' },
+  { name:'STREETBALL', color:'#ff66cc', verse:'1 Cor 9:24' },
+  { name:'CHARIOT', color:'#ff3b3b', verse:'2 Kings 6:17' },
+  { name:'KINGDOM', color:'#a040ff', verse:'Matt 6:33' },
+];
+function currentBpSeasonTheme(){
+  const s = getCurrentBpSeason();
+  return BP_SEASON_THEMES[s.seasonNum % BP_SEASON_THEMES.length];
+}
+
+// 🆕 v3.5.0 — SPECTATOR MVP VOTING
+function loadMvpVotes(){ try { return JSON.parse(localStorage.getItem(`wud:mvpvotes:${currentProfileName()}`)||'[]'); } catch(e){ return []; } }
+function saveMvpVotes(arr){ try { localStorage.setItem(`wud:mvpvotes:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){} }
+function recordMvpVote(matchId, votedFor, actualMvp, won, payout){
+  const arr = loadMvpVotes();
+  arr.push({ at:Date.now(), matchId, votedFor, actualMvp, won, payout });
+  saveMvpVotes(arr);
+}
+function statDerivedMvp(p1Pts, p2Pts){
+  return p1Pts >= p2Pts ? 0 : 1;   // higher scorer = MVP
+}
+function showMvpVotePrompt(p1Name, p2Name, p1Pts, p2Pts){
+  return new Promise(res => {
+    try {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#000d;display:flex;align-items:center;justify-content:center';
+      overlay.innerHTML = `
+        <div style="max-width:400px;padding:24px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;text-align:center;color:#000">
+          <div style="font-size:18px;font-weight:900;letter-spacing:3px">🏛 PICK THE MVP</div>
+          <div style="font-size:11px;margin-top:6px;letter-spacing:2px">$100 BONUS IF YOU NAIL IT</div>
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn mvpVote" data-idx="0" style="flex:1;padding:14px;background:#ff3b3b;color:#fff;font-weight:900;font-size:13px">${p1Name} · ${p1Pts}</button>
+            <button class="btn mvpVote" data-idx="1" style="flex:1;padding:14px;background:#4f9eff;color:#fff;font-weight:900;font-size:13px">${p2Name} · ${p2Pts}</button>
+          </div>
+          <button class="btn" id="mvpSkip" style="margin-top:8px;width:100%;font-size:10px">SKIP</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      const cleanup = (idx) => {
+        overlay.remove();
+        if (idx == null) return res(null);
+        const actualMvp = statDerivedMvp(p1Pts, p2Pts);
+        const won = idx === actualMvp;
+        const payout = won ? 100 : 0;
+        if (won){ awardCash(100); if (typeof showToast === 'function') showToast(`🏛 MVP NAILED · +$100`, 'level'); }
+        else { if (typeof showToast === 'function') showToast(`🏛 MVP MISS · ${[p1Name,p2Name][actualMvp]} got it`, 'allpro'); }
+        recordMvpVote(`m${Date.now()}`, idx, actualMvp, won, payout);
+        res({ votedFor: idx, actualMvp, won, payout });
+      };
+      document.querySelectorAll('.mvpVote').forEach(b => b.onclick = () => cleanup(parseInt(b.dataset.idx, 10)));
+      document.getElementById('mvpSkip').onclick = () => cleanup(null);
+    } catch(e){ res(null); }
+  });
+}
+
+// 🆕 v3.5.0 — CUSTOM WALKOUT SONG · MediaRecorder
+async function recordWalkout(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    const chunks = [];
+    mr.ondataavailable = e => chunks.push(e.data);
+    return new Promise(res => {
+      mr.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            localStorage.setItem(`wud:walkoutBlob:${currentProfileName()}`, reader.result);
+            stream.getTracks().forEach(t => t.stop());
+            res(true);
+          } catch(e){ res(false); }
+        };
+        reader.readAsDataURL(blob);
+      };
+      mr.start();
+      setTimeout(() => mr.stop(), 5000);   // 5-second clip
+    });
+  } catch(e){ return false; }
+}
+function loadWalkoutClip(){ try { return localStorage.getItem(`wud:walkoutBlob:${currentProfileName()}`); } catch(e){ return null; } }
+function deleteWalkoutClip(){ try { localStorage.removeItem(`wud:walkoutBlob:${currentProfileName()}`); } catch(e){} }
+function playWalkoutClip(){
+  const url = loadWalkoutClip();
+  if (!url) return false;
+  try { const a = new Audio(url); a.volume = 0.6; a.play(); return true; } catch(e){ return false; }
+}
+
+// 🆕 v3.5.0 — INJURY RETURN CEREMONY
+function fireInjuryReturnCeremony(){
+  try {
+    const banner = document.createElement('div');
+    banner.style.cssText = `position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;padding:20px 30px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center;box-shadow:0 0 40px #4cf07a88`;
+    banner.innerHTML = `
+      <div style="font-size:48px">🎺🎺🎺</div>
+      <div style="font-size:22px;font-weight:900;letter-spacing:3px;margin-top:8px">RETURN OF THE KING</div>
+      <div style="font-size:12px;margin-top:8px;font-style:italic">"Behold I am doing a new thing" — Isa 43:19</div>
+      <div style="font-size:10px;margin-top:6px;color:#000a">tap to dismiss</div>`;
+    banner.style.cursor = 'pointer';
+    banner.onclick = () => banner.remove();
+    document.body.appendChild(banner);
+    setTimeout(() => banner.parentNode && banner.remove(), 6000);
+    if (typeof MUSIC !== 'undefined') MUSIC.stinger('victory');
+    if (typeof announceText === 'function') announceText('Return of the king.');
+  } catch(e){}
+}
+
+// 🆕 v3.5.0 — render screens for new systems
+function renderCardTradingScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const team = loadMyTeam();
+  const tierCounts = {};
+  team.forEach(c => { tierCounts[c.tier] = (tierCounts[c.tier]||0) + 1; });
+  const rows = CARD_TIERS.map(t => {
+    const count = tierCounts[t.id] || 0;
+    const can = canTradeUp(t.id);
+    const tierIdx = CARD_TIERS.findIndex(x => x.id === t.id);
+    const next = CARD_TIERS[tierIdx + 1];
+    return `<div style="display:flex;align-items:center;padding:8px 12px;margin:4px 0;background:#0008;border-left:5px solid ${t.color};border-radius:6px;color:#fff">
+      <div style="flex:1">
+        <div style="color:${t.color};font-weight:900;letter-spacing:2px;text-shadow:0 0 8px ${t.glow}">${t.name}</div>
+        <div style="font-size:11px;color:#aab;margin-top:2px">${count} owned${next?` · 3 → 1 ${next.name}`:' · MAX TIER'}</div>
+      </div>
+      ${can ? `<button class="btn tradeBtn" data-tier="${t.id}" style="font-size:11px;padding:6px 12px;background:${t.color};color:#000;font-weight:900">TRADE 3</button>` : ''}
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center">🃏 CARD TRADING</div>
+      <div class="subtitle" style="text-align:center">3 dupes → 1 next-tier card · upgrade your roster</div>
+      <div style="margin:14px 0;max-height:60vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="ctBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('ctBack').onclick = showSplash;
+  document.querySelectorAll('.tradeBtn').forEach(b => b.onclick = () => {
+    const newCard = tradeCardsUp(b.dataset.tier);
+    if (newCard){
+      const t = CARD_TIERS.find(x => x.id === newCard.tier);
+      if (typeof showToast === 'function') showToast(`🃏 TRADED UP · ${t.name} · ${newCard.name}`, 'level');
+      renderCardTradingScreen();
+    }
+  });
+}
+
+function renderWalkoutRecorderScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('charselect');
+  const has = !!loadWalkoutClip();
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px;text-align:center">
+      <div class="title" style="font-size:30px">🎤 WALKOUT RECORDER</div>
+      <div class="subtitle">5-second voice clip · plays on character walkout</div>
+      <div style="margin:18px 0;padding:18px;background:#0008;border:2px dashed #ffd76e;border-radius:14px;color:#fff;font-size:13px;line-height:1.7">
+        ${has ? '✅ <b>You have a walkout clip saved.</b><br>Plays automatically on match start.' : '🎤 No walkout clip yet.<br>Tap RECORD to make one (5 seconds).<br>Mic permission required.'}
+      </div>
+      <button class="btn hot" id="woRec" style="width:100%;font-size:16px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c);color:#fff;font-weight:900">🎤 RECORD 5-SECOND CLIP</button>
+      ${has ? '<button class="btn" id="woPlay" style="margin-top:8px;width:100%;font-size:13px;background:#4cf07a;color:#000;font-weight:900">▶ PREVIEW CLIP</button>' : ''}
+      ${has ? '<button class="btn" id="woDel" style="margin-top:8px;width:100%;font-size:11px;background:#3d1a1a;color:#fff">🗑 DELETE CLIP</button>' : ''}
+      <button class="btn" id="woBack" style="margin-top:14px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('woBack').onclick = showSplash;
+  document.getElementById('woRec').onclick = async () => {
+    if (typeof showToast === 'function') showToast('🎤 RECORDING 5s · speak now', 'level');
+    const ok = await recordWalkout();
+    if (ok){ if (typeof showToast === 'function') showToast('✅ CLIP SAVED', 'level'); renderWalkoutRecorderScreen(); }
+    else { if (typeof showToast === 'function') showToast('❌ MIC ACCESS DENIED', 'allpro'); }
+  };
+  if (has){
+    document.getElementById('woPlay').onclick = () => { if (!playWalkoutClip()) showToast('couldn\'t play', 'allpro'); };
+    document.getElementById('woDel').onclick = () => {
+      if (confirm('Delete walkout clip?')){ deleteWalkoutClip(); renderWalkoutRecorderScreen(); }
+    };
+  }
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
