@@ -873,6 +873,45 @@ const ChaosEngine = {
   },
 };
 
+// 🆕 v2.26.0 — SANITIZE-CFG — clamps stacked-modifier combos that would make scoring literally impossible
+function sanitizeCfg(cfg, mode){
+  if (!cfg) return cfg;
+  const fixes = [];
+  // Rim scale floor (tight + slim + triple_rim could shrink rim under 0.5)
+  if (cfg.rimScale != null && cfg.rimScale < 0.55){ cfg.rimScale = 0.55; fixes.push('rimScale↑0.55'); }
+  // Player speed floor (molasses + sticky + weighted_ankle)
+  if (cfg.playerSpeedMul != null && cfg.playerSpeedMul < 0.4){ cfg.playerSpeedMul = 0.4; fixes.push('playerSpeed↑0.4'); }
+  // Jump floor (weighted_ankle unlucky jelly_legs roll)
+  if (cfg.jumpMul != null && cfg.jumpMul < 0.5){ cfg.jumpMul = 0.5; fixes.push('jump↑0.5'); }
+  // Ball anti-gravity needs SOME gravity or ball floats forever
+  if (cfg.ballGravFlip && cfg.gravMul < 0.5){ cfg.gravMul = 0.5; fixes.push('grav↑0.5'); }
+  // Inverted vs Sudden Death contradicts — pick suddenDeath
+  if (cfg.invertedScore && cfg.suddenDeath){ cfg.invertedScore = false; fixes.push('inv→off'); }
+  // Cursed in target/race modes = literally impossible to reach target
+  if (cfg.cursed && mode && mode.target){ cfg.cursed = false; fixes.push('cursed→off (target mode)'); }
+  // Cursed + One Shot (scoreMul:99) → -99 first basket = lose immediately
+  if (cfg.cursed && cfg.scoreMul >= 99){ cfg.cursed = false; fixes.push('cursed→off (oneShot)'); }
+  // Cursed + Reverse Score = double-flipped weirdness, drop cursed
+  if (cfg.cursed && cfg.reverseScore){ cfg.cursed = false; fixes.push('cursed→off (reverse)'); }
+  // Half-court rule + dunk-only = impossible (dunks happen at the rim)
+  if (cfg.halfCourtRule && mode && mode.dunkOnly){ cfg.halfCourtRule = false; fixes.push('halfCourt→off (dunkOnly)'); }
+  // Hot potato hold floor
+  if (cfg.holdLimit && cfg.holdLimit < 2){ cfg.holdLimit = 2; fixes.push('hold↑2s'); }
+  // Score multiplier sanity — never zero or negative (defensive)
+  if (cfg.scoreMul == null || cfg.scoreMul <= 0){ cfg.scoreMul = 1; fixes.push('scoreMul↑1'); }
+  // Tempo floor (tempo_down stacked w/ molasses scenario)
+  if (cfg.tempo != null && cfg.tempo < 0.5){ cfg.tempo = 0.5; fixes.push('tempo↑0.5'); }
+  // Ball scale floor (shrink_ball over time clamp baseline too)
+  if (cfg.ballScale != null && cfg.ballScale < 0.4){ cfg.ballScale = 0.4; fixes.push('ballScale↑0.4'); }
+  // Aim chaos cap (noodle arms could be stacked — cap so player can still aim)
+  if (cfg.aimChaos != null && cfg.aimChaos > 0.5){ cfg.aimChaos = 0.5; fixes.push('aim↓0.5'); }
+  if (fixes.length){
+    try { console.log('[sanitizeCfg]', fixes.join(', ')); } catch(e){}
+    cfg._sanitized = fixes;
+  }
+  return cfg;
+}
+
 /* ------------------- CANVAS-BASED SPRITES (unified for preview + in-game) ------------------- */
 const PLAYER_W = 60, PLAYER_H = 112, BALL_PX = 40;
 
