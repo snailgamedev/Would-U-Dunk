@@ -9463,7 +9463,11 @@ function showModeSelect(){
       b.classList.add('hot');
     };
   });
-  document.getElementById('btnNext').onclick = () => { State.mode = chosenSide; showCharSelect(); };
+  document.getElementById('btnNext').onclick = () => {
+    // 🆕 v2.26.0 — WATCH = CPU vs CPU shortcut, skips char select (random looks)
+    if (chosenSide === 'WATCH'){ startCpuVsCpuMatch(); return; }
+    State.mode = chosenSide; showCharSelect();
+  };
   document.getElementById('btnBack').onclick = showSplash;
   // Online MP — host & join open a lobby modal
   document.getElementById('btnHost').onclick = () => showOnlineLobby('host');
