@@ -16152,6 +16152,78 @@ setTimeout(() => {
   }
 }, 800);
 
+// CHECK 2 POLISH: mobile screenshot button (in MP overlay area / cheat sheet)
+MobileBeast.takeScreenshot = async function(){
+  try {
+    const c = document.querySelector('canvas');
+    if (!c) return;
+    const url = c.toDataURL('image/png');
+    if (navigator.share && navigator.canShare){
+      const blob = await (await fetch(url)).blob();
+      const file = new File([blob], 'wud-screenshot.png', { type:'image/png' });
+      if (navigator.canShare({ files: [file] })){
+        await navigator.share({ files:[file], title:'Would U Dunk', text:'🏀✝️ check this play' });
+        return;
+      }
+    }
+    // fallback download
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wud-' + Date.now() + '.png';
+    a.click();
+    if (typeof showToast === 'function') showToast('📸 SCREENSHOT SAVED', 'level');
+  } catch(e){ if (typeof showToast === 'function') showToast('Screenshot failed', 'allpro'); }
+};
+
+// CHECK 2 POLISH: floating mobile pause button (always reachable)
+(function floatPauseBtn(){
+  setTimeout(() => {
+    if (!IS_MOBILE && !('ontouchstart' in window)) return;
+    if (document.getElementById('floatPause')) return;
+    const b = document.createElement('button');
+    b.id = 'floatPause';
+    b.textContent = '⏸';
+    b.style.cssText = 'position:fixed;top:env(safe-area-inset-top,8px);right:8px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.55);color:#ffd76e;border:1px solid #ffd76e;font-size:18px;z-index:9994;backdrop-filter:blur(8px);display:none;cursor:pointer;font-weight:900';
+    b.onclick = () => {
+      try {
+        const sc = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
+        if (sc && sc.scene){
+          if (sc.scene.isPaused()){ sc.scene.resume(); b.textContent = '⏸'; }
+          else { sc.scene.pause(); b.textContent = '▶'; }
+        }
+      } catch(e){}
+    };
+    document.body.appendChild(b);
+    setInterval(() => {
+      const t = document.getElementById('touch');
+      const inMatch = t && t.classList.contains('on');
+      const batBadge = document.getElementById('batBadge');
+      // shift down if battery badge present
+      b.style.top = batBadge ? 'calc(env(safe-area-inset-top,8px) + 36px)' : 'env(safe-area-inset-top,8px)';
+      b.style.display = inMatch ? 'block' : 'none';
+    }, 500);
+  }, 1500);
+})();
+
+// CHECK 2 POLISH: audio ducking on visibility change (incoming call / app switch)
+document.addEventListener('visibilitychange', () => {
+  try {
+    if (document.hidden){
+      if (typeof MUSIC !== 'undefined' && MUSIC.setIntensity) MUSIC.setIntensity(0);
+    } else {
+      if (typeof MUSIC !== 'undefined' && MUSIC.setIntensity) MUSIC.setIntensity(0.85);
+    }
+  } catch(e){}
+});
+
+// CHECK 2 POLISH: track mobile-only achievement totals + unlock MOBILE LEGEND
+setInterval(() => {
+  try {
+    const ids = ['joystick_maestro','swipe_sniper','tilt_master','one_hand_hero','pocket_prophet'];
+    const got = ids.filter(id => Career.achievements && Career.achievements[id]).length;
+    if (got >= 5) unlockAchievement('mobile_legend');
+  } catch(e){}
+}, 5000);
+
 // GAP 5: Quick-start floating play button on mobile
 (function quickStartBtn(){
   setTimeout(() => {
