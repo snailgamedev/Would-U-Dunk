@@ -4139,6 +4139,239 @@ function renderWalkoutRecorderScreen(){
   }
 }
 
+// 🆕 v3.6.0 — REPLAY FRAME VIEWER (extends v3.5 replay buffer with viewable thumbnails)
+function renderReplayViewerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const frames = (typeof getReplayBuffer === 'function') ? getReplayBuffer() : [];
+  const rows = frames.length
+    ? frames.slice().reverse().map((f, i) => `<div style="display:inline-block;margin:6px;padding:6px;background:#0008;border:2px solid #ffd76e;border-radius:6px;text-align:center">
+        <img src="${f.dataUrl}" style="width:160px;height:auto;border-radius:4px;display:block;cursor:pointer" data-replay-idx="${i}" />
+        <div style="color:#ffd76e;font-size:10px;margin-top:4px;letter-spacing:2px">${f.label}</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:20px">no replay frames yet · score 3+ pts to capture 📺</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:760px">
+      <div class="title" style="font-size:30px;text-align:center">📺 REPLAY VIEWER</div>
+      <div class="subtitle" style="text-align:center">${frames.length} captured frames · session-scoped · biggest plays</div>
+      <div style="margin:14px 0;text-align:center;max-height:65vh;overflow-y:auto">${rows}</div>
+      ${frames.length ? '<button class="btn" id="replayExportAll" style="width:100%;margin-bottom:8px;font-size:13px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">📥 EXPORT ALL TO PNG</button>' : ''}
+      <button class="btn" id="rvBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('rvBack').onclick = showSplash;
+  // Click to enlarge
+  document.querySelectorAll('[data-replay-idx]').forEach(img => img.onclick = () => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000d;display:flex;align-items:center;justify-content:center;cursor:pointer';
+    overlay.innerHTML = `<img src="${img.src}" style="max-width:90%;max-height:90%;border:3px solid #ffd76e;border-radius:8px"/>`;
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+  });
+  // Export all as zip-style downloads (one PNG at a time via anchor)
+  const exp = document.getElementById('replayExportAll');
+  if (exp) exp.onclick = () => {
+    frames.forEach((f, i) => {
+      const a = document.createElement('a');
+      a.href = f.dataUrl;
+      a.download = `wud-replay-${Date.now()}-${i}-${f.label.replace(/[^\w]/g,'')}.png`;
+      a.click();
+    });
+    if (typeof showToast === 'function') showToast(`📥 ${frames.length} FRAMES DOWNLOADED`, 'level');
+  };
+}
+
+// 🆕 v3.6.0 — BP PREMIUM TIER SKIP SHOP (5 gems = +1 tier)
+function buyBpTierSkip(){
+  if (loadGems() < 5) return false;
+  if (!spendGems(5)) return false;
+  // Synthetic XP boost = enough to advance one tier
+  const tier = (typeof bpassCurrentTier === 'function') ? bpassCurrentTier() : 0;
+  const next = BATTLE_PASS_REWARDS[tier];   // current tier's xpRequired-1 puts us at threshold
+  if (next){ awardXp(next.xpRequired - (Career.xp || 0) + 1); }
+  return true;
+}
+
+// 🆕 v3.6.0 — PARLAY PAYOUT CHART (display only · math computed live)
+function parlayPayoutChart(baseWager){
+  return [
+    { picks:1, mult:5,    payout: baseWager * 5 },
+    { picks:2, mult:25,   payout: baseWager * 25 },
+    { picks:3, mult:125,  payout: baseWager * 125 },
+    { picks:4, mult:625,  payout: baseWager * 625 },
+  ];
+}
+
+// 🆕 v3.6.0 — 5 MORE COURT VENUES (additive · pushed deferred)
+const COURT_VENUES_V360 = [
+  { id:'court_globetrotter', name:'GLOBETROTTER BUS', cat:'COURT', price:2500, icon:'🚌', desc:'rolling on the road · classic showtime' },
+  { id:'court_olympic',      name:'OLYMPIC COURT',    cat:'COURT', price:6000, icon:'🥇', desc:'rings overhead · gold medal vibes' },
+  { id:'court_backyard',     name:'BACKYARD HOOP',    cat:'COURT', price:2500, icon:'🏡', desc:'family driveway · uneven concrete' },
+  { id:'court_subway',       name:'SUBWAY STATION',   cat:'COURT', price:3000, icon:'🚇', desc:'underground rumble · echo' },
+  { id:'court_pier',         name:'BEACH PIER',       cat:'COURT', price:3500, icon:'🌊', desc:'salty breeze · seagulls' },
+];
+// 🩹 deferred per feedback_no_tdz_errors.md — SHOP_ITEMS declared LATER in source order
+setTimeout(() => { try { SHOP_ITEMS.push(...COURT_VENUES_V360); } catch(e){ console.warn('[v3.6] SHOP_ITEMS push deferred', e); } }, 0);
+
+// 🆕 v3.6.0 — extend COURT_PHYSICS for new venues
+const COURT_PHYSICS_V360 = {
+  court_globetrotter: { label:'GLOBETROTTER', shotPower: 1.10, gravMul: 0.95, desc:'showtime arc' },
+  court_olympic:      { label:'OLYMPIC',      rimRattle: 0.85, shotPower: 1.05, desc:'pristine rim' },
+  court_backyard:     { label:'BACKYARD',     floorFriction: 0.30, jumpMul: 0.95, desc:'uneven · sticky' },
+  court_subway:       { label:'SUBWAY',       courtScale: 0.95, desc:'tight underground' },
+  court_pier:         { label:'PIER',         wind: (Math.random() < 0.5 ? -50 : 50), desc:'salty breeze' },
+};
+// merge into COURT_PHYSICS (also deferred for safety)
+setTimeout(() => { try { Object.assign(COURT_PHYSICS, COURT_PHYSICS_V360); } catch(e){} }, 0);
+
+// 🆕 v3.6.0 — WALKOUT MIXING — 3 slots (A · B · C)
+function loadWalkoutSlot(slot){
+  try { return localStorage.getItem(`wud:walkoutBlob_${slot}:${currentProfileName()}`); } catch(e){ return null; }
+}
+function saveWalkoutSlot(slot, dataUrl){
+  try { localStorage.setItem(`wud:walkoutBlob_${slot}:${currentProfileName()}`, dataUrl); } catch(e){}
+}
+function deleteWalkoutSlot(slot){
+  try { localStorage.removeItem(`wud:walkoutBlob_${slot}:${currentProfileName()}`); } catch(e){}
+}
+function playRandomWalkoutSlot(){
+  const slots = ['A', 'B', 'C'].filter(s => !!loadWalkoutSlot(s));
+  if (slots.length === 0) return playWalkoutClip();   // fallback to original v3.5 single clip
+  const pick = slots[(Math.random() * slots.length) | 0];
+  try { const a = new Audio(loadWalkoutSlot(pick)); a.volume = 0.6; a.play(); return true; } catch(e){ return false; }
+}
+async function recordWalkoutSlot(slot){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    const chunks = [];
+    mr.ondataavailable = e => chunks.push(e.data);
+    return new Promise(res => {
+      mr.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            saveWalkoutSlot(slot, reader.result);
+            stream.getTracks().forEach(t => t.stop());
+            res(true);
+          } catch(e){ res(false); }
+        };
+        reader.readAsDataURL(blob);
+      };
+      mr.start();
+      setTimeout(() => mr.stop(), 5000);
+    });
+  } catch(e){ return false; }
+}
+
+// 🆕 v3.6.0 — SET CHEMISTRY · same-archetype card count → buff
+function setChemistryBonus(){
+  const team = loadMyTeam();
+  const archCounts = {};
+  team.forEach(c => { archCounts[c.arch] = (archCounts[c.arch]||0) + 1; });
+  const maxCount = Math.max(0, ...Object.values(archCounts));
+  if (maxCount >= 12) return { mul:1.15, label:'⭐⭐⭐ ELITE CHEMISTRY (+15%)' };
+  if (maxCount >= 8)  return { mul:1.10, label:'⭐⭐ STRONG CHEMISTRY (+10%)' };
+  if (maxCount >= 5)  return { mul:1.05, label:'⭐ CHEMISTRY (+5%)' };
+  return { mul:1.0, label:'no chemistry yet · collect 5+ same-arch cards' };
+}
+
+// 🆕 v3.6.0 — CAREER STATS GRAPH (ASCII line chart)
+function renderCareerGraph(){
+  const c = loadMyCareer();
+  if (!c.started || c.gamesPlayed < 2) return '<div style="color:#aab;padding:10px;text-align:center">play 2+ career games to see graph</div>';
+  // Simple ASCII bar based on avg pts per game per stage
+  const pts = c.careerPoints / Math.max(1, c.gamesPlayed);
+  const wins = c.careerWins / Math.max(1, c.gamesPlayed) * 100;
+  const bar = (val, max, w) => '█'.repeat(Math.round((val/max) * w));
+  return `<div style="font-family:monospace;color:#fff;background:#000c;padding:10px;border-radius:6px;font-size:11px;line-height:1.6">
+    <div>AVG PTS/GAME · ${pts.toFixed(1)}</div><div style="color:#4cf07a">${bar(pts, 50, 30)}</div>
+    <div style="margin-top:8px">WIN RATE · ${wins.toFixed(0)}%</div><div style="color:#ffd76e">${bar(wins, 100, 30)}</div>
+    <div style="margin-top:8px">CAREER GAMES · ${c.gamesPlayed}</div><div style="color:#4f9eff">${bar(c.gamesPlayed, 60, 30)}</div>
+  </div>`;
+}
+
+// 🆕 v3.6.0 — FAITH HALL OF FAME (separate display for faith-tier achievements)
+const FAITH_ACH_IDS = ['anointed','blessed_highly_favored','more_than_conqueror','refiners_fire','walking_on_water','peace_passes','chosen_lvl','mercies_new','fearfully_made','well_done','faith_over_fear','king_of_kings','hallelujah','beat_peace','yeshua_seen'];
+function renderFaithHoFScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('worship');
+  const got = Career.achievements || {};
+  const rows = FAITH_ACH_IDS.map(id => {
+    const ach = ACH_BY_ID[id];
+    if (!ach) return '';
+    const isUnlocked = !!got[id];
+    return `<div style="padding:10px;margin:5px 0;background:${isUnlocked?'linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e)':'#0008'};border-left:5px solid ${isUnlocked?'#ffd76e':'#444'};border-radius:6px;color:${isUnlocked?'#000':'#fff'}">
+      <div style="font-weight:900;letter-spacing:2px">${ach.icon} ${ach.name}${isUnlocked?'':' 🔒'}</div>
+      <div style="font-size:11px;margin-top:4px;color:${isUnlocked?'#1a0e02':'#aab'}">${ach.desc}</div>
+    </div>`;
+  }).join('');
+  const got_count = FAITH_ACH_IDS.filter(id => got[id]).length;
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🛐 FAITH HALL OF FAME</div>
+      <div class="subtitle" style="text-align:center">${got_count} / ${FAITH_ACH_IDS.length} faith achievements unlocked</div>
+      <div style="margin:14px 0;max-height:60vh;overflow-y:auto">${rows}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "Well done · good and faithful servant" — Matt 25:23</div>
+      <button class="btn" id="fhBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('fhBack').onclick = showSplash;
+}
+
+// 🆕 v3.6.0 — TTS SCRIPTURE READER (verse-of-day on splash · once per session)
+let _verseSpoken = false;
+function maybeSpeakVerseOfDay(){
+  if (_verseSpoken) return;
+  if (!Settings.ttsAnnouncer) return;
+  if (!('speechSynthesis' in window)) return;
+  _verseSpoken = true;
+  try {
+    const v = verseOfTheDay();
+    const u = new SpeechSynthesisUtterance(v.text + ' ... ' + v.ref);
+    u.rate = 0.85;
+    u.pitch = 1.0;
+    u.volume = 0.5;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch(e){}
+}
+
+// 🆕 v3.6.0 — WALKOUT MIXER screen (extends v3.5 single-slot)
+function renderWalkoutMixerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('charselect');
+  const slots = ['A', 'B', 'C'].map(s => ({ slot:s, has: !!loadWalkoutSlot(s) }));
+  const rows = slots.map(s => `
+    <div style="padding:12px;margin:8px 0;background:#0008;border:2px solid ${s.has?'#4cf07a':'#ffd76e44'};border-radius:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="color:${s.has?'#4cf07a':'#ffd76e'};font-weight:900;letter-spacing:2px;font-size:14px">SLOT ${s.slot} ${s.has?'✅':'(empty)'}</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn slotRec" data-slot="${s.slot}" style="font-size:10px;padding:5px 10px;background:#ff3b3b;color:#fff;font-weight:900">🎤 REC 5s</button>
+          ${s.has ? `<button class="btn slotPlay" data-slot="${s.slot}" style="font-size:10px;padding:5px 10px;background:#4cf07a;color:#000;font-weight:900">▶ PLAY</button>` : ''}
+          ${s.has ? `<button class="btn slotDel" data-slot="${s.slot}" style="font-size:10px;padding:5px 10px;background:#3d1a1a;color:#fff">🗑</button>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px;text-align:center">
+      <div class="title" style="font-size:28px">🎤 WALKOUT MIXER</div>
+      <div class="subtitle">3 slots · random one plays each match</div>
+      <div style="margin:14px 0;text-align:left">${rows}</div>
+      <div style="color:#aab;font-size:11px;margin:10px 0">💡 mic permission required · 5-second clips · stored per profile</div>
+      <button class="btn" id="wmBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('wmBack').onclick = showSplash;
+  document.querySelectorAll('.slotRec').forEach(b => b.onclick = async () => {
+    if (typeof showToast === 'function') showToast(`🎤 RECORDING SLOT ${b.dataset.slot} 5s...`, 'level');
+    const ok = await recordWalkoutSlot(b.dataset.slot);
+    if (ok){ if (typeof showToast === 'function') showToast(`✅ SLOT ${b.dataset.slot} SAVED`, 'level'); renderWalkoutMixerScreen(); }
+    else { if (typeof showToast === 'function') showToast('❌ MIC ACCESS DENIED', 'allpro'); }
+  });
+  document.querySelectorAll('.slotPlay').forEach(b => b.onclick = () => {
+    try { const a = new Audio(loadWalkoutSlot(b.dataset.slot)); a.volume = 0.7; a.play(); } catch(e){}
+  });
+  document.querySelectorAll('.slotDel').forEach(b => b.onclick = () => {
+    if (confirm(`Delete slot ${b.dataset.slot}?`)){ deleteWalkoutSlot(b.dataset.slot); renderWalkoutMixerScreen(); }
+  });
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
