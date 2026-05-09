@@ -10862,6 +10862,18 @@ function renderTournamentScreen(){
       ${t.round !== 'DONE' ? `<button class="btn hot" id="trPlay" style="flex:1;font-size:14px;padding:11px">⚔️ PLAY ${t.round} GAME (vs ${tourneyMyOpp(t)})</button>` : `<button class="btn hot" id="trNew" style="flex:1;font-size:13px;padding:10px">⏭ NEW TOURNAMENT</button>`}
       <button class="btn" id="trReset" style="font-size:11px;padding:9px">🗑 RESET</button>
     </div>`);
+  // 🆕 v3.4.0 — wire MY PICK button
+  setTimeout(() => {
+    const myPickBtn = document.getElementById('myPickPick');
+    if (myPickBtn) myPickBtn.onclick = () => {
+      if (typeof placeMyPick === 'function' && placeMyPick(t.myTeam, 100)){
+        if (typeof showToast === 'function') showToast(`🏆 MY PICK · ${t.myTeam} · win $500 if they win it all`, 'level');
+        renderTournamentScreen();
+      } else {
+        showToast('💸 NEED $100', 'allpro');
+      }
+    };
+  }, 50);
   if (t.round !== 'DONE'){
     document.getElementById('trPlay').onclick = () => {
       closeModal();
