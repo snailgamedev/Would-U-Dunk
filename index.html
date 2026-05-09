@@ -5557,6 +5557,9 @@ class MatchScene extends Phaser.Scene {
     }
     // 🆕 v2.12.0 — CASH economy + TRASH TALK
     if (scorerIdx === 0) awardCash(points * 5);   // 5 cash per point scored
+    // 🆕 v2.26.0 — GAMBLE bet tracking: first-scorer + logo-splash flags
+    if (State._firstScorer == null) State._firstScorer = scorerIdx;
+    if (scorerIdx === 0 && zoneVal >= 5) State._p1LogoMade = true;
     // 🆕 v2.13.28 — daily objective progress
     if (scorerIdx === 0 && typeof trackDailyObjective === 'function'){
       trackDailyObjective('buckets', 1);
