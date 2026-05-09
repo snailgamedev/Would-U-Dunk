@@ -8456,6 +8456,120 @@ const CHANGELOG = [
   { v:'v0.1', notes:['initial build — 42 modifiers, 8 CPU tiers, local 2P + CPU'] },
 ];
 
+/* ------------------- 🆕 v3.23.0 AUTO-UPDATE GATE ------------------- */
+// Polls deployed index.html for newer VERSION every 60s.
+// If detected mid-match → waits till match-end → shows banner on splash.
+// User taps banner → location.reload() w/ progress preserved (everything in localStorage).
+const UpdateGate = {
+  pending: false,
+  remoteVersion: null,
+  pollInterval: null,
+  inMatch: false,
+  start(){
+    if (this.pollInterval) return;
+    // first check after 30s · then every 60s
+    setTimeout(() => this.check(), 30000);
+    this.pollInterval = setInterval(() => this.check(), 60000);
+  },
+  setInMatch(b){ this.inMatch = !!b; },
+  async check(){
+    try {
+      // cache-bust w/ timestamp · fetch raw index.html
+      const r = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const txt = await r.text();
+      const m = txt.match(/const VERSION = '([^']+)'/);
+      if (!m) return;
+      const remote = m[1];
+      this.remoteVersion = remote;
+      if (remote && remote !== VERSION){
+        if (!this.pending){
+          this.pending = true;
+          // if not in match · show banner immediately
+          if (!this.inMatch && typeof showSplash === 'function'){
+            // re-render splash to inject banner
+            try { renderUpdateBanner(); } catch(e){}
+          }
+        }
+      }
+    } catch(e){ /* offline — silent */ }
+  },
+  // called from exitMatch to re-show banner
+  notifyMatchEnd(){
+    if (this.pending){
+      try { renderUpdateBanner(); } catch(e){}
+    }
+  },
+  applyUpdate(){
+    // save anything pending then reload
+    try { if (typeof saveCareer === 'function') saveCareer(); } catch(e){}
+    showToast && showToast('🔄 RELOADING TO ' + (this.remoteVersion||'NEW VERSION') + '...', 'level');
+    setTimeout(() => location.reload(), 600);
+  }
+};
+function renderUpdateBanner(){
+  // remove existing banner if any
+  const old = document.getElementById('updateBanner'); if (old) old.remove();
+  if (!UpdateGate.pending) return;
+  const b = document.createElement('div');
+  b.id = 'updateBanner';
+  b.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#ffd700,#ff8c00);color:#000;padding:10px 18px;border-radius:14px;font-weight:900;font-size:14px;box-shadow:0 4px 18px rgba(255,140,0,.55);cursor:pointer;z-index:9998;letter-spacing:.5px;border:2px solid #fff;animation:pulseUp 1.6s infinite';
+  b.innerHTML = '🆕 NEW VERSION <span style="background:#000;color:#ffd700;padding:2px 6px;border-radius:6px;margin:0 4px">'+(UpdateGate.remoteVersion||'')+'</span> READY · TAP TO REFRESH ✝️';
+  b.onclick = () => UpdateGate.applyUpdate();
+  document.body.appendChild(b);
+  // inject keyframes once
+  if (!document.getElementById('updateBannerCss')){
+    const s = document.createElement('style'); s.id = 'updateBannerCss';
+    s.textContent = '@keyframes pulseUp{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.05)}}';
+    document.head.appendChild(s);
+  }
+}
+// kick off polling immediately (deferred until DOM ready)
+setTimeout(() => UpdateGate.start(), 1000);
+
+/* ------------------- 🆕 v3.23.0 ADAPTIVE DIFFICULTY (mercy + sweat) ------------------- */
+// Tracks last 10 results · scales CPU power 0.85x → 1.18x.
+// Mercy: 5+ losses in a row → CPU eased
+// Sweat: 5+ wins in a row → CPU tightened
+// Never unmerciful · never a walk in the park
+const ADAPT_KEY = () => `wud:adapt:${currentProfileName()}`;
+const Adapt = {
+  load(){
+    try { return JSON.parse(localStorage.getItem(ADAPT_KEY()) || '{"history":[],"streak":0,"streakKind":"none","mult":1.0}'); }
+    catch(e){ return {history:[],streak:0,streakKind:'none',mult:1.0}; }
+  },
+  save(d){ try { localStorage.setItem(ADAPT_KEY(), JSON.stringify(d)); } catch(e){} },
+  recordResult(win){
+    const d = this.load();
+    d.history.push(win ? 'W' : 'L');
+    if (d.history.length > 10) d.history.shift();
+    // streak tracking
+    if (d.streakKind === (win ? 'W' : 'L')){
+      d.streak += 1;
+    } else {
+      d.streak = 1;
+      d.streakKind = win ? 'W' : 'L';
+    }
+    // recompute multiplier · clamp [0.85, 1.18]
+    const winRate = d.history.filter(x => x==='W').length / Math.max(1, d.history.length);
+    let mult = 0.85 + (winRate * 0.33); // 0% wins → 0.85 · 100% wins → 1.18
+    // streak boosters
+    if (d.streakKind === 'L' && d.streak >= 5) mult = Math.min(mult, 0.88); // mercy floor
+    if (d.streakKind === 'W' && d.streak >= 5) mult = Math.max(mult, 1.10); // sweat trial
+    d.mult = Math.max(0.85, Math.min(1.18, mult));
+    this.save(d);
+    return d;
+  },
+  getMult(){ return this.load().mult || 1.0; },
+  getLabel(){
+    const d = this.load();
+    const m = d.mult;
+    if (m <= 0.90) return '🕊 MERCY MODE — CPU eased for you';
+    if (m >= 1.12) return '🔥 SWEAT TRIAL — CPU sharpened for you';
+    return '⚖ BALANCED — CPU calibrated';
+  }
+};
+
 /* ------------------- ONLINE MP (PeerJS) — v3.22.0 CAEE upgrade ------------------- */
 const Online = {
   peer: null, conn: null, isHost: false, code: null, connected: false,
