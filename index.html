@@ -7439,6 +7439,10 @@ class MatchScene extends Phaser.Scene {
       State._p1LogoMade = true;
       if (typeof bumpRecord === 'function') bumpRecord('logoMade', (loadRecords().logoMade||0) + 1);
     }
+    // 🆕 v3.4.0 — auto highlight reel (3+ pt shots only, P1 only)
+    if (scorerIdx === 0 && points >= 3 && typeof recordHighlight === 'function'){
+      recordHighlight(zoneLabel || `+${points}`, points, zoneVal >= 5 ? 'logo' : zoneVal >= 4 ? 'halfcourt' : '3pt');
+    }
     // 🆕 v3.0.0 — ASCENSION · COMBO NAME ENGINE — escalating popups for both sides
     if (typeof fireComboName === 'function') fireComboName(this, scorerIdx, State.bucketStreak[scorerIdx]);
     // 🆕 v3.0.0 — ASCENSION · CROWD REACTION strings on big plays
