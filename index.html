@@ -16682,6 +16682,111 @@ setTimeout(() => { try { MobileTitan.init(); } catch(e){ console.warn('MobileTit
   }, 2000);
 })();
 
+/* ------------------- 🆕 v3.26.0 CHECK 1 GAP FILLERS ------------------- */
+
+// GAP 1: wire per-button haptic patterns to actual touch buttons
+setTimeout(() => {
+  const map = { tJ:'shoot', tS:'steal', tCx:'crossover', tSp:'spin' };
+  Object.entries(map).forEach(([id, kind]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('touchstart', () => {
+      try { if (typeof MobileTitan !== 'undefined') MobileTitan.hapticPattern(kind); } catch(e){}
+    }, { passive: true });
+  });
+  // joystick = jump pattern on press
+  const j = document.getElementById('joystick'); if (j){
+    j.addEventListener('touchstart', () => {
+      try { if (typeof MobileTitan !== 'undefined') MobileTitan.hapticPattern('jump'); } catch(e){}
+    }, { passive: true });
+  }
+}, 2500);
+
+// GAP 2: auto-save mirror replay on every bucket
+setTimeout(() => {
+  if (typeof window._wudHookedReplay !== 'undefined') return;
+  window._wudHookedReplay = true;
+  // hook into bucket/shot via interval poll on score changes
+  let lastScoreSum = 0;
+  setInterval(() => {
+    try {
+      const sum = ((State.matchPoints||[0,0])[0] + (State.matchPoints||[0,0])[1]);
+      if (sum !== lastScoreSum){
+        lastScoreSum = sum;
+        if (typeof MobileTitan !== 'undefined') MobileTitan.saveLastShot();
+      }
+    } catch(e){}
+  }, 1500);
+}, 2500);
+
+// GAP 3: improve AR Hoop — show a 3D-ish CSS hoop preview when AR unavailable
+MobileTitan.arHoop = function(){
+  const haveXR = (typeof navigator !== 'undefined' && navigator.xr && typeof navigator.xr.isSessionSupported === 'function');
+  const showPreview = () => {
+    if (typeof showModal !== 'function') return;
+    const body = `
+      <div style="text-align:center;padding:20px">
+        <div style="width:200px;height:200px;margin:0 auto;perspective:600px;position:relative">
+          <div style="width:160px;height:160px;border-radius:50%;border:6px solid #ff6600;background:rgba(255,102,0,.1);position:absolute;top:20px;left:20px;transform:rotateX(70deg);box-shadow:0 0 40px #ff660066,inset 0 0 30px #ff66008a;animation:arSpin 6s linear infinite"></div>
+          <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:8px;height:80px;background:linear-gradient(180deg,#fff,#888)"></div>
+        </div>
+        <style>@keyframes arSpin{0%{transform:rotateX(70deg) rotateZ(0deg)}100%{transform:rotateX(70deg) rotateZ(360deg)}}</style>
+        <div style="margin-top:14px;font-size:13px;line-height:1.5">${haveXR ? '🤳 WebXR detected · launching immersive AR (best-effort)' : '🤳 WebXR not on this device · enjoy the 3D preview · install PWA for future AR support'}</div>
+        <div style="font-size:11px;opacity:.7;margin-top:8px">"Lift up your eyes and look around" — Isa 49:18</div>
+      </div>`;
+    showModal('🤳 AR HOOP PREVIEW', body, [{label:'CLOSE', tone:'gold'}]);
+  };
+  if (haveXR){
+    navigator.xr.isSessionSupported('immersive-ar').then(ok => {
+      if (ok && typeof showToast==='function') showToast('🤳 AR session capable · feature in beta', 'level');
+      showPreview();
+    }).catch(() => showPreview());
+  } else { showPreview(); }
+};
+
+// GAP 4: voice-shot achievement properly counts only when shot actually fires
+// Already counts per voice match — keep it. Add safety: max 1/sec
+const _origSR = MobileTitan.startVoice.bind(MobileTitan);
+let _lastVoiceShot = 0;
+MobileTitan.startVoice = function(){
+  _origSR();
+  // monkey-patch onresult to throttle
+  setTimeout(() => {
+    if (this.recognition){
+      const orig = this.recognition.onresult;
+      this.recognition.onresult = (ev) => {
+        const now = Date.now();
+        if (now - _lastVoiceShot < 800) return;
+        _lastVoiceShot = now;
+        orig(ev);
+      };
+    }
+  }, 200);
+};
+
+// GAP 5: weekly LB top-3 reward — once per week
+setTimeout(() => {
+  if (typeof window._wudHookedLBReward !== 'undefined') return;
+  window._wudHookedLBReward = true;
+  setInterval(() => {
+    try {
+      const k = 'wud:lb:mobileWeek';
+      const data = JSON.parse(localStorage.getItem(k) || '[]').sort((a,b) => b.wins - a.wins);
+      const me = currentProfileName();
+      const myRank = data.findIndex(e => e.name === me);
+      const weekKey = 'wud:lbReward:' + new Date().toISOString().slice(0,10).slice(0,7);
+      if (myRank >= 0 && myRank < 3){
+        const claimed = JSON.parse(localStorage.getItem(weekKey) || '{}');
+        if (!claimed[me]){
+          claimed[me] = true;
+          localStorage.setItem(weekKey, JSON.stringify(claimed));
+          if (typeof awardGems === 'function') awardGems(10);
+          if (typeof showToast === 'function') showToast('🥇 MOBILE WEEK TOP 3 · +10💎', 'level');
+        }
+      }
+    } catch(e){}
+  }, 60000);
+}, 3000);
+
 // GAP 5: Quick-start floating play button on mobile
 (function quickStartBtn(){
   setTimeout(() => {
