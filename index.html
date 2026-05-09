@@ -10673,11 +10673,10 @@ class MatchScene extends Phaser.Scene {
     // 🆕 v3.7.0 — haptic on blocks
     if (typeof hapticBlock === 'function') hapticBlock();
     // 🆕 v3.4.0 — CINEMATIC BLOCK · same camera treatment as dunks
+    // 🆕 v3.11.0 — kept zoom + label · removed flash + shake (jarring)
     if (blocker.isCpu && Math.random() < 0.6){
       try {
         this.cameras.main.zoomTo(1.15, 220, 'Sine.easeInOut');
-        this.cameras.main.flash(140, 255, 80, 80);
-        this.cameras.main.shake(220, 0.010);
         const tag = this.add.text(VIEW_W/2, VIEW_H/2 - 60, 'DENIED!', {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:48, color:'#ff3b3b', stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION).setScrollFactor(0).setScale(0.4);
         this.tweens.add({ targets:tag, scale:1.3, duration:180, ease:'Back.out', onComplete:()=>{
           this.tweens.add({ targets:tag, alpha:0, y:tag.y - 60, duration:1000, onComplete:()=>tag.destroy() });
