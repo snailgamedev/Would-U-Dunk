@@ -9596,7 +9596,7 @@ class MatchScene extends Phaser.Scene {
     // Slow physics for ~700ms, big REPLAY text, then fire callback
     const orig = this.physics.world.timeScale;
     this.physics.world.timeScale = 3.0;       // slower physics
-    this.cameras.main.flash(120, 255, 255, 255);
+    // 🆕 v3.11.0 — removed slow-mo flash (jarring · keep physics slow + text)
     const txt = this.add.text(VIEW_W/2, VIEW_H/2 - 80, '⏸ ROUND OVER', {fontFamily:'monospace', fontSize:36, color:'#ffd76e', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(70).setScrollFactor(0).setAlpha(0);
     this.tweens.add({ targets:txt, alpha:1, scale:{from:0.5, to:1.2}, duration:300 });
     this.time.delayedCall(900, () => {
