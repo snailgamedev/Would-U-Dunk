@@ -380,6 +380,38 @@
     border:3px solid #fff; border-radius:14px; font-weight:900; letter-spacing:3px; font-size:18px;
     box-shadow:0 0 30px #ffd76e88; pointer-events:none; opacity:0; transition:opacity .3s; text-align:center; }
   #eventBanner.on { opacity:1; }
+  /* 🆕 v3.7.0 — MOBILE-FIRST CSS PASS · accessibility · larger taps · contrast */
+  @media (max-width: 800px) {
+    .panel { padding:14px !important; font-size:14px !important; }
+    .panel .title { font-size:28px !important; line-height:1.2; }
+    .panel .subtitle { font-size:13px !important; }
+    .panel .small, .small { font-size:13px !important; line-height:1.6; }
+    .panel button.btn { min-height:50px !important; font-size:14px !important; padding:13px 14px !important; letter-spacing:1.5px !important; }
+    .panel input[type="range"] { height:40px !important; }
+    .panel input[type="checkbox"] { transform:scale(1.4); margin-right:6px; }
+    .row { flex-wrap:wrap !important; gap:6px !important; }
+    .row button.btn { flex:1 1 calc(50% - 6px) !important; min-width:120px; }
+  }
+  body.one-handed .panel { max-width:340px !important; padding:10px !important; }
+  body.one-handed .panel .title { font-size:24px !important; }
+  body.one-handed .panel button.btn { font-size:13px !important; min-height:54px !important; }
+  body.one-handed .row { flex-wrap:wrap; }
+  body.data-saver * { animation:none !important; transition:none !important; }
+  body.data-saver .panel { box-shadow:none !important; }
+  body.reduced-motion * { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  /* PWA install button + landscape banner */
+  #installPrompt { position:fixed; bottom:14px; right:14px; z-index:9000;
+    padding:12px 18px; background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e); color:#000;
+    border:3px solid #fff; border-radius:24px; font-weight:900; letter-spacing:2px; font-size:13px;
+    box-shadow:0 4px 20px #ffd76eaa; cursor:pointer; display:none; }
+  #installPrompt.on { display:block; animation:installPulse 2s ease infinite alternate; }
+  @keyframes installPulse { from{transform:scale(1);} to{transform:scale(1.05);} }
+  #landscapeBanner { position:fixed; top:0; left:0; right:0; z-index:9500;
+    padding:8px 14px; background:#000c; color:#ffd76e; text-align:center; font-size:13px;
+    font-weight:900; letter-spacing:2px; border-bottom:2px solid #ffd76e; display:none; }
+  #landscapeBanner.on { display:block; }
+  /* save-dot hidden in data-saver */
+  body.data-saver #saveDot { display:none !important; }
 </style>
 </head>
 <body>
