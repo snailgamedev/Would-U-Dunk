@@ -7149,6 +7149,15 @@ class MatchScene extends Phaser.Scene {
     if (typeof fireComboName === 'function') fireComboName(this, scorerIdx, State.bucketStreak[scorerIdx]);
     // 🆕 v3.0.0 — ASCENSION · CROWD REACTION strings on big plays
     if (typeof fireCrowdReaction === 'function') fireCrowdReaction(this, points, zoneVal, State.bucketStreak[scorerIdx]);
+    // 🆕 v3.3.0 — HOT ZONES record (P1 only) + CPU FAITH COMMENTARY (CPU side)
+    if (scorerIdx === 0 && typeof recordZoneShot === 'function'){
+      const zoneName = zoneVal >= 5 ? 'logo' : (zoneVal >= 4 ? 'halfcourt' : (zoneVal >= 3 ? '3pt' : (shotDist > 200 ? 'midrange' : 'paint')));
+      recordZoneShot(zoneName, true);
+      State._recentZones = State._recentZones || [];
+      State._recentZones.push(zoneName);
+      if (State._recentZones.length > 5) State._recentZones.shift();
+    }
+    if (scorerIdx === 1 && typeof maybeFireCpuFaithLine === 'function') maybeFireCpuFaithLine(this, scorerIdx);
     // 🆕 v3.0.0 — ASCENSION · SPECTATOR COMMENTARY (CPU vs CPU)
     if (typeof pushCommentary === 'function' && State.cfg && State.cfg.cpuVsCpu){
       pushCommentary(this, scorerIdx, points, zoneVal);
