@@ -10433,6 +10433,8 @@ class MatchScene extends Phaser.Scene {
     if (typeof maybeCinematicMode === 'function') maybeCinematicMode(this);
     // 🩹 v3.8.0 — restore stuck dunk-cam zoom safety
     if (typeof maybeRestoreCameraZoom === 'function') maybeRestoreCameraZoom(this);
+    // 🎬 v3.10.0 — clutch letterbox check
+    if (typeof maybeLetterboxClutch === 'function') maybeLetterboxClutch(this);
     // 🆕 v3.2.0 — random events (12% per round, max 1 per round)
     if (this._currentRoundIdx == null) this._currentRoundIdx = State.roundIdx || 0;
     if (this._currentRoundIdx !== State.roundIdx){
