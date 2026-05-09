@@ -3422,6 +3422,8 @@ const KEYBOARD_SHORTCUTS = [
 // 🆕 v3.3.0 — render screens for new systems
 function renderBattlePassScreen(){
   if (typeof musicForScreen === 'function') musicForScreen('arena');
+  // 🆕 v3.9.0 — scroll memory restore on entry
+  if (typeof restoreScroll === 'function') restoreScroll('battlepass');
   const tier = bpassCurrentTier();
   const b = loadBattlePass();
   const xp = Career.xp || 0;
