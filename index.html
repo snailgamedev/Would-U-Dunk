@@ -8062,6 +8062,49 @@ function renderAchievementsScreen(){
       </div>
     </div>${sections}`);
 }
+// 🆕 v3.0.0 — SAVE EXPORT/IMPORT modal (additive utility)
+function renderSaveExportModal(){
+  const code = exportProfileSave();
+  const html = `
+    <div style="text-align:center;padding:14px">
+      <div style="color:#ffd76e;font-size:13px;letter-spacing:3px;margin-bottom:10px">💾 EXPORT SAVE</div>
+      <div style="color:#aab;font-size:11px;margin-bottom:10px">Copy the string below · paste it on any device to restore everything</div>
+      <textarea id="saveExp" readonly style="width:100%;height:120px;background:#000c;color:#4cf07a;border:2px solid #ffd76e;border-radius:6px;padding:8px;font-family:monospace;font-size:10px;letter-spacing:0">${code}</textarea>
+      <button class="btn hot" id="saveExpCopy" style="margin-top:10px;width:100%">📋 COPY TO CLIPBOARD</button>
+      <hr style="margin:18px 0;border-color:#ffd76e44">
+      <div style="color:#ffd76e;font-size:13px;letter-spacing:3px;margin-bottom:10px">📥 IMPORT SAVE</div>
+      <textarea id="saveImp" placeholder="paste your save string here..." style="width:100%;height:80px;background:#000c;color:#fff;border:2px solid #ffd76e44;border-radius:6px;padding:8px;font-family:monospace;font-size:10px"></textarea>
+      <button class="btn hot" id="saveImpDo" style="margin-top:10px;width:100%;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">📥 IMPORT &amp; RELOAD</button>
+      <hr style="margin:18px 0;border-color:#ff3b3b44">
+      <button class="btn" id="saveReset" style="width:100%;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">⚠ FULL RESET PROFILE (3-tap confirm)</button>
+    </div>`;
+  if (typeof openModal === 'function') openModal('💾 SAVE / EXPORT', html);
+  setTimeout(() => {
+    const c = document.getElementById('saveExpCopy');
+    if (c) c.onclick = () => {
+      const t = document.getElementById('saveExp');
+      try { t.select(); document.execCommand('copy'); showToast('📋 COPIED', 'level'); } catch(e){ showToast('select+Cmd-C the textarea', 'allpro'); }
+    };
+    const i = document.getElementById('saveImpDo');
+    if (i) i.onclick = () => {
+      const v = (document.getElementById('saveImp').value || '').trim();
+      if (!v) return showToast('paste a save string first', 'allpro');
+      if (!confirm('Import will OVERWRITE your current profile data. Sure?')) return;
+      if (importProfileSave(v)){ showToast('✅ IMPORTED · reloading...', 'level'); setTimeout(() => location.reload(), 800); }
+      else showToast('❌ INVALID SAVE STRING', 'allpro');
+    };
+    const r = document.getElementById('saveReset');
+    if (r){
+      let taps = 0;
+      r.onclick = () => {
+        taps++;
+        if (taps < 3){ r.textContent = `⚠ TAP ${3 - taps} MORE TIME${3-taps>1?'S':''} TO RESET`; return; }
+        fullResetProfile(); showToast('🧹 PROFILE RESET · reloading...', 'level'); setTimeout(() => location.reload(), 800);
+      };
+    }
+  }, 80);
+}
+
 function renderSettingsScreen(){
   musicForScreen('rules'); // 🆕 v2.21.0 settings = workshop
   // 🆕 v2.16.2 — defensively pause the active match while settings is open
