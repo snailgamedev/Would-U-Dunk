@@ -5803,6 +5803,12 @@ function resolveBet(){
       case 'cinematic': return (myPts > oppPts) && !!State._cinematicTriggered;
       // 🆕 v3.9.0 — FRONTRUNNER · win without trailing
       case 'frontrunner': return (myPts > oppPts) && (State._maxDeficit || 0) === 0;
+      // 🆕 v3.13.0 — 5 new bet resolutions
+      case 'perfect_game': return (myPts > oppPts) && (State.matchStats?.[0]?.attempts || 0) > 0 && (State.matchStats[0].attempts === State.matchStats[0].buckets);
+      case 'streak_bet':   return (myPts > oppPts) && (Career.currentStreak || 0) >= 3;
+      case 'century':      return myPts >= 100;
+      case 'impossible':   return (myPts > oppPts) && (State.rolls?.cpuTiers?.[0]?.accuracy || 0) >= 0.95;
+      case 'rocket':       return (myPts > oppPts) && oppPts > 0 && myPts >= oppPts * 4;
     }
     return false;
   })();
