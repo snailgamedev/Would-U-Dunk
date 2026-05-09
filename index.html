@@ -5940,6 +5940,304 @@ function renderCashFlowGraphHtml(){
 
 // 💎 v3.14.0 — DIAMOND BET infrastructure (added to BET_TYPES below)
 
+// 💎 v3.15.0 — VIP TIER SYSTEM (gems-based)
+const VIP_TIERS = [
+  { id:'none',    name:'NO TIER',         gems:0,   betBoost:1.00, dailyGem:0, color:'#aab',     border:'#444',     desc:'-' },
+  { id:'bronze',  name:'🥉 BRONZE VIP',   gems:25,  betBoost:1.05, dailyGem:1, color:'#cd7f32', border:'#cd7f32', desc:'+5% bet boost · +1 gem daily' },
+  { id:'silver',  name:'🥈 SILVER VIP',   gems:50,  betBoost:1.10, dailyGem:2, color:'#c0c0c0', border:'#c0c0c0', desc:'+10% bet · +2 gems daily · gold border' },
+  { id:'gold',    name:'🥇 GOLD VIP',     gems:100, betBoost:1.15, dailyGem:3, color:'#ffd700', border:'#ffd700', desc:'+15% bet · +3 gems daily · cosmetic crown' },
+  { id:'diamond', name:'💎 DIAMOND VIP',  gems:200, betBoost:1.25, dailyGem:5, color:'#b9f2ff', border:'#b9f2ff', desc:'+25% bet · +5 gems daily · diamond aura · jackpot access' },
+];
+function loadVip(){ try { return JSON.parse(localStorage.getItem(`wud:vip:${currentProfileName()}`) || '{"tier":"none","unlockedAt":null,"lastDailyGem":null}'); } catch(e){ return {tier:'none',unlockedAt:null,lastDailyGem:null}; } }
+function saveVip(v){ try { localStorage.setItem(`wud:vip:${currentProfileName()}`, JSON.stringify(v)); } catch(e){} }
+function currentVipTier(){ const v = loadVip(); return VIP_TIERS.find(t => t.id === v.tier) || VIP_TIERS[0]; }
+function unlockVipTier(tierId){
+  const tier = VIP_TIERS.find(t => t.id === tierId);
+  if (!tier || tierId === 'none') return false;
+  if (loadGems() < tier.gems) return false;
+  if (!spendGems(tier.gems)) return false;
+  const v = loadVip();
+  v.tier = tierId;
+  v.unlockedAt = Date.now();
+  saveVip(v);
+  if (typeof showToast === 'function') showToast(`💎 ${tier.name} UNLOCKED · ${tier.desc}`, 'level');
+  return true;
+}
+function vipBetBoost(){ return currentVipTier().betBoost; }
+function maybeAwardDailyGem(){
+  const v = loadVip();
+  const tier = VIP_TIERS.find(t => t.id === v.tier);
+  if (!tier || tier.dailyGem === 0) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (v.lastDailyGem === today) return;
+  v.lastDailyGem = today;
+  saveVip(v);
+  if (typeof awardGems === 'function') awardGems(tier.dailyGem);
+  if (typeof showToast === 'function') showToast(`💎 +${tier.dailyGem} gems · ${tier.name} daily bonus`, 'level');
+}
+setTimeout(maybeAwardDailyGem, 3000);
+
+function renderVipScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const cur = currentVipTier();
+  const gems = loadGems();
+  const cards = VIP_TIERS.filter(t => t.id !== 'none').map(t => {
+    const isOwned = cur.id === t.id;
+    const canBuy = gems >= t.gems && !isOwned && !isHigherTierOwned(t.id);
+    return `<div style="padding:14px;margin:8px 0;background:${isOwned?'linear-gradient(135deg,#1a0e02,#7a5a14,'+t.color+')':'#0008'};border:3px solid ${t.border};border-radius:10px;color:${isOwned?'#000':'#fff'};box-shadow:${isOwned?`0 0 30px ${t.border}88`:'none'}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:900;letter-spacing:3px;font-size:16px;color:${isOwned?'#000':t.color}">${isOwned?'★ ':''}${t.name}</div>
+        <div style="background:#000;color:${t.color};padding:4px 12px;border-radius:6px;font-weight:900;font-size:12px">${t.gems} 💎</div>
+      </div>
+      <div style="font-size:11px;color:${isOwned?'#000a':'#aab'};margin-top:6px;letter-spacing:1px">${t.desc}</div>
+      ${canBuy ? `<button class="btn vipBuy" data-tier="${t.id}" style="margin-top:8px;width:100%;font-size:12px;padding:10px;background:${t.color};color:#000;font-weight:900">UNLOCK · ${t.gems} 💎</button>` : ''}
+      ${isOwned ? '<div style="margin-top:8px;padding:6px;background:#000c;color:'+t.color+';font-size:10px;letter-spacing:3px;text-align:center">ACTIVE TIER</div>' : ''}
+      ${isHigherTierOwned(t.id) ? '<div style="margin-top:8px;font-size:10px;color:#aab;text-align:center">included w/ higher tier</div>' : ''}
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:600px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">💎 VIP TIERS</div>
+      <div class="subtitle" style="text-align:center">${gems} 💎 gems · current ${cur.name}</div>
+      <div style="margin:14px 0">${cards}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "Whoever sows generously will also reap generously" — 2 Cor 9:6</div>
+      <button class="btn" id="vipBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('vipBack').onclick = showSplash;
+  document.querySelectorAll('.vipBuy').forEach(b => b.onclick = () => {
+    if (unlockVipTier(b.dataset.tier)) renderVipScreen();
+  });
+}
+function isHigherTierOwned(tierId){
+  const cur = currentVipTier();
+  const idx = VIP_TIERS.findIndex(t => t.id === tierId);
+  const curIdx = VIP_TIERS.findIndex(t => t.id === cur.id);
+  return curIdx > idx;
+}
+
+// 🎰 v3.15.0 — JACKPOT BET system (accumulating prize pool · grows from losing bets)
+function loadJackpot(){ try { return parseInt(localStorage.getItem('wud:jackpot') || '5000', 10); } catch(e){ return 5000; } }
+function saveJackpot(v){ try { localStorage.setItem('wud:jackpot', String(Math.max(5000, v|0))); } catch(e){} }
+function addToJackpot(amount){ const j = loadJackpot(); saveJackpot(j + Math.floor(amount * 0.03)); }   // 3% of losing bet
+function getJackpotAmount(){ return loadJackpot(); }
+function winJackpot(){ const won = loadJackpot(); saveJackpot(5000); return won; }   // reset to 5000 base
+
+// 💸 v3.15.0 — DAILY LOGIN CASH BONUS · escalating
+const DAILY_LOGIN_BONUSES = [100, 250, 500, 1000, 2500, 5000, 10000];
+function loadDailyLogin(){ try { return JSON.parse(localStorage.getItem(`wud:dailyLogin:${currentProfileName()}`) || '{"streak":0,"lastDay":null}'); } catch(e){ return {streak:0,lastDay:null}; } }
+function saveDailyLogin(d){ try { localStorage.setItem(`wud:dailyLogin:${currentProfileName()}`, JSON.stringify(d)); } catch(e){} }
+function maybeAwardDailyLoginBonus(){
+  const d = loadDailyLogin();
+  const today = new Date().toISOString().slice(0,10);
+  if (d.lastDay === today) return null;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  if (d.lastDay === yesterday) d.streak = Math.min(7, d.streak + 1);
+  else d.streak = 1;
+  d.lastDay = today;
+  saveDailyLogin(d);
+  const bonus = DAILY_LOGIN_BONUSES[d.streak - 1];
+  if (typeof awardCash === 'function') awardCash(bonus);
+  if (typeof showToast === 'function') showToast(`📅 DAY ${d.streak} LOGIN BONUS · +$${bonus}`, 'level');
+  return { streak:d.streak, bonus };
+}
+setTimeout(maybeAwardDailyLoginBonus, 1200);
+
+// 🃏 v3.15.0 — CARD-BASED BET BOOST · equip a card to boost bets
+function loadEquippedBoostCard(){ try { return localStorage.getItem(`wud:boostCard:${currentProfileName()}`) || ''; } catch(e){ return ''; } }
+function saveEquippedBoostCard(id){ try { localStorage.setItem(`wud:boostCard:${currentProfileName()}`, id); } catch(e){} }
+function cardBetBoost(){
+  const id = loadEquippedBoostCard();
+  if (!id) return 1.0;
+  const team = loadMyTeam();
+  const card = team.find(c => `${c.tier}:${c.name}:${c.at}` === id);
+  if (!card) return 1.0;
+  const tier = card.tier;
+  if (tier === 'invincible') return 1.25;
+  if (tier === 'galaxy_opal') return 1.20;
+  if (tier === 'diamond') return 1.15;
+  if (tier === 'amethyst') return 1.12;
+  if (tier === 'ruby') return 1.10;
+  if (tier === 'sapphire') return 1.08;
+  if (tier === 'emerald') return 1.06;
+  if (tier === 'gold') return 1.05;
+  return 1.0;
+}
+
+// 🎁 v3.15.0 — MYSTERY WAGER · random bet + 3x mult
+function placeMysteryWager(){
+  const cash = loadCash();
+  if (cash < 50) return null;
+  const wager = Math.min(cash, 50 + (Math.random() * Math.min(cash, 500)) | 0);
+  const eligibleBets = BET_TYPES.filter(b => b.id !== 'diamond' && b.id !== 'jackpot');
+  const pickType = eligibleBets[(Math.random() * eligibleBets.length) | 0];
+  if (typeof placeBet === 'function' && placeBet(pickType.id, wager, { confidence: false, mystery: true })){
+    if (State._activeBet){
+      State._activeBet.mult *= 3;   // 3x mult
+      State._activeBet.payout = Math.round(State._activeBet.wager * State._activeBet.mult);
+      State._activeBet.bonus = (State._activeBet.bonus || 0) + State._activeBet.mult * 2;
+    }
+    if (typeof showToast === 'function') showToast(`🎁 MYSTERY · ${pickType.label} · $${wager} → $${State._activeBet?.payout || wager*3}`, 'level');
+    return State._activeBet;
+  }
+  return null;
+}
+
+// 🏆 v3.15.0 — 5-LEG PARLAY support (extends parlayPayoutChart)
+const _origParlayChart = (typeof parlayPayoutChart === 'function') ? parlayPayoutChart : null;
+function parlayPayoutChart5(baseWager){
+  return [
+    { picks:1, mult:5,    payout: baseWager * 5 },
+    { picks:2, mult:25,   payout: baseWager * 25 },
+    { picks:3, mult:125,  payout: baseWager * 125 },
+    { picks:4, mult:625,  payout: baseWager * 625 },
+    { picks:5, mult:3125, payout: baseWager * 3125 },
+  ];
+}
+
+// 🎯 v3.15.0 — WAGER CHALLENGES · daily quests
+const WAGER_CHALLENGES = [
+  { id:'win_3_row', label:'WIN 3 BETS IN A ROW', target:3, getter:c => c.recentWins || 0, reward:{ gems:3 } },
+  { id:'big_5k_bet', label:'PLACE A $5000+ BET', target:5000, getter:c => c.bigBetWager || 0, reward:{ gems:5 } },
+  { id:'hit_parlay', label:'HIT A PARLAY', target:1, getter:c => c.parlaysHit || 0, reward:{ gems:5 } },
+  { id:'win_total', label:'WIN $1000 TOTAL TODAY', target:1000, getter:c => c.todayWon || 0, reward:{ gems:4 } },
+];
+function loadWagerChallenges(){
+  try { return JSON.parse(localStorage.getItem(`wud:wagerChall:${currentProfileName()}`) || '{"day":null,"progress":{},"claimed":[]}'); }
+  catch(e){ return {day:null, progress:{}, claimed:[]}; }
+}
+function saveWagerChallenges(d){ try { localStorage.setItem(`wud:wagerChall:${currentProfileName()}`, JSON.stringify(d)); } catch(e){} }
+function tickWagerChallenge(eventType, value){
+  const d = loadWagerChallenges();
+  const today = new Date().toISOString().slice(0,10);
+  if (d.day !== today){ d.day = today; d.progress = {}; d.claimed = []; }
+  // map eventType → progress field
+  if (eventType === 'win'){ d.progress.recentWins = (d.progress.recentWins || 0) + 1; d.progress.todayWon = (d.progress.todayWon || 0) + (value || 0); }
+  else if (eventType === 'loss'){ d.progress.recentWins = 0; }
+  else if (eventType === 'bigBet'){ d.progress.bigBetWager = Math.max(d.progress.bigBetWager || 0, value); }
+  else if (eventType === 'parlayHit'){ d.progress.parlaysHit = (d.progress.parlaysHit || 0) + 1; }
+  saveWagerChallenges(d);
+  // Auto-claim completed challenges
+  WAGER_CHALLENGES.forEach(ch => {
+    if (d.claimed.includes(ch.id)) return;
+    if (ch.getter(d.progress) >= ch.target){
+      d.claimed.push(ch.id);
+      saveWagerChallenges(d);
+      if (ch.reward.gems && typeof awardGems === 'function') awardGems(ch.reward.gems);
+      if (typeof showToast === 'function') showToast(`🎯 CHALLENGE · ${ch.label} · +${ch.reward.gems} 💎`, 'level');
+    }
+  });
+}
+
+// 🥇 v3.15.0 — ANIMATED PODIUM SCENE on hitting #1
+function playPodiumScene(catLabel){
+  try {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#ffd76e88,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#ffd76e;font-family:Bebas Neue,Impact,sans-serif;letter-spacing:6px;animation:podiumFadeIn .5s ease;cursor:pointer';
+    overlay.innerHTML = `
+      <div style="font-size:140px;animation:podiumBounce 1s ease infinite alternate">👑</div>
+      <div style="font-size:48px;margin-top:14px;text-shadow:0 0 30px #ffd76e">#1 IN THE WORLD</div>
+      <div style="font-size:18px;margin-top:8px;color:#fff;letter-spacing:4px">${catLabel}</div>
+      <div style="font-size:13px;margin-top:18px;color:#fff;font-style:italic">"Run in such a way as to take the prize" — 1 Cor 9:24</div>
+      <div style="font-size:10px;margin-top:12px;color:#aab">tap to dismiss</div>`;
+    if (!document.getElementById('podiumKey')){
+      const s = document.createElement('style'); s.id = 'podiumKey';
+      s.textContent = '@keyframes podiumBounce{from{transform:translateY(0)}to{transform:translateY(-30px)}}@keyframes podiumFadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}';
+      document.head.appendChild(s);
+    }
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.parentNode && overlay.remove(), 7000);
+    if (typeof haptic === 'function') haptic([100, 50, 200, 50, 300]);
+    if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger('victory');
+  } catch(e){}
+}
+
+// 📊 v3.15.0 — PRO LEADERBOARDS · 2K-grade redesign
+function renderProLeaderboardsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  if (typeof recordAllLeaderboards === 'function') recordAllLeaderboards();
+  let activeCat = 'cash';
+  let activeWin = 'alltime';
+  let searchTerm = '';
+  const render = () => {
+    let arr = loadLeaderboard(activeCat, activeWin);
+    if (searchTerm) arr = arr.filter(e => e.profile.toLowerCase().includes(searchTerm.toLowerCase()));
+    const cat = LEADERBOARD_CATS.find(c => c.id === activeCat);
+    const winLbl = { daily:'🌅 DAILY', weekly:'📅 WEEKLY', monthly:'📆 MONTHLY', alltime:'🌍 ALL TIME' }[activeWin];
+    const myRank = arr.findIndex(e => e.profile === currentProfileName());
+    const maxVal = Math.max(1, ...arr.map(e => e.value));
+    // Top-3 podium
+    const podium = arr.slice(0, 3);
+    const podiumHtml = podium.length >= 3 ? `
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:6px;align-items:end">
+        <div style="background:linear-gradient(180deg,#c0c0c0,#0008);border-radius:8px 8px 0 0;padding:14px 8px;text-align:center;color:#000;font-weight:900;border:2px solid #c0c0c0">
+          <div style="font-size:32px">🥈</div>
+          <div style="font-size:11px;margin-top:4px">${podium[1].profile}</div>
+          <div style="font-size:13px;color:#000;margin-top:2px">${podium[1].value.toLocaleString()}</div>
+        </div>
+        <div style="background:linear-gradient(180deg,#ffd700,#0008);border-radius:8px 8px 0 0;padding:18px 8px;text-align:center;color:#000;font-weight:900;border:3px solid #ffd700;box-shadow:0 0 20px #ffd70066;animation:podiumPulse 2s ease infinite alternate">
+          <div style="font-size:48px">🥇👑</div>
+          <div style="font-size:13px;margin-top:6px">${podium[0].profile}</div>
+          <div style="font-size:18px;color:#000;margin-top:4px">${podium[0].value.toLocaleString()}</div>
+        </div>
+        <div style="background:linear-gradient(180deg,#cd7f32,#0008);border-radius:8px 8px 0 0;padding:10px 8px;text-align:center;color:#000;font-weight:900;border:2px solid #cd7f32">
+          <div style="font-size:24px">🥉</div>
+          <div style="font-size:10px;margin-top:4px">${podium[2].profile}</div>
+          <div style="font-size:12px;color:#000;margin-top:2px">${podium[2].value.toLocaleString()}</div>
+        </div>
+      </div>
+    ` : '';
+    if (!document.getElementById('podiumPulseKey')){
+      const s = document.createElement('style'); s.id = 'podiumPulseKey';
+      s.textContent = '@keyframes podiumPulse{from{box-shadow:0 0 20px #ffd70066}to{box-shadow:0 0 35px #ffd700ff,0 0 60px #ff8a3c66}}';
+      document.head.appendChild(s);
+    }
+    // Rest of board
+    const restRows = arr.slice(3, 25).map((e, i) => {
+      const rank = i + 4;
+      const isMe = e.profile === currentProfileName();
+      const barW = (e.value / maxVal * 100).toFixed(1);
+      return `<div style="padding:10px 14px;margin:4px 0;background:${isMe?'linear-gradient(90deg,#1a3d2c,#0008)':'#0008'};border:${isMe?'2px solid #4cf07a':'1px solid #ffd76e22'};border-radius:8px;color:#fff;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,${isMe?'#4cf07a44':cat?.color || '#ffd76e22'}, transparent);width:${barW}%;opacity:0.4"></div>
+        <div style="position:relative;display:flex;justify-content:space-between;align-items:center;font-size:13px">
+          <div><span style="color:#aab;font-weight:900;letter-spacing:1px;display:inline-block;width:32px">#${rank}</span> <span style="font-weight:900">${e.profile}${isMe?' · YOU':''}</span></div>
+          <div style="color:#ffd76e;font-weight:900">${e.value.toLocaleString()}</div>
+        </div>
+      </div>`;
+    }).join('');
+    const myRankBanner = myRank >= 0 ? `
+      <div style="margin:14px 0;padding:12px;background:linear-gradient(135deg,#1a3d2c,#4cf07a44);border:2px solid #4cf07a;border-radius:8px;color:#fff;text-align:center">
+        <div style="color:#4cf07a;font-size:11px;letter-spacing:3px">🎯 YOUR RANK</div>
+        <div style="font-size:22px;font-weight:900;margin-top:4px">#${myRank + 1} · ${arr[myRank]?.value.toLocaleString() || '0'}</div>
+      </div>
+    ` : '<div style="margin:14px 0;padding:12px;background:#0008;border:1px dashed #ffd76e44;border-radius:8px;color:#aab;text-align:center;font-size:11px">play to claim a rank</div>';
+    const catBtns = LEADERBOARD_CATS.map(c => `<button class="btn lbCat" data-cat="${c.id}" style="font-size:10px;padding:8px 10px;margin:2px;background:${activeCat===c.id?'#ffd76e':'#0008'};color:${activeCat===c.id?'#000':'#ffd76e'};font-weight:900;border:2px solid ${activeCat===c.id?'#ffd76e':'#ffd76e44'}">${c.label}</button>`).join('');
+    const winBtns = LB_WINDOWS.map(w => `<button class="btn lbWin" data-win="${w}" style="font-size:11px;padding:10px 18px;margin:2px;background:${activeWin===w?'#4cf07a':'#0008'};color:${activeWin===w?'#000':'#4cf07a'};font-weight:900;border:2px solid ${activeWin===w?'#4cf07a':'#4cf07a44'}">${{daily:'🌅 DAY',weekly:'📅 WEEK',monthly:'📆 MONTH',alltime:'🌍 ALL'}[w]}</button>`).join('');
+    menuEl.innerHTML = `
+      <div class="panel" style="max-width:760px">
+        <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">📊 LEADERBOARDS</div>
+        <div class="subtitle" style="text-align:center">${cat?.label || ''} · ${winLbl}</div>
+        <div style="margin:10px 0;text-align:center">${winBtns}</div>
+        <div style="margin:10px 0;padding:8px;background:#0008;border-radius:8px;text-align:center;max-height:130px;overflow-y:auto">${catBtns}</div>
+        <input type="text" id="lbSearch" value="${searchTerm}" placeholder="🔍 search profile..." style="width:100%;padding:10px;margin:8px 0;background:#0008;color:#fff;border:2px solid #ffd76e44;border-radius:8px;font-family:inherit;font-size:13px">
+        ${podiumHtml}
+        ${myRankBanner}
+        <div style="margin:14px 0;max-height:50vh;overflow-y:auto">${restRows || '<div style="color:#aab;text-align:center;padding:14px">no entries below podium</div>'}</div>
+        <button class="btn" id="lbBack" style="width:100%">← BACK</button>
+      </div>`;
+    document.getElementById('lbBack').onclick = showSplash;
+    document.getElementById('lbSearch').oninput = (e) => { searchTerm = e.target.value; render(); };
+    document.querySelectorAll('.lbCat').forEach(b => b.onclick = () => { activeCat = b.dataset.cat; render(); });
+    document.querySelectorAll('.lbWin').forEach(b => b.onclick = () => { activeWin = b.dataset.win; render(); });
+    // 🥇 trigger podium scene if user just hit #1
+    if (myRank === 0 && !sessionStorage.getItem(`wud:podium:${activeCat}:${activeWin}`)){
+      sessionStorage.setItem(`wud:podium:${activeCat}:${activeWin}`, '1');
+      setTimeout(() => playPodiumScene(cat?.label || 'LEADERBOARD'), 800);
+    }
+  };
+  render();
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
