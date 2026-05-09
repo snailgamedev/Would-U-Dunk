@@ -16788,6 +16788,86 @@ setTimeout(() => {
   }, 60000);
 }, 3000);
 
+/* ------------------- 🆕 v3.26.0 CHECK 2 POLISH PASS ------------------- */
+
+// POLISH 1: MOBILE TITAN meta-achievement (all 4 v3.26 achievements)
+setInterval(() => {
+  try {
+    const ids = ['voice_heaven','crowd_hype','edge_master','globe_trotter'];
+    const got = ids.filter(id => Career.achievements && Career.achievements[id]).length;
+    if (got >= 4) unlockAchievement('mobile_titan');
+  } catch(e){}
+}, 7000);
+
+// POLISH 2: voice command vocab — open key screens hands-free
+const _origVoiceStart = MobileTitan.startVoice.bind(MobileTitan);
+MobileTitan.startVoice = function(){
+  _origVoiceStart();
+  setTimeout(() => {
+    if (this.recognition){
+      const old = this.recognition.onresult;
+      this.recognition.onresult = (ev) => {
+        const last = ev.results[ev.results.length - 1];
+        const txt = (last[0].transcript || '').toLowerCase().trim();
+        if (/\bachievement/.test(txt) && typeof renderAchievementsScreen === 'function'){ renderAchievementsScreen(); return; }
+        if (/\b(menu|home|main)\b/.test(txt) && typeof showSplash === 'function'){ showSplash(); return; }
+        if (/\bsettings/.test(txt) && typeof renderSettingsScreen === 'function'){ renderSettingsScreen(); return; }
+        if (/\bcasino|gamble/.test(txt) && typeof renderCasinoLoungeScreen === 'function'){ renderCasinoLoungeScreen(); return; }
+        if (/\b(replay|last shot)\b/.test(txt)){ MobileTitan.showReplay(1); return; }
+        if (/\bleaderboard|board/.test(txt)){ MobileTitan.showWeeklyLB(); return; }
+        if (typeof old === 'function') old(ev);
+      };
+    }
+  }, 250);
+};
+
+// POLISH 3: floating Titan chip — direct access on mobile splash
+setTimeout(() => {
+  if (!IS_MOBILE && !('ontouchstart' in window)) return;
+  if (document.getElementById('titanChip')) return;
+  const c = document.createElement('button');
+  c.id = 'titanChip';
+  c.textContent = '🦾';
+  c.style.cssText = 'position:fixed;bottom:8px;left:8px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;border:2px solid #fff;font-size:22px;z-index:9993;box-shadow:0 4px 14px #7a5a1488;cursor:pointer;display:none';
+  c.title = 'Mobile Titan settings';
+  c.onclick = () => MobileTitan.showPanel();
+  document.body.appendChild(c);
+  setInterval(() => {
+    const t = document.getElementById('touch');
+    const inMatch = t && t.classList.contains('on');
+    c.style.display = inMatch ? 'none' : 'block';
+  }, 500);
+}, 1500);
+
+// POLISH 4: auto-apply inertial scroll on dynamically rendered panels
+(function dynInertial(){
+  if (typeof MutationObserver === 'undefined') return;
+  const obs = new MutationObserver(() => {
+    if (typeof MobileTitan !== 'undefined' && MobileTitan.inertialScroll) MobileTitan.applyInertialScroll();
+  });
+  setTimeout(() => obs.observe(document.body, { childList: true, subtree: true }), 1500);
+})();
+
+// POLISH 5: geo theme manual override picker (in panel)
+MobileTitan.pickGeoTheme = function(){
+  if (typeof showModal !== 'function') return;
+  const themes = [
+    { id:'classic', name:'CLASSIC', emoji:'🏀' },
+    { id:'holy-land', name:'HOLY LAND', emoji:'✝️' },
+    { id:'asia-morning', name:'ASIA MORNING', emoji:'🌸' },
+    { id:'asia-evening', name:'ASIA NIGHT', emoji:'🌃' },
+    { id:'usa-morning', name:'USA MORN', emoji:'🌅' },
+    { id:'usa-afternoon', name:'USA NIGHT', emoji:'🌌' },
+    { id:'euro-classic', name:'EUROPE', emoji:'🏰' },
+    { id:'savanna', name:'SAVANNA', emoji:'🦁' },
+  ];
+  const body = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    ${themes.map(t => `<button class="btn" onclick="document.body.classList.remove('geo-classic','geo-holy-land','geo-asia-morning','geo-asia-evening','geo-usa-morning','geo-usa-afternoon','geo-euro-classic','geo-savanna');document.body.classList.add('geo-${t.id}');MobileTitan.geoTheme=false;MobileTitan.save();closeModal&&closeModal();showToast&&showToast('🌎 ${t.name} adopted','level');">${t.emoji} ${t.name}</button>`).join('')}
+  </div>
+  <button class="btn" style="margin-top:8px;width:100%;background:#0008" onclick="MobileTitan.geoTheme=true;MobileTitan.save();MobileTitan.bindGeoTheme();closeModal&&closeModal();">🤖 AUTO (geo-based)</button>`;
+  showModal('🌎 PICK A THEME', body, [{label:'CLOSE'}]);
+};
+
 // GAP 5: Quick-start floating play button on mobile
 (function quickStartBtn(){
   setTimeout(() => {
