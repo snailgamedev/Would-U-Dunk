@@ -12961,6 +12961,13 @@ async function startRound(){
   State.rolls = rolls; State.cfg = cfg;
   // 🆕 v3.4.0 — show rival intro card if matched up against declared rival
   if (typeof maybeShowRivalIntro === 'function') setTimeout(() => maybeShowRivalIntro(), 100);
+  // 🆕 v3.5.0 — play custom walkout clip if user recorded one
+  if (typeof playWalkoutClip === 'function') setTimeout(() => playWalkoutClip(), 600);
+  // 🆕 v3.5.0 — injury return ceremony if last match had an injury
+  if (State._lastMatchInjured && typeof fireInjuryReturnCeremony === 'function'){
+    State._lastMatchInjured = false;
+    setTimeout(() => fireInjuryReturnCeremony(), 1500);
+  }
   // 🆕 v2.8.1 — FRANCHISE OVERRIDE — pick CPU tier from league pool when franchise active
   if (State._franchiseActive && State._franchiseLeagueId){
     const baseTier = pickLeagueTier(State._franchiseLeagueId);
