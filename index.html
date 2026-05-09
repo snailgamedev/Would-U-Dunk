@@ -776,6 +776,13 @@ function defaultSettings(){
     randomEvents: true,       // 12% per round chance of mid-game events
     // 🆕 v3.4.0 — TTS event announcer · default OFF (can be jarring, opt-in for hype)
     ttsAnnouncer: false,
+    // 🆕 v3.7.0 — mobile + accessibility (defaults: ON for mobile-friendly, OFF for opt-in)
+    hapticEnabled: true,        // vibrate on big plays · default ON
+    wakeLockEnabled: true,      // keep screen on during play
+    oneHanded: false,           // compact UI for thumb play
+    dataSaver: false,           // disable particles for low-end devices
+    reducedMotion: false,       // accessibility · skip shakes
+    largeText: false,           // +20% text size
   };
 }
 function loadSettings(){
