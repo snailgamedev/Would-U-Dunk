@@ -9902,6 +9902,12 @@ async function startRound(){
   Object.assign(cfg, mode.extraCfg || {});
   // 🆕 v2.26.0 — clamp unscoreable combos AFTER mode overrides so target-mode-aware fixes apply
   sanitizeCfg(cfg, mode);
+  // 🆕 v2.26.0 — CPU vs CPU: roll a 2nd tier so each side has a distinct brain
+  if (cfg.cpuVsCpu && rolls.cpuTiers.length < 2){
+    const useRoster2 = (typeof npcToTier === 'function') && Math.random() < 0.7;
+    const second = useRoster2 ? npcToTier(pickRandomNpc()) : CPU_TIERS[(Math.random()*CPU_TIERS.length)|0];
+    rolls.cpuTiers = [rolls.cpuTiers[0], second];
+  }
   // mode-driven round length + target
   cfg._roundLen = mode.roundLen;
   let target = mode.target || 0;
