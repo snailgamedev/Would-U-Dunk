@@ -6514,7 +6514,13 @@ function resolveBet(){
     }
     return false;
   })();
-  const payout = won ? bet.payout : 0;
+  let payout = won ? bet.payout : 0;
+  // 🎰 v3.16.0 — JACKPOT bet wins entire pool
+  if (won && bet.type === 'jackpot' && typeof winJackpot === 'function'){
+    const pool = winJackpot();
+    payout = pool;
+    if (typeof showToast === 'function') setTimeout(() => showToast(`🎰 JACKPOT WON · +$${pool.toLocaleString()} · pool reset`, 'level'), 400);
+  }
   if (payout){
     awardCash(payout);
     // 🆕 v3.12.0 — visible toast confirms cash landed
