@@ -704,6 +704,10 @@ function defaultSettings(){
     screenDim: false,         // CSS overlay 15% darken
     autoNightMode: true,      // after 21:00 local: comfort + dim auto-on
     siblingShuffle: true,     // 10% chance to swap to a sibling track on screen re-entry
+    // 🆕 v3.2.0 — anti-boredom + accessibility
+    goldilocks: true,         // adaptive CPU difficulty based on rolling 5-game win rate
+    highContrast: false,      // accessibility · max contrast UI mode
+    randomEvents: true,       // 12% per round chance of mid-game events
   };
 }
 function loadSettings(){
