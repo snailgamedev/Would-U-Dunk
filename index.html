@@ -10014,15 +10014,19 @@ function startCpuVsCpuMatch(){
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#ff8a3c66,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#ffd76e;font-family:Bebas Neue,Impact,sans-serif;letter-spacing:6px;text-shadow:0 0 20px #ffd76e';
   overlay.innerHTML = `<div style="font-size:72px">🎬</div><div style="font-size:36px;margin-top:20px">SPECTATOR MODE</div><div style="font-size:14px;margin-top:14px;color:#fff;opacity:0.85">BOTH TEAMS AI · GRAB POPCORN BOIIIII</div>`;
   document.body.appendChild(overlay);
-  State.looks[0] = rollRandomLook(0);
-  State.looks[1] = rollRandomLook(1);
+  // 🆕 v3.1.0 — preserve player's saved look in shadow then force NPC names so CPU doesnt use player's name
+  State._savedPlayerLook = State.looks[0];
+  const npc1 = (typeof pickRandomNpc === 'function') ? pickRandomNpc() : { name: randomUsername() };
+  const npc2 = (typeof pickRandomNpc === 'function') ? pickRandomNpc() : { name: randomUsername() };
+  State.looks[0] = Object.assign(rollRandomLook(0), { username: npc1.name || randomUsername() });
+  State.looks[1] = Object.assign(rollRandomLook(1), { username: npc2.name || randomUsername() });
   State.mode = 'CPU';        // keeps existing tier-roll path happy
   State.modeId = 'cpu_vs_cpu';
   setTimeout(() => {
     overlay.style.transition = 'opacity 0.3s';
     overlay.style.opacity = '0';
     setTimeout(() => overlay.remove(), 320);
-    showToast(`🎬 CPU vs CPU · enjoy the show`, 'level');
+    showToast(`🎬 ${npc1.name} vs ${npc2.name} · enjoy the show`, 'level');
     startMatch();
   }, 1400);
 }
