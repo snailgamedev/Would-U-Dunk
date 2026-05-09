@@ -11679,6 +11679,13 @@ function showEndCard(){
     const oppPts = State.matchPoints?.[1] || 0;
     const won = myPts > oppPts;
     if (won && typeof awardCardOnWin === 'function') awardCardOnWin();
+    // 🆕 v3.2.0 — Goldilocks · mystery box · escalating bonus
+    if (typeof recordMatchResult === 'function') recordMatchResult(won);
+    if (won && typeof maybeAwardMysteryBox === 'function') maybeAwardMysteryBox();
+    if (won && typeof escalatingWinBonusMul === 'function'){
+      const bonus = Math.round(myPts * 5 * (escalatingWinBonusMul() - 1));
+      if (bonus > 0){ awardCash(bonus); if (typeof showToast === 'function') showToast(`💰 ESCALATING WIN BONUS · +$${bonus}`, 'level'); }
+    }
     // bumpRecord biggestComeback if applicable
     if (won && State._maxDeficit >= 10 && typeof bumpRecord === 'function') bumpRecord('biggestComeback', State._maxDeficit);
     if (won && typeof bumpRecord === 'function') bumpRecord('biggestMargin', myPts - oppPts);
