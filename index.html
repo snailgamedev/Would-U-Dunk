@@ -2484,6 +2484,145 @@ const dailyPrayer = () => {
   return PRAYERS[seed % PRAYERS.length];
 };
 
+// 🆕 v3.0.0 — ASCENSION · TITLE SYSTEM (24 unlockable display titles)
+const TITLES = [
+  { id:'rookie',         name:'ROOKIE',                 cond:c => (c.games||0) >= 1,                                desc:'play your first match' },
+  { id:'baller',         name:'BALLER',                 cond:c => (c.wins||0) >= 5,                                  desc:'win 5 matches' },
+  { id:'closer',         name:'THE CLOSER',             cond:c => (c._buzzers||0) >= 3,                              desc:'hit 3 buzzer beaters' },
+  { id:'rain_man',       name:'RAIN MAN',               cond:c => (c._threes||0) >= 25,                              desc:'sink 25 three-pointers' },
+  { id:'lockdown',       name:'LOCKDOWN',               cond:c => (c.stealsThisCareer||0) >= 50,                     desc:'50 career steals' },
+  { id:'wager_king',     name:'WAGER KING',             cond:c => (loadRecords().biggestWin||0) >= 1000,             desc:'win a single $1000+ wager' },
+  { id:'hall_of_famer',  name:'HALL OF FAMER',          cond:c => Object.keys(c.cpuTiersBeaten||{}).length >= 15,   desc:'beat 15 CPU tiers' },
+  { id:'anointed',       name:'ANOINTED',               cond:c => (c.currentStreak||0) >= 10,                        desc:'10-game win streak' },
+  { id:'blessed',        name:'BLESSED & HIGHLY FAVORED', cond:c => (loadFaith().streak||0) >= 7,                  desc:'7-day faith streak' },
+  { id:'conqueror',      name:'MORE THAN A CONQUEROR',  cond:c => (loadRecords().biggestComeback||0) >= 20,          desc:'come back from 20+ down' },
+  { id:'walker',         name:'WALKING ON WATER',       cond:c => (c.wins||0) >= 50,                                 desc:'50 career wins' },
+  { id:'peacemaker',     name:'PEACE THAT PASSES',      cond:c => Math.random() < 1.1 && (c.games||0) >= 25,        desc:'25 games (peace anytime)' },
+  { id:'chosen',         name:'CHOSEN',                 cond:c => (c.level||1) >= 50,                                desc:'reach level 50 ALL-PRO' },
+  { id:'mercies',        name:'HIS MERCIES ARE NEW',    cond:c => (loadFaith().streak||0) >= 30,                     desc:'30-day faith streak' },
+  { id:'wonderfully',    name:'FEARFULLY & WONDERFULLY MADE', cond:c => (Object.keys(c.celebsUsed||{}).length) >= 5, desc:'use 5 different celebrations' },
+  { id:'well_done',      name:'WELL DONE GOOD & FAITHFUL', cond:c => (c.wins||0) >= 100,                            desc:'100 career wins · championship-tier' },
+  { id:'faith_over_fear',name:'FAITH OVER FEAR',        cond:c => (loadRecords().biggestWin||0) >= 5000,             desc:'win a single $5000+ wager' },
+  { id:'king_of_kings',  name:'KING OF KINGS FAN',      cond:c => (loadFaith().favorites||[]).length >= 20,          desc:'favorite 20 verses' },
+  { id:'street_legend',  name:'STREET LEGEND',          cond:c => (c.gameModesPlayed?.skirmish?.wins||0) >= 5,       desc:'5 skirmish wins' },
+  { id:'spectator',      name:'COURTSIDE LEGEND',       cond:c => (loadRecords().spectated||0) >= 10,                desc:'watch 10 CPU vs CPU' },
+  { id:'goat',           name:'GOAT',                   cond:c => (c.level||1) >= 100,                               desc:'reach level 100' },
+  { id:'prestige_one',   name:'PRESTIGE ★',             cond:c => (c.prestige||0) >= 1,                              desc:'prestige once' },
+  { id:'prestige_two',   name:'PRESTIGE ★★',            cond:c => (c.prestige||0) >= 2,                              desc:'prestige twice' },
+  { id:'prestige_three', name:'PRESTIGE ★★★',           cond:c => (c.prestige||0) >= 3,                              desc:'prestige three times' },
+];
+function loadActiveTitle(){ try { return localStorage.getItem(`wud:title:${currentProfileName()}`) || ''; } catch(e){ return ''; } }
+function saveActiveTitle(id){ try { localStorage.setItem(`wud:title:${currentProfileName()}`, id||''); } catch(e){} }
+function unlockedTitles(){ return TITLES.filter(t => { try { return t.cond(Career); } catch(e){ return false; } }); }
+
+// 🆕 v3.0.0 — ASCENSION · ACHIEVEMENT TIER labels (additive — wraps existing achievement system)
+const ACH_TIER_THRESHOLD = { bronze:1, silver:5, gold:25, platinum:100 };
+function tierForCount(n){
+  if (n >= ACH_TIER_THRESHOLD.platinum) return 'platinum';
+  if (n >= ACH_TIER_THRESHOLD.gold) return 'gold';
+  if (n >= ACH_TIER_THRESHOLD.silver) return 'silver';
+  return 'bronze';
+}
+function tierLabel(t){
+  return { bronze:'🥉 Bronze', silver:'🥈 Silver', gold:'🥇 Gold', platinum:'💎 Platinum' }[t] || '🥉 Bronze';
+}
+
+// 🆕 v3.0.0 — ASCENSION · PRESTIGE system (level 100 → reset level w/ permanent ✨ badge + 2× XP boost)
+function canPrestige(){ return (Career.level||1) >= 100; }
+function doPrestige(){
+  if (!canPrestige()) return false;
+  Career.prestige = (Career.prestige||0) + 1;
+  Career.level = 1;
+  Career.xp = 0;
+  Career.prestigeXpMul = 2;     // permanent 2× XP after prestige (stacks: each prestige adds 0.5)
+  saveCareer();
+  return true;
+}
+function renderPrestigeScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const can = canPrestige();
+  const stars = '★'.repeat(Career.prestige||0);
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px;text-align:center">
+      <div class="title" style="font-size:36px;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">⭐ PRESTIGE ⭐</div>
+      <div class="subtitle">level 100 → reset for permanent badge + 2× XP</div>
+      <div style="margin:18px 0;padding:18px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:14px;color:#000;font-weight:900">
+        Current Prestige: <span style="font-size:36px">${stars || 'NONE'}</span><br>
+        Career Level: <b style="font-size:24px">${Career.level||1}</b> / 100<br>
+        XP: ${Career.xp||0}
+      </div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px dashed #ffd76e;border-radius:10px;color:#fff;font-size:13px;line-height:1.6">
+        ${can
+          ? `🎉 <b>YOU CAN PRESTIGE!</b><br>Reset to level 1 + earn permanent ✨ badge + 2× XP boost forever.<br>Your wins · achievements · cash · cards · stats ALL stay.`
+          : `Reach <b>level 100</b> to prestige.<br>Currently <b>${100 - (Career.level||1)}</b> levels away.`}
+      </div>
+      ${can ? '<button class="btn hot" id="doPrestige" style="font-size:18px;width:100%;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);color:#000;font-weight:900">⭐ PRESTIGE NOW ⭐</button>' : ''}
+      <button class="btn" id="prestigeBack" style="margin-top:10px;width:100%">← BACK</button>
+      <div style="margin-top:14px;font-size:11px;color:#aab">✝️ "Behold I am doing a new thing" — Isa 43:19</div>
+    </div>`;
+  document.getElementById('prestigeBack').onclick = showSplash;
+  if (can) document.getElementById('doPrestige').onclick = () => {
+    if (confirm(`Prestige now? Resets level to 1, keeps everything else, adds ✨ badge + 2× XP forever.`)){
+      doPrestige();
+      if (typeof showToast === 'function') showToast(`⭐ PRESTIGE ${'★'.repeat(Career.prestige)} · LEGEND`, 'level');
+      try { if (typeof MUSIC !== 'undefined') MUSIC.stinger('victory'); } catch(e){}
+      showSplash();
+    }
+  };
+}
+
+// 🆕 v3.0.0 — TITLE PICKER screen
+function renderTitlePickerScreen(){
+  const unlocked = unlockedTitles();
+  const active = loadActiveTitle();
+  const rows = TITLES.map(t => {
+    const isUnlocked = unlocked.find(u => u.id === t.id);
+    return `<button class="btn titleRow" data-tid="${t.id}" ${!isUnlocked ? 'disabled' : ''} style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px;background:${active===t.id?'linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e)':'#0008'};color:${active===t.id?'#000':isUnlocked?'#fff':'#666'};border:2px solid ${active===t.id?'#ffd76e':isUnlocked?'#ffd76e44':'#444'};border-radius:6px">
+      <div style="font-weight:900;letter-spacing:2px;font-size:13px">${active===t.id?'★ ':''}${t.name}${isUnlocked?'':' 🔒'}</div>
+      <div style="font-size:10px;color:${active===t.id?'#1a0e02':'#aab'};margin-top:2px">${t.desc}</div>
+    </button>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:580px">
+      <div class="title" style="font-size:30px;text-align:center">👑 TITLES</div>
+      <div class="subtitle" style="text-align:center">${unlocked.length} / ${TITLES.length} unlocked · pick one to display</div>
+      <div style="margin:14px 0;max-height:60vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="titleClear" style="width:100%;margin-bottom:6px;font-size:11px">✖ CLEAR ACTIVE TITLE</button>
+      <button class="btn" id="titleBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('titleBack').onclick = showSplash;
+  document.getElementById('titleClear').onclick = () => { saveActiveTitle(''); renderTitlePickerScreen(); };
+  document.querySelectorAll('.titleRow').forEach(b => b.onclick = () => {
+    if (b.disabled) return;
+    saveActiveTitle(b.dataset.tid);
+    if (typeof showToast === 'function') showToast(`👑 TITLE EQUIPPED`, 'level');
+    renderTitlePickerScreen();
+  });
+}
+
+// 🆕 v3.0.0 — SAVE EXPORT / IMPORT (settings utility — additive)
+function exportProfileSave(){
+  const name = currentProfileName();
+  const keys = Object.keys(localStorage).filter(k => k.includes(`:${name}`) || k === 'wud:profiles' || k === 'wud:currentProfile');
+  const blob = {};
+  keys.forEach(k => blob[k] = localStorage.getItem(k));
+  const json = JSON.stringify({ v:'wud-save-v3', profile:name, at:Date.now(), data:blob });
+  return btoa(unescape(encodeURIComponent(json)));
+}
+function importProfileSave(b64){
+  try {
+    const json = decodeURIComponent(escape(atob(b64)));
+    const obj = JSON.parse(json);
+    if (!obj || obj.v !== 'wud-save-v3') return false;
+    Object.entries(obj.data || {}).forEach(([k,v]) => localStorage.setItem(k, v));
+    return true;
+  } catch(e){ return false; }
+}
+function fullResetProfile(){
+  const name = currentProfileName();
+  Object.keys(localStorage).filter(k => k.includes(`:${name}`)).forEach(k => localStorage.removeItem(k));
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
