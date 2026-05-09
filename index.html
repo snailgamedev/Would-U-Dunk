@@ -6648,8 +6648,7 @@ function renderCrownCollectionScreen(){
 // ⚙ v3.18.0 — BET REQUIREMENT auto-apply gameplay settings (CAEE pass)
 const BET_REQ_OVERRIDES = {
   perfect_game: { cfg:{ aimChaos: 0, rimScale: 1.0, courtScale: 1.0 }, note: 'aim assist + normal rim' },
-  century:      { cfg:{ shotPower: 1.15, scoreMul: Math.max },                                                                       /* boost ability to score 100+ */
-                  note: 'extra shot power' },
+  century:      { cfg:{ shotPower: 1.15 }, note: 'extra shot power · 100+ feasible' },
   underdog:     { tierShift: -1, note: 'CPU difficulty -1' },
   rocket:       { cfg:{ shotPower: 1.10 }, note: 'shot power up · 4x opp pts easier' },
   diamond:      { cfg:{ aimChaos: 0 }, note: 'aim chaos off · perfect form possible' },
