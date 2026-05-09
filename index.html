@@ -4648,12 +4648,9 @@ function inGamePrompt(message, defaultValue){
     } catch(e){ res(null); }
   });
 }
-// Shadow native dialogs (additive · safer · all existing call sites get the upgrade auto)
-const _origConfirm = window.confirm;
-const _origAlert = window.alert;
-const _origPrompt = window.prompt;
-window.confirm = (msg) => { try { inGameConfirm(msg).then(v => v); return true; } catch(e){ return _origConfirm(msg); } };
-// Note: synchronous confirm() can't be made async without breaking callers · use inGameConfirm() in NEW code
+// 🆕 v3.8.0 — keep window.confirm/alert/prompt UNTOUCHED · existing callers stay sync-safe
+// New code uses inGameConfirm/Alert/Prompt async helpers
+// Migration is per-callsite to keep semantics intact
 
 // 🆕 v3.8.0 — SMOOTH MUSIC CROSSFADE wrapper
 let _musicFadeTimer = null;
