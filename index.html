@@ -2392,6 +2392,7 @@ function maybeCinematicMode(scene){
   const margin = Math.abs((State.scores[0]||0) - (State.scores[1]||0));
   if (remaining > 0 && remaining <= 30 && margin <= 5){
     scene._cinematicOn = true;
+    State._cinematicTriggered = true;
     try {
       const vignette = scene.add.rectangle(VIEW_W/2, VIEW_H/2, VIEW_W, VIEW_H, 0x000000, 0).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED - 1);
       scene.tweens.add({ targets:vignette, alpha:0.25, duration:600 });
