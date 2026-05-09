@@ -2901,8 +2901,22 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.1.0';
+const VERSION = 'v3.2.0';
 const CHANGELOG = [
+  { v:'v3.2.0', notes:[
+      '👁 READABILITY + CONTRAST PASS — global CSS injection: bumps min font-size · stronger black overlays under text on screens · sticky important UI · larger tap targets on mobile · accessibility class for high-contrast mode toggle in Settings.',
+      '🎚 GOLDILOCKS SMART DIFFICULTY — auto-calibrates CPU strength based on rolling 5-game player win rate. Win 4/5 → CPU tiers shift +1 · Lose 4/5 → CPU tiers shift -1 · 50% win rate = perfect zone (no shift). PREVENTS steamrolls AND impossible matches. Default ON in Settings · toggle off for raw chaos.',
+      '🎁 MYSTERY BOXES — every 5 wins drops a mystery box (random reward: $cash burst · gem · card pack · streak bonus · rare scripture verse) · live opening animation w/ confetti.',
+      '🎲 RANDOM EVENTS MID-GAME — 12% chance per round of an event firing: HOT HAND (2× pts next 30s) · COLD SNAP (-1pt accuracy) · CROWD WAVE ($25 bonus per bucket) · DOUBLE OR NOTHING moment · MIRACLE 3 (bonus pt for 3+ shots) · GHOSTBALL flicker · MOMENTUM SWING. Each event has unique HUD banner + sound stinger.',
+      '🌅 DAILY VARIETY ROTATION — every day rotates: featured mode of the day (2× XP) · featured CPU rival (extra cash if you beat) · daily verse · daily devotional · daily prayer · daily mystery box bonus tier. All seeded from date so consistent globally.',
+      '🔓 UNLOCK CHAINS — new "PROGRESSION" screen showing unlock paths: e.g. play 10 chill mode → unlock 😴 SLEEP CHILL track · win 25 spectator bets → unlock 🎬 SPECTATOR HALL · favorite 50 verses → unlock ✨ ANGELIC scripture rotation · etc. 16 unlock chains total.',
+      '🎯 WAGER STREAK COMBO — 3 wagers won in a row = +50% next payout · 5 in a row = +100% · 10 in a row = LEGENDARY KING tier (3× payout cap). Visual streak meter on gamble screen.',
+      '🎬 ZOOM-PAN ON BLOCKS — same cinematic treatment as dunks now applies to blocks (camera pan to block point + flash + DENIED label).',
+      '✨ HIGH-CONTRAST MODE TOGGLE — Settings → ACCESSIBILITY · injects max-contrast CSS for vision-impaired or bright-light play.',
+      '💰 ESCALATING WIN BONUS — every consecutive win = +10% match cash bonus · resets on loss · max +100% at 10-win streak.',
+      '🎨 LARGER TAP TARGETS — buttons get min 44px touch area on mobile · settings sliders thicker · text contrast min 4.5:1 ratio (WCAG AA).',
+      '✝️ "Whatever you do · work at it with all your heart · as working for the Lord" — Col 3:23 · cure boredom · honor the gift',
+  ]},
   { v:'v3.1.0', notes:[
       '🧠 GTA6-TIER AI BRAIN — auto-on for all CPU tiers w/ accuracy ≥ 0.85 (MVP and up). Adds: SCORE-AWARE aggression (chase when down 10+ · protect when up 10+) · TIME-AWARE clutch boost (final 30s 1.35x · final 10s 1.6x) · CONTESTED-SHOT AVOIDANCE (skip shot when defender mid-air close · pump fake instead) · BALL-FAKES (occasional feint to confuse) · PUMP FAKES (visual + skip shot tick) · CLOSEOUT DEFENSE (jump when opp charges shot ≥0.4) · PULL-UP JUMPERS (snap-shoot at near-perfect when wide open) · MOMENTUM-AWARE (ride wave when ahead in mom · slow it when behind) · FATIGUE-AWARE (conserve when energy <0.65).',
       '🎬 CINEMATIC CPU DUNKS — every CPU dunk now triggers slow-mo zoom (1.18x) + dramatic pan to dunk point + screen flash + camera shake + signature label per archetype (⚔ EURO STEP · 🌟 SHOWTIME 360 · 💪 RIM-WRECKER · ✝️ ANOINTED THROW-DOWN · 20 unique). Camera restores after 600ms.',
