@@ -3475,6 +3475,21 @@ function renderBattlePassScreen(){
     if (loadGems() < 5){ showToast('💎 NEED 5 GEMS', 'allpro'); return; }
     if (buyBpTierSkip()){ if (typeof showToast === 'function') showToast('⏩ +1 TIER · cookin', 'level'); renderBattlePassScreen(); }
   };
+  // 🆕 v3.9.0 — CLAIM ALL button
+  const claimAll = document.getElementById('bpClaimAll');
+  if (claimAll) claimAll.onclick = () => {
+    let count = 0;
+    BATTLE_PASS_REWARDS.forEach(r => {
+      if (claimBattlePassReward(r.tier)) count++;
+    });
+    if (count > 0){
+      if (typeof showToast === 'function') showToast(`⚡ CLAIMED ${count} REWARDS · stack overflow boi`, 'level');
+      if (typeof haptic === 'function') haptic([60, 30, 60]);
+      renderBattlePassScreen();
+    } else {
+      if (typeof showToast === 'function') showToast('nothing to claim · keep grinding', 'allpro');
+    }
+  };
 }
 
 function renderKeyboardShortcutsScreen(){
