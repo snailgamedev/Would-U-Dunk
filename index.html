@@ -16910,6 +16910,15 @@ function showEndCard(){
     if (won && typeof awardCardOnWin === 'function') awardCardOnWin();
     // 🆕 v3.2.0 — Goldilocks · mystery box · escalating bonus
     if (typeof recordMatchResult === 'function') recordMatchResult(won);
+    // 🆕 v3.23.0 — adaptive difficulty: record result + show feedback
+    try {
+      const adaptD = Adapt.recordResult(won);
+      if (adaptD.streakKind === 'L' && adaptD.streak === 5){
+        if (typeof showToast === 'function') showToast('🕊 MERCY MODE engaged — CPU eased · "Be merciful as your Father is" — Luke 6:36', 'level');
+      } else if (adaptD.streakKind === 'W' && adaptD.streak === 5){
+        if (typeof showToast === 'function') showToast('🔥 SWEAT TRIAL engaged — CPU sharpened · "Iron sharpens iron" — Prov 27:17', 'level');
+      }
+    } catch(e){}
     if (won && typeof maybeAwardMysteryBox === 'function') maybeAwardMysteryBox();
     // 🆕 v3.3.0 — rivalry tracking + auto-verses + MyCareer tick
     if (won && State.rolls?.cpuTiers?.[0]?._npc?.id && typeof recordWinVsNpc === 'function'){
