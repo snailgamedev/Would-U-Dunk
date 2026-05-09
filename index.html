@@ -10255,6 +10255,28 @@ class MatchScene extends Phaser.Scene {
         }
         this.ball.rotation += (vx * 0.00012) * delta;
       }
+      // 🟢 v3.11.0 — GREEN GUARANTEED MAKE · particle trail + magnetism toward hoop
+      if (this.ball.getData('guaranteedMake')){
+        const lastSide = this.ball.getData('lastTouchSide');
+        const targetHoop = (lastSide === 0 ? this.p1 : this.p2)?.scoringHoop;
+        if (targetHoop){
+          // Magnetism toward hoop center — gentle steering, scales with proximity
+          const dxh = targetHoop.x - this.ball.x;
+          const dyh = (targetHoop.y - 12) - this.ball.y;
+          const dh = Math.hypot(dxh, dyh);
+          if (dh < 320 && dh > 8){
+            const pullStrength = Math.min(0.16, 320 / Math.max(40, dh) * 0.08);
+            this.ball.body.velocity.x += dxh * pullStrength * (delta / 16);
+            this.ball.body.velocity.y += dyh * pullStrength * (delta / 16);
+          }
+          // Green particle trail
+          if (!this._lastGreenParticle || time - this._lastGreenParticle > 25){
+            this._lastGreenParticle = time;
+            const gp = this.add.text(this.ball.x, this.ball.y, '✦', { fontSize: 16, color: '#4cf07a' }).setOrigin(0.5).setDepth(DEPTH.BALL_TRAIL);
+            this.tweens.add({ targets: gp, alpha: 0, scale: 0.3, duration: 700, onComplete: () => gp.destroy() });
+          }
+        }
+      }
     }
     // 🆕 v2.7.0 — PERSISTENT HUD: CPU TIER badge top-left of viewport
     // 🆕 v2.26.0 — CPU vs CPU mode: show "P1 vs P2" tier names + 🎬 SPECTATOR badge
