@@ -14779,12 +14779,16 @@ function renderMyTeamScreen(){
       <span style="color:#fff">${count}</span>
     </div>`;
   }).join('');
+  const equippedKey = (typeof loadEquippedBoostCard === 'function') ? loadEquippedBoostCard() : '';
   const cards = team.slice(-30).reverse().map(c => {
     const t = CARD_TIERS.find(x => x.id === c.tier);
-    return `<div style="display:inline-block;width:120px;margin:6px;padding:10px;background:linear-gradient(135deg,${t.color}33,#000);border:2px solid ${t.color};border-radius:8px;text-align:center;box-shadow:0 0 14px ${t.glow}">
-      <div style="font-size:9px;color:${t.color};letter-spacing:2px;font-weight:900">${t.name}</div>
+    const cardKey = `${c.tier}:${c.name}:${c.at}`;
+    const isEquipped = equippedKey === cardKey;
+    return `<div style="display:inline-block;width:130px;margin:6px;padding:10px;background:linear-gradient(135deg,${t.color}33,#000);border:${isEquipped?'3px':'2px'} solid ${isEquipped?'#4cf07a':t.color};border-radius:8px;text-align:center;box-shadow:0 0 14px ${isEquipped?'#4cf07a88':t.glow}">
+      <div style="font-size:9px;color:${t.color};letter-spacing:2px;font-weight:900">${isEquipped?'⚡ ':''}${t.name}</div>
       <div style="font-size:11px;color:#fff;margin-top:6px;font-weight:900">${c.name}</div>
       <div style="font-size:9px;color:#aab;margin-top:4px;text-transform:uppercase">${c.arch || 'baller'}</div>
+      <button class="btn cardEquip" data-cardkey="${cardKey}" style="margin-top:6px;width:100%;font-size:9px;padding:5px;background:${isEquipped?'#4cf07a':'#0008'};color:${isEquipped?'#000':'#4cf07a'};font-weight:900;border:1px solid #4cf07a">${isEquipped?'✅ EQUIPPED':'⚡ EQUIP BOOST'}</button>
     </div>`;
   }).join('');
   // 🆕 v3.6.0 — set chemistry display
