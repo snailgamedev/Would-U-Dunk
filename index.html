@@ -15020,15 +15020,20 @@ function showEndCard(){
       const t = (typeof loadTourney === 'function') ? loadTourney() : null;
       const mp = loadMyPick();
       if (t && t.champion && mp.active){
-        if (mp.active.npcId === t.champion){
+        const pickWon = mp.active.npcId === t.champion;
+        if (pickWon){
           awardCash(mp.active.payout);
           if (typeof showToast === 'function') showToast(`🏆 MY PICK HIT · +$${mp.active.payout}`, 'level');
+          // 🏅 v3.13.0 — first parlay achievement
+          if (typeof unlockAchievement === 'function') unlockAchievement('first_parlay');
         } else {
           if (typeof showToast === 'function') showToast(`🎯 MY PICK BUSTED · ${t.champion} won it instead`, 'allpro');
         }
-        mp.history.push({ ...mp.active, won: mp.active.npcId === t.champion, champion: t.champion, at: Date.now() });
+        mp.history.push({ ...mp.active, won: pickWon, champion: t.champion, at: Date.now() });
         mp.active = null;
         saveMyPick(mp);
+        // 🤖 v3.13.0 — record to parlay history
+        if (typeof recordParlayResult === 'function') recordParlayResult({ legs:1, wager:mp.active?.wager||0, finalChain:[t.champion] }, pickWon, pickWon ? mp.active?.payout || 0 : 0);
       }
     }
     if (won && (State._maxDeficit || 0) >= 10 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'comeback');
