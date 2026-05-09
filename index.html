@@ -2553,6 +2553,14 @@ function resolveBet(){
   const hist = loadGambleHistory();
   hist.push({ at:Date.now(), type:bet.type, label:bet.label, icon:bet.icon, wager:bet.wager, mult:bet.mult, payout, won, myPts, oppPts });
   saveGambleHistory(hist);
+  // 🆕 v3.0.0 — RECORDS hooks: biggest win/loss + lifetime profit
+  if (typeof bumpRecord === 'function'){
+    if (won) bumpRecord('biggestWin', payout);
+    else bumpRecord('biggestLoss', bet.wager);
+    const r = loadRecords();
+    r.gambleProfit = (r.gambleProfit || 0) + (won ? (payout - bet.wager) : -bet.wager);
+    saveRecords(r);
+  }
   return { won, payout, bet };
 }
 function spendCash(n){
