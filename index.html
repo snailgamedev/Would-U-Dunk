@@ -957,6 +957,14 @@ const ChaosEngine = {
 };
 
 // 🆕 v2.26.0 — SANITIZE-CFG — clamps stacked-modifier combos that would make scoring literally impossible
+// 🛡 v3.12.0 — ALWAYS-SCORE BANNED MOD IDS (modifiers culled before reaching sanitize)
+const ALWAYS_SCORE_BANNED = ['tiny_court'];   // tiny_court breaks shooting from distance · banned entirely
+function cullBannedMods(rolls){
+  if (!rolls || !rolls.mods) return rolls;
+  rolls.mods = rolls.mods.filter(({mod}) => !ALWAYS_SCORE_BANNED.includes(mod.id));
+  return rolls;
+}
+
 function sanitizeCfg(cfg, mode){
   if (!cfg) return cfg;
   const fixes = [];
