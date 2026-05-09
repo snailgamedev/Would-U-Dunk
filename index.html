@@ -12998,7 +12998,8 @@ class MatchScene extends Phaser.Scene {
   endRound(){
     this.canMove = false;
     SFX.whistle();
-    // 🆕 v2.13.7 — HALFTIME SHOW between rounds in BO3+ modes (only when more rounds remain)
+    // 🪦 v3.21.0 — HALFTIME SHOW PURGED · between-rounds halftime banner deleted entirely · go straight to next round
+    // (Original v2.13.7 halftime show removed per user request "delete everything related to halftime")
     const mode = MODE_BY_ID[State.modeId] || MODE_BY_ID['5x5'];
     const isMidMatch = mode && mode.rounds && mode.rounds >= 3 && (State.roundIdx + 1) < mode.rounds;
     if (isMidMatch && !this._halftimeShown){
