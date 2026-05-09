@@ -12152,6 +12152,13 @@ function renderGambleScreen(){
         <div style="color:#ffd76e;font-size:10px;letter-spacing:3px;margin-bottom:6px">📜 LAST 5 BETS</div>
         <table style="width:100%;font-size:11px;color:#fff;border-collapse:collapse">${histRows}</table>
       </div>
+      <!-- 🆕 v3.6.0 — PARLAY PAYOUT CHART -->
+      <div style="margin-top:14px;padding:10px;background:#0006;border:1px dashed #ff66cc;border-radius:8px">
+        <div style="color:#ff66cc;font-size:10px;letter-spacing:3px;margin-bottom:6px">🏆 MY PICK PARLAY POTENTIAL · base $100 wager</div>
+        <table style="width:100%;font-size:11px;color:#fff;border-collapse:collapse">
+          ${parlayPayoutChart(100).map(p => `<tr><td style="padding:4px 6px">${p.picks} pick${p.picks>1?'s':''}</td><td style="padding:4px 6px;color:#ffd76e">${p.mult}x</td><td style="padding:4px 6px;color:#4cf07a;text-align:right">$${p.payout.toLocaleString()}</td></tr>`).join('')}
+        </table>
+      </div>
       <div style="margin-top:10px;font-size:10px;color:#aab;text-align:center;line-height:1.6">
         💡 bet pairs naturally with 🎬 CPU vs CPU · sportsbook style<br>
         ✝️ "be content with what you have" — Heb 13:5 · this is a game · play wise
