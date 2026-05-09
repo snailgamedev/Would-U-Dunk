@@ -10182,6 +10182,11 @@ function showSplash(){
   if (btnPrestige) btnPrestige.onclick = renderPrestigeScreen;
   const btnMyTeam = document.getElementById('btnMyTeam');
   if (btnMyTeam) btnMyTeam.onclick = renderMyTeamScreen;
+  // 🆕 v3.2.0 — mystery box · unlock chains buttons
+  const btnMystery = document.getElementById('btnMystery');
+  if (btnMystery) btnMystery.onclick = renderMysteryBoxScreen;
+  const btnUnlocks = document.getElementById('btnUnlocks');
+  if (btnUnlocks) btnUnlocks.onclick = renderUnlockChainsScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
