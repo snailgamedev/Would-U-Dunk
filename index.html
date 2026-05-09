@@ -8476,9 +8476,10 @@ const Online = {
     this.peer.on('open', () => {
       const c = this.peer.connect('wud-' + this.code);
       this.conn = c;
-      c.on('open', () => { this.connected = true; showToast(`JOINED ROOM ${this.code}`, 'level'); this.send({ type:'hello', from:'guest', look: State.looks[0] }); });
+      c.on('open', () => { this.connected = true; showToast(`JOINED ROOM ${this.code}`, 'level'); this.send({ type:'hello', from:'guest', look: State.looks[0] }); this.startHeartbeat(); });   // 🆕 v3.22.0
       c.on('data', (msg) => this.onData(msg));
       c.on('error', (e) => showToast('CONN ERR: ' + e, 'allpro'));
+      c.on('close', () => { this.connected = false; this.stopHeartbeat(); if (typeof showToast === 'function') showToast('⚠ DISCONNECTED', 'allpro'); });
     });
     this.peer.on('error', (e) => showToast('PEER ERROR: ' + e.type, 'allpro'));
   },
