@@ -11194,6 +11194,15 @@ function showSplash(){
   if (btnRivalries) btnRivalries.onclick = renderRivalriesScreen;
   const btnKeyboard = document.getElementById('btnKeyboard');
   if (btnKeyboard) btnKeyboard.onclick = renderKeyboardShortcutsScreen;
+  // 🆕 v3.4.0 — Daily Variety · Highlights · Spectator Hall · Pack Opening
+  const btnDailyVariety = document.getElementById('btnDailyVariety');
+  if (btnDailyVariety) btnDailyVariety.onclick = renderDailyVarietyScreen;
+  const btnHighlights = document.getElementById('btnHighlights');
+  if (btnHighlights) btnHighlights.onclick = renderHighlightsScreen;
+  const btnSpectatorHall = document.getElementById('btnSpectatorHall');
+  if (btnSpectatorHall) btnSpectatorHall.onclick = renderSpectatorHallScreen;
+  const btnPackOpen = document.getElementById('btnPackOpen');
+  if (btnPackOpen) btnPackOpen.onclick = renderPackOpeningScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
