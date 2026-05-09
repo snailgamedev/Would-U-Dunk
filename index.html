@@ -13920,6 +13920,12 @@ function renderGambleScreen(){
           <input type="checkbox" id="confidenceLock" style="vertical-align:middle"> 🔒 CONFIDENCE LOCK (+30% mult · locks before chaos rolls)
         </label>
       </div>
+      <!-- 🤖 v3.14.0 — AUTO-BET checkbox -->
+      <div style="margin:10px 0;padding:8px;background:#0006;border:1px dashed #4f9eff;border-radius:6px;text-align:center">
+        <label style="color:#4f9eff;font-size:11px;letter-spacing:2px;cursor:pointer">
+          <input type="checkbox" id="autoBetCheck" style="vertical-align:middle"> 🤖 AUTO-BET (re-place this bet every match · max 50 · cancels on broke)
+        </label>
+      </div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn" id="gambleBack" style="flex:1">← BACK</button>
         <button class="btn hot" id="gamblePlace" style="flex:2;font-size:16px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900" disabled>🎲 PLACE BET &amp; GO →</button>
