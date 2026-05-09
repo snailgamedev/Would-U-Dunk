@@ -9205,6 +9205,14 @@ class MatchScene extends Phaser.Scene {
       // 🆕 v3.5.0 — replay frame capture for big plays
       if (typeof captureReplayFrame === 'function') captureReplayFrame(this, zoneLabel || `+${points}`);
     }
+    // 🎬 v3.10.0 — scoreboard pulse · game-winning slowmo · big-points particle burst
+    if (typeof pulseScoreboard === 'function') pulseScoreboard(scorerIdx, points);
+    if (typeof fireGameWinningSlowmo === 'function') fireGameWinningSlowmo(this, scorerIdx, points);
+    if (points >= 3 && typeof dunkParticleBurst === 'function'){
+      const player = scorerIdx === 0 ? this.p1 : this.p2;
+      const color = scorerIdx === 0 ? '#ff3b3b' : '#4f9eff';
+      dunkParticleBurst(this, player.x, player.y - 50, color);
+    }
     // 🆕 v3.0.0 — ASCENSION · COMBO NAME ENGINE — escalating popups for both sides
     if (typeof fireComboName === 'function') fireComboName(this, scorerIdx, State.bucketStreak[scorerIdx]);
     // 🆕 v3.0.0 — ASCENSION · CROWD REACTION strings on big plays
