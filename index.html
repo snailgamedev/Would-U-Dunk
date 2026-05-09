@@ -6283,10 +6283,15 @@ function placeBet(typeId, wager, opts){
   // 🆕 v3.0.0 — COMEBACK KID (3+ recent losses → next gets +0.5 sympathy mult)
   const recentLosses = hist.slice(-3).every(h => !h.won);
   if (hist.length >= 3 && recentLosses) mult += 0.5;
+  // 💎 v3.15.0 — VIP boost + card boost stack
+  if (typeof vipBetBoost === 'function') mult *= vipBetBoost();
+  if (typeof cardBetBoost === 'function') mult *= cardBetBoost();
   State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult, payout: Math.round(wager * mult), confidence: !!(opts && opts.confidence), bonus: mult - t.mult };
   // 🏅 v3.13.0 — bet-size achievements
   if (wager >= 1000 && typeof unlockAchievement === 'function') unlockAchievement('first_1k_bet');
   if (wager >= 10000 && typeof unlockAchievement === 'function') unlockAchievement('first_10k_bet');
+  // 🎯 v3.15.0 — wager challenge tick on big bets
+  if (wager >= 5000 && typeof tickWagerChallenge === 'function') tickWagerChallenge('bigBet', wager);
   return true;
 }
 function resolveBet(){
