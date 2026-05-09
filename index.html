@@ -3579,6 +3579,7 @@ function showHalftimeBreakdownIfDue(scene){
   if (typeof fireAutoVerse === 'function') fireAutoVerse(scene, 'halftime');
   // banner
   let banner = document.createElement('div');
+  banner.setAttribute('data-halftime-banner', '1');
   banner.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9000;padding:18px 28px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;font-weight:900;letter-spacing:3px;font-size:14px;text-align:center;max-width:420px';
   banner.innerHTML = `
     <div style="font-size:18px;color:#000">⏱ HALFTIME · ROUND ${State.roundIdx}</div>
@@ -3586,9 +3587,15 @@ function showHalftimeBreakdownIfDue(scene){
     <div style="margin-top:8px;font-size:11px;letter-spacing:2px;color:#000c">P1 ${myPts}-${oppPts} P2 · dunks ${ms[0]?.dunks||0}-${ms[1]?.dunks||0} · blocks ${ms[0]?.blocks||0}-${ms[1]?.blocks||0}</div>
     <div style="margin-top:8px;font-size:10px;color:#000a">tap to dismiss</div>`;
   banner.style.cursor = 'pointer';
-  banner.onclick = () => banner.remove();
+  // 🩹 v3.9.0 — track timer so cleanup is guaranteed
+  let _halftimeTimer = null;
+  const removeBanner = () => {
+    if (_halftimeTimer){ clearTimeout(_halftimeTimer); _halftimeTimer = null; }
+    if (banner.parentNode) banner.remove();
+  };
+  banner.onclick = removeBanner;
   document.body.appendChild(banner);
-  setTimeout(() => banner.parentNode && banner.remove(), 4500);
+  _halftimeTimer = setTimeout(removeBanner, 4500);
 }
 
 // 🆕 v3.4.0 — ENDORSEMENT DEALS for MyCareer
