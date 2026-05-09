@@ -14815,6 +14815,16 @@ function renderMyTeamScreen(){
       <button class="btn" id="myTeamBack" style="width:100%">← BACK</button>
     </div>`;
   document.getElementById('myTeamBack').onclick = showSplash;
+  // 🃏 v3.16.0 — card equip wire
+  document.querySelectorAll('.cardEquip').forEach(b => b.onclick = () => {
+    const key = b.dataset.cardkey;
+    if (loadEquippedBoostCard() === key){
+      clearEquippedBoostCard();
+    } else {
+      setEquippedBoostCard(key);
+    }
+    renderMyTeamScreen();
+  });
 }
 
 // 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER full screen
