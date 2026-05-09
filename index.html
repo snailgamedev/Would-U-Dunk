@@ -6273,17 +6273,9 @@ function checkWealthTierPromotion(){
   if (prev !== tier.id){
     try { localStorage.setItem(`wud:wealthTier:${currentProfileName()}`, tier.id); } catch(e){}
     if (prev !== null && prev !== 'rookie' && prev !== tier.id){
-      // Promotion!
-      if (typeof showToast === 'function') showToast(`${tier.label} · WEALTH TIER UP`, 'level');
-      if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger('victory');
-      try {
-        const banner = document.createElement('div');
-        banner.style.cssText = `position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;padding:20px 30px;background:linear-gradient(135deg,${tier.color}88,#fff,${tier.color});border:3px solid ${tier.color};border-radius:14px;color:#000;font-weight:900;letter-spacing:3px;text-align:center;box-shadow:0 0 40px ${tier.color};cursor:pointer`;
-        banner.innerHTML = `<div style="font-size:36px">${tier.label}</div><div style="font-size:12px;margin-top:8px">WEALTH TIER UP · grace upon grace</div>`;
-        banner.onclick = () => banner.remove();
-        document.body.appendChild(banner);
-        setTimeout(() => banner.parentNode && banner.remove(), 5000);
-      } catch(e){}
+      // 🎬 v3.17.0 — full cinematic instead of small banner
+      if (typeof showTierUpCinematic === 'function') showTierUpCinematic(tier);
+      else if (typeof showToast === 'function') showToast(`${tier.label} · WEALTH TIER UP`, 'level');
     }
   }
 }
