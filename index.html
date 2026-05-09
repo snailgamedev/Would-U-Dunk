@@ -6337,6 +6337,12 @@ function resolveBet(){
     if (typeof showToast === 'function') setTimeout(() => showToast(`💰 +$${payout} RECEIVED · cash now $${loadCash()}`, 'level'), 600);
     // 🏅 v3.13.0 — big-winner achievement
     if (payout >= 10000 && typeof unlockAchievement === 'function') unlockAchievement('big_winner');
+    // 🎯 v3.15.0 — wager challenge tick on win
+    if (typeof tickWagerChallenge === 'function') tickWagerChallenge('win', payout);
+  } else {
+    // 🎰 v3.15.0 — losing bet feeds the jackpot pool (3% of wager)
+    if (typeof addToJackpot === 'function') addToJackpot(bet.wager);
+    if (typeof tickWagerChallenge === 'function') tickWagerChallenge('loss', 0);
   }
   const hist = loadGambleHistory();
   hist.push({ at:Date.now(), type:bet.type, label:bet.label, icon:bet.icon, wager:bet.wager, mult:bet.mult, payout, won, myPts, oppPts });
