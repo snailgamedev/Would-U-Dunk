@@ -11822,8 +11822,13 @@ function showSplash(){
   // 🆕 v3.5.0 — Card Trading · Walkout Recorder
   const btnCardTrade = document.getElementById('btnCardTrade');
   if (btnCardTrade) btnCardTrade.onclick = renderCardTradingScreen;
-  const btnWalkout = document.getElementById('btnWalkout');
-  if (btnWalkout) btnWalkout.onclick = renderWalkoutRecorderScreen;
+  const btnWalkoutMix = document.getElementById('btnWalkoutMix');
+  if (btnWalkoutMix) btnWalkoutMix.onclick = renderWalkoutMixerScreen;
+  // 🆕 v3.6.0 — Replay Viewer + Faith HoF
+  const btnReplayView = document.getElementById('btnReplayView');
+  if (btnReplayView) btnReplayView.onclick = renderReplayViewerScreen;
+  const btnFaithHoF = document.getElementById('btnFaithHoF');
+  if (btnFaithHoF) btnFaithHoF.onclick = renderFaithHoFScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
