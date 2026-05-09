@@ -8668,6 +8668,18 @@ const Online = {
       this.chatLog.push({ from:'opp', text:msg.text, at:Date.now() });
       if (typeof showToast === 'function') showToast(`💬 OPP: ${msg.text}`, 'level');
     }
+    // 🆕 v3.23.0 — spectator hello
+    else if (msg.type === 'spec_hello'){
+      if (typeof showToast === 'function') showToast('👁 SPECTATOR JOINED', 'level');
+    }
+    // 🆕 v3.23.0 — sync music start
+    else if (msg.type === 'musicStart'){
+      try { if (typeof MUSIC !== 'undefined') MUSIC.start(msg.track || 'menu'); } catch(e){}
+    }
+    // 🆕 v3.23.0 — prayer huddle from peer
+    else if (msg.type === 'huddle'){
+      if (typeof showToast === 'function') showToast('🙏 OPPONENT INVITED YOU TO HUDDLE — tap chat to join', 'level');
+    }
   },
   // 🆕 v3.22.0 — CAEE helpers
   sendPos(x, y, vx, vy){
