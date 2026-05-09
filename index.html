@@ -10705,9 +10705,20 @@ function renderShopScreen(){
     }).join('');
     return `<div style="margin-top:12px"><div style="color:var(--gold);font-size:11px;letter-spacing:3px;font-weight:900;margin-bottom:4px">${cat === 'BALL'?'🏀':cat==='COURT'?'🏟':cat==='TRAIL'?'☄️':cat==='CELEB'?'🎉':'🏅'} ${cat}</div>${rows}</div>`;
   }).join('');
-  openModal(`🛒 COSMETICS SHOP · 💰 $${cash}`,
+  // 🆕 v3.4.0 — DAILY DEALS banner + WISHLIST link
+  const deals = (typeof dailyDeals === 'function') ? dailyDeals() : [];
+  const wl = (typeof loadWishlist === 'function') ? loadWishlist() : [];
+  const dailyDealsHtml = deals.length ? `
+    <div style="margin-bottom:10px;padding:10px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:2px solid #fff;border-radius:8px;color:#000">
+      <div style="font-size:12px;font-weight:900;letter-spacing:3px;margin-bottom:6px">🎁 DAILY DEALS · resets midnight</div>
+      ${deals.map(d => `<div style="font-size:11px;letter-spacing:1px;margin:3px 0">• <b>${d.item.icon} ${d.item.name}</b> · <span style="color:#3d1a1a;font-weight:900">${d.discount}% OFF</span> · was $${d.item.price} · now $${Math.round(d.item.price * (1 - d.discount/100))}</div>`).join('')}
+    </div>` : '';
+  const wlHtml = wl.length ? `<div style="margin-bottom:10px;padding:8px;background:#0008;border:1px dashed #ff66cc;border-radius:6px;color:#ff66cc;font-size:11px;letter-spacing:2px">💝 ${wl.length} on wishlist · alerted when on Daily Deals</div>` : '';
+  openModal(`🛒 COSMETICS SHOP · 💰 $${cash} · 💎 ${(typeof loadGems === 'function') ? loadGems() : 0}`,
     `<div style="font-size:13px;color:#fff;margin-bottom:6px">Earn cash by scoring buckets ($5/pt). Purchases persist per profile.</div>
      <div style="font-size:11px;color:#ffd76e;background:#0008;border:1px solid #ffd76e44;border-radius:6px;padding:6px 10px;margin-bottom:10px">💡 Equipped cosmetics apply on the next match start.</div>
+     ${dailyDealsHtml}
+     ${wlHtml}
      <div style="max-height:55vh;overflow-y:auto">${sections}</div>`);
   // 🆕 v2.13.3 — paint each ball preview canvas with its actual skin draw fn
   document.querySelectorAll('[data-ballpreview]').forEach(cv => {
