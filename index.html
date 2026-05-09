@@ -8794,6 +8794,7 @@ function renderMpOverlay(){
   const stateLabel = Online.isSpectator ? '👁 SPEC' : (Online.isHost ? '🏠 HOST' : '🚪 GUEST');
   const chatHtml = (Online.chatLog || []).slice(-5).map(c => `<div style="margin:2px 0;color:${c.from==='me'?'#9cf':'#fc9'}"><b>${c.from==='me'?'me':'opp'}:</b> ${(c.text||'').replace(/[<>]/g,'')}</div>`).join('') || '<div style="opacity:.5">no messages yet · say hi 👋</div>';
   wrap.innerHTML = `
+    <div id="mpPill" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px">📡</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <span style="font-weight:900">${stateLabel} · ${Online.code||'—'}</span>
       <span style="background:${pingColor};color:#000;padding:2px 6px;border-radius:6px;font-weight:900">${Online.ping||'—'}ms</span>
