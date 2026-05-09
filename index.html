@@ -14349,6 +14349,25 @@ function renderGambleScreen(){
       saveAutoBetState({ active: true, count: 0, type: pickedType, wager: pickedWager, confidence: conf });
       if (typeof showToast === 'function') showToast('🤖 AUTO-BET ENABLED · re-places after each match', 'level');
     }
+  };
+  // 🎁 v3.15.0 — MYSTERY WAGER button wire
+  const mwBtn = document.getElementById('mysteryWagerBtn');
+  if (mwBtn) mwBtn.onclick = () => {
+    if (typeof placeMysteryWager === 'function'){
+      const result = placeMysteryWager();
+      if (result){
+        // route to play
+        State.modeId = '5x5';
+        State.mode = 'CPU';
+        State.looks[1] = rollRandomLook(1);
+        setTimeout(() => startMatch(), 220);
+      } else {
+        if (typeof showToast === 'function') showToast('💸 NEED $50 FOR MYSTERY WAGER', 'allpro');
+      }
+    }
+    return;   // dummy to avoid duplicate close-brace
+  };
+  // helper: shadow the original closing of the placeBtn closure
     const t = BET_TYPES.find(b => b.id === pickedType);
     const msg = State._activeBet.bonus > 0 ? ` (+${(State._activeBet.bonus).toFixed(2)}x bonus)` : '';
     showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → $${State._activeBet.payout}${msg}`, 'level');
