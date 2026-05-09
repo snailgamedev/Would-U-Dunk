@@ -9158,11 +9158,27 @@ class MatchScene extends Phaser.Scene {
     else                      { zoneVal = 2; zoneLabel = '2 PTS'; }
     let points = zoneVal * scoreMul;
     // 🆕 v3.0.0 — PERFECT RELEASE bonus +1 + GREEN BUCKET popup
+    // 🟢 v3.11.0 — green-streak counter + lifetime tracking + clear guaranteed flag
     if (ball.getData('perfectRelease')){
       points += 1;
       const t = this.add.text(hoop.x, hoop.y - 60, '+1 GREEN', {fontFamily:'monospace', fontSize:16, color:'#4cf07a', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
       this.tweens.add({ targets:t, y:t.y - 40, alpha:0, duration:1100, onComplete:()=>t.destroy() });
       ball.setData('perfectRelease', false);
+      ball.setData('guaranteedMake', false);
+      // Green streak tracking
+      State._greenStreak = (State._greenStreak || 0) + 1;
+      if (typeof bumpRecord === 'function') bumpRecord('greenLifetime', (loadRecords().greenLifetime || 0) + 1);
+      const gs = State._greenStreak;
+      if (gs === 3 && scorerIdx === 0){ awardCash(25);  if (typeof showToast === 'function') showToast('🔥 PURE SHOOTER · 3 GREEN · +$25', 'level'); }
+      else if (gs === 5 && scorerIdx === 0){ awardCash(75);  if (typeof showToast === 'function') showToast('🎯 SNIPER MODE · 5 GREEN · +$75', 'level'); }
+      else if (gs === 10 && scorerIdx === 0){ awardCash(200); if (typeof showToast === 'function') showToast('🌟 PROPHET · 10 GREEN · +$200 · "He delights in pure form"', 'level'); }
+      // PURE FORM achievement (50 lifetime greens)
+      if (typeof loadRecords === 'function' && (loadRecords().greenLifetime || 0) >= 50 && typeof unlockAchievement === 'function'){
+        try { unlockAchievement('pure_form'); } catch(e){}
+      }
+    } else {
+      // Reset green streak on non-green make
+      State._greenStreak = 0;
     }
     // FAST BREAK — bonus +1 if you scored within 2s of pickup
     const pickupAt = ball.getData('pickupAt') || 0;
