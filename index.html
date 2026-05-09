@@ -8502,6 +8502,61 @@ const Online = {
       const scene = (typeof game !== 'undefined' && game.scene && game.scene.getScene && game.scene.getScene('Match'));
       if (scene && scene.popEmote && scene.p2){ scene.popEmote(scene.p2, msg.emoji); }
     }
+    // 🆕 v3.22.0 — CAEE: position broadcast (smoother sync)
+    else if (msg.type === 'pos'){
+      this.remotePos = { x: msg.x, y: msg.y, vx: msg.vx || 0, vy: msg.vy || 0, lastUpdate: Date.now() };
+    }
+    // 🆕 v3.22.0 — host broadcasts ball authoritative state
+    else if (msg.type === 'ball'){
+      this.remoteBall = { x: msg.x, y: msg.y, vx: msg.vx, vy: msg.vy, held: msg.held, lastUpdate: Date.now() };
+    }
+    // 🆕 v3.22.0 — ping handshake
+    else if (msg.type === 'ping'){ this.send({ type:'pong', t: msg.t }); }
+    else if (msg.type === 'pong'){
+      this.ping = Date.now() - msg.t;
+    }
+    // 🆕 v3.22.0 — heartbeat (detect disconnect)
+    else if (msg.type === 'hb'){ this.lastHeartbeat = Date.now(); }
+    // 🆕 v3.22.0 — ready up
+    else if (msg.type === 'ready'){ this.remoteReady = !!msg.value; if (typeof showToast === 'function') showToast(`👍 OPPONENT ${msg.value?'READY':'NOT READY'}`, 'level'); }
+    // 🆕 v3.22.0 — lobby chat
+    else if (msg.type === 'chat'){
+      this.chatLog.push({ from:'opp', text:msg.text, at:Date.now() });
+      if (typeof showToast === 'function') showToast(`💬 OPP: ${msg.text}`, 'level');
+    }
+  },
+  // 🆕 v3.22.0 — CAEE helpers
+  sendPos(x, y, vx, vy){
+    if (this.connected) this.send({ type:'pos', x, y, vx, vy });
+  },
+  sendBall(x, y, vx, vy, held){
+    if (this.connected && this.isHost) this.send({ type:'ball', x, y, vx, vy, held });
+  },
+  sendChat(text){
+    if (!text) return;
+    this.chatLog.push({ from:'me', text, at:Date.now() });
+    this.send({ type:'chat', text });
+  },
+  setReady(v){
+    this.ready = !!v;
+    this.send({ type:'ready', value: this.ready });
+  },
+  startHeartbeat(){
+    if (this._hbInterval) return;
+    this.lastHeartbeat = Date.now();
+    this._hbInterval = setInterval(() => {
+      if (!this.connected) return;
+      this.send({ type:'hb' });
+      this.lastPingAt = Date.now();
+      this.send({ type:'ping', t: Date.now() });
+      // detect disconnect (no heartbeat in 8s)
+      if (Date.now() - this.lastHeartbeat > 8000){
+        if (typeof showToast === 'function') showToast('⚠ OPPONENT TIMEOUT · checking conn', 'allpro');
+      }
+    }, 2000);
+  },
+  stopHeartbeat(){
+    if (this._hbInterval){ clearInterval(this._hbInterval); this._hbInterval = null; }
   },
   closeAll(){
     try { if (this.conn) this.conn.close(); if (this.peer) this.peer.destroy(); } catch(e){}
