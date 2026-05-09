@@ -484,90 +484,19 @@
     <div style="font-size:9px;letter-spacing:4px;color:#ff8a3c;margin-top:4px;font-weight:900">a basketball fan's best dream · a non-fan's worst nightmare</div>
     <div class="verse" id="splashVerse">"For I know the plans I have for you" — Jer 29:11 🙏</div>
     <div id="splashLvlBar"></div>
-    <button class="btn hot" id="btnPlay" style="font-size:18px;padding:13px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c,#ffd76e);border:3px solid #ffd76e;box-shadow:0 0 30px #ff8a3c66,inset 0 0 18px #ffd76e44">🏀 TAP TO BALL UP 🏀</button>
-    <!-- 🆕 v2.10.0 — featured big modes promoted to top -->
+    <button class="btn hot" id="btnPlay" style="font-size:20px;padding:18px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c,#ffd76e);border:3px solid #ffd76e;box-shadow:0 0 30px #ff8a3c66,inset 0 0 18px #ffd76e44;letter-spacing:3px">🏀 TAP TO BALL UP 🏀</button>
+    <!-- 🆕 v3.8.0 — HUB REDESIGN · 4 categories · all original buttons preserved in sub-screens -->
+    <div class="row" style="margin-top:10px">
+      <button class="btn hot" id="btnHubPlay" style="flex:1;font-size:15px;padding:16px;background:linear-gradient(135deg,#ff3b3b,#ff8a3c);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #ff3b3b44">🏀 PLAY</button>
+      <button class="btn hot" id="btnHubProgress" style="flex:1;font-size:15px;padding:16px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #4f9eff44">🏆 PROGRESS</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn hot" id="btnHubEconomy" style="flex:1;font-size:15px;padding:16px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #4cf07a44">🛒 ECONOMY</button>
+      <button class="btn hot" id="btnHubMore" style="flex:1;font-size:15px;padding:16px;background:linear-gradient(135deg,#7a5a14,#ffd76e);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #ffd76e44">⚙ MORE</button>
+    </div>
+    <!-- ✝️ GOSPEL stays prominent · always one tap away -->
     <div class="row" style="margin-top:8px">
-      <button class="btn hot" id="btnFranchise" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);border-color:#ffd76e;color:#fff;box-shadow:0 4px 14px #4f9eff44">🏆 FRANCHISE</button>
-      <button class="btn hot" id="btnTournament" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#9b59b6,#ff3b3b,#ffd76e);border-color:#ffd76e;color:#fff;box-shadow:0 4px 14px #9b59b644">⚔️ TOURNAMENT</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnSurprise" style="font-size:14px;padding:11px;background:linear-gradient(135deg,#a040ff,#ff3b3b,#ffd76e);border-color:#ffd76e;box-shadow:0 4px 14px #a040ff44">🎲 SURPRISE ME — RANDOM EVERYTHING</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnShop" style="font-size:13px;padding:10px;background:linear-gradient(135deg,#4cf07a,#ffd76e);border-color:#ffd76e;color:#000;font-weight:900">🛒 SHOP — SPEND YOUR CASH</button>
-      <button class="btn" id="btnDaily" style="font-size:13px;padding:10px;background:linear-gradient(135deg,#4f9eff,#a040ff);border-color:#ffd76e;color:#fff;font-weight:900">📅 DAILY</button>
-      <button class="btn" id="btnRules" style="font-size:13px;padding:10px;background:linear-gradient(135deg,#ff8a3c,#ff3b3b);border-color:#ffd76e;color:#fff;font-weight:900">⚙ RULES</button>
-    </div>
-    <!-- 🆕 v2.26.0 — GAMBLE + WATCH (CPU vs CPU spectator) -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnGamble" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #4cf07a44">🎰 GAMBLE — BET YOUR $CASH</button>
-      <button class="btn hot" id="btnWatch" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c,#ffd76e);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px;box-shadow:0 4px 14px #ff8a3c44">🎬 WATCH — CPU vs CPU</button>
-    </div>
-    <!-- 🆕 v2.19.2 — GOSPEL — the Good News, always one tap away -->
-    <div class="row" style="margin-top:6px">
       <button class="btn hot" id="btnGospel" style="font-size:14px;padding:12px;background:linear-gradient(135deg,#1a0e02 0%,#7a5a14 50%,#ffd76e 100%);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:3px;box-shadow:0 0 24px #ffd76e66">✝️ THE GOOD NEWS · GOSPEL</button>
-    </div>
-    <!-- 🆕 v2.21.0 — PRAISE RADIO 12s worship interlude -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnPraiseRadio" style="font-size:13px;padding:10px;background:linear-gradient(135deg,#7a5a14,#ffd76e,#7a5a14);border:2px solid #ffd76e;color:#1a0e02;font-weight:900;letter-spacing:2px">🪗 PRAISE RADIO · 12-SEC INTERLUDE</button>
-    </div>
-    <!-- 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER + ASCENSION new mode buttons -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnFaithCorner" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px;box-shadow:0 0 24px #ffd76e66">🙏 FAITH CORNER · DEVOTIONAL</button>
-      <button class="btn hot" id="btnSkills" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px">🎯 SKILLS CHALLENGE</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnChill" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900">😴 CHILL MODE · NO PRESSURE</button>
-      <button class="btn" id="btnHallOfFame" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">🏛 HALL OF FAME</button>
-      <button class="btn" id="btnRecords" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d1a3d,#a040ff);color:#fff;font-weight:900">📊 RECORDS</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnTitles" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#7a5a14,#ffd76e);color:#000;font-weight:900">👑 TITLES</button>
-      <button class="btn" id="btnPrestige" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);color:#000;font-weight:900">⭐ PRESTIGE</button>
-      <button class="btn" id="btnMyTeam" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#0f52ba,#b9f2ff);color:#000;font-weight:900">🃏 MyTEAM</button>
-    </div>
-    <!-- 🆕 v3.2.0 — anti-boredom row: mystery box · unlock chains · daily -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnMystery" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;color:#000;font-weight:900;letter-spacing:2px;box-shadow:0 0 20px #ffd76e88">🎁 MYSTERY BOX</button>
-      <button class="btn hot" id="btnUnlocks" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#3d1a3d,#a040ff,#ffd76e);border:3px solid #ffd76e;color:#fff;font-weight:900;letter-spacing:2px">🔓 UNLOCK CHAINS</button>
-    </div>
-    <!-- 🆕 v3.3.0 — OPERATION FILL THE GAPS — MyCareer · Battle Pass · Themes · Hot Zones · Rivalries · Keyboard -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnMyCareer" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px">🎓 MyCAREER</button>
-      <button class="btn hot" id="btnBattlePass" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#7a5a14,#ffd76e,#ff66cc);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px">🎟 BATTLE PASS</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnThemes" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#a040ff,#ff66cc,#ffd76e);color:#000;font-weight:900">🎨 THEMES</button>
-      <button class="btn" id="btnHotZones" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">🔥 HOT ZONES</button>
-      <button class="btn" id="btnRivalries" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#1a0e02,#7a5a14);color:#ffd76e;font-weight:900">⚔ RIVALS</button>
-      <button class="btn" id="btnKeyboard" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#000,#222);color:#4cf07a;font-weight:900">⌨ KEYS</button>
-    </div>
-    <!-- 🆕 v3.4.0 — Daily Variety · Highlights · Spectator Hall · Pack Opening -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnDailyVariety" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);color:#000;font-weight:900">🌅 DAILY</button>
-      <button class="btn hot" id="btnHighlights" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d2c1a,#ffd76e);color:#000;font-weight:900">📸 HIGHLIGHTS</button>
-      <button class="btn hot" id="btnSpectatorHall" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">🏛 SPEC HALL</button>
-      <button class="btn hot" id="btnPackOpen" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#0f52ba,#b9f2ff,#fff);color:#000;font-weight:900">🃏 PACKS</button>
-    </div>
-    <!-- 🆕 v3.5.0 — Card Trading · Walkout Recorder -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn" id="btnCardTrade" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d1a3d,#a040ff);color:#fff;font-weight:900">🃏 TRADE CARDS</button>
-      <button class="btn" id="btnWalkoutMix" style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">🎤 WALKOUT MIX</button>
-    </div>
-    <!-- 🆕 v3.6.0 — Replay Viewer · Faith HoF -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnReplayView" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#fff);border:3px solid #ffd76e;color:#000;font-weight:900;letter-spacing:2px">📺 REPLAY VIEWER</button>
-      <button class="btn hot" id="btnFaithHoF" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;color:#000;font-weight:900;letter-spacing:2px">🛐 FAITH HoF</button>
-    </div>
-    <!-- 🆕 v3.7.0 — Accessibility · Fullscreen · Install -->
-    <div class="row" style="margin-top:6px">
-      <button class="btn hot" id="btnAccessibility" style="flex:1;font-size:14px;padding:12px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#fff);border:3px solid #4cf07a;color:#000;font-weight:900;letter-spacing:2px">♿ ACCESSIBILITY</button>
-      <button class="btn" id="btnFullscreen" style="flex:1;font-size:13px;padding:10px;background:#000;color:#ffd76e;font-weight:900">⛶ FULLSCREEN</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button class="btn" id="btnStats" style="font-size:12px;padding:9px">📊 STATS</button>
-      <button class="btn" id="btnAch" style="font-size:12px;padding:9px">🏅 ACHIEVES</button>
-      <button class="btn" id="btnBoard" style="font-size:12px;padding:9px">📈 BOARD</button>
     </div>
     <div class="row" style="margin-top:4px">
       <button class="btn" id="btnHow" style="font-size:12px;padding:9px">🎮 HOW</button>
