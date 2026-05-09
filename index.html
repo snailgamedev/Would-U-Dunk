@@ -6504,6 +6504,11 @@ function resolveBet(){
       case 'rocket':       return (myPts > oppPts) && oppPts > 0 && myPts >= oppPts * 4;
       // 💎 DIAMOND BET — wins on perfect form
       case 'diamond':      return (myPts > oppPts) && (State._greenStreak || 0) >= 3 && (Career.currentStreak || 0) >= 3;
+      // 🎰 v3.16.0 — JACKPOT
+      case 'jackpot':      return (myPts > oppPts) && (typeof isDiamondVip === 'function' && isDiamondVip()) && (State.matchStats?.[0]?.attempts || 0) > 0 && (State.matchStats[0].attempts === State.matchStats[0].buckets);
+      // 💎 v3.16.0 — VIP-exclusive
+      case 'highroller':   return (myPts > oppPts) && (myPts - oppPts) >= 5 && (typeof currentVipTier === 'function' && ['gold','diamond'].includes(currentVipTier().id));
+      case 'ultra':        return (myPts > oppPts) && (typeof isDiamondVip === 'function' && isDiamondVip()) && (State.matchStats?.[0]?.attempts || 0) > 0 && (State.matchStats[0].attempts === State.matchStats[0].buckets);
     }
     return false;
   })();
