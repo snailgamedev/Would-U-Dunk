@@ -2068,6 +2068,8 @@ const GAME_MODES = [
   // 🆕 v2.7.0 — NBA FINALS-style series mode
   { id:'series',   name:'🏆 NBA FINALS',   desc:'Best-of-7 SERIES · win 4 games to take the trophy', rounds:7, roundLen:180, target:11, extraCfg:{ isSeries:true } },
   { id:'showtime', name:'🎬 SHOWTIME',     desc:'5 rounds · 60s · style points · highlight reel',     rounds:5, roundLen:60, target:8, extraCfg:{ showtime:true } },
+  // 🆕 v2.26.0 — CPU vs CPU spectator mode (sit back, both AI, perfect for the gamble)
+  { id:'cpu_vs_cpu', name:'🎬 CPU vs CPU',  desc:'sit back · grab popcorn · BOTH teams AI · gamble approved', rounds:3, roundLen:120, target:11, extraCfg:{ cpuVsCpu:true, spectator:true } },
 ];
 const MODE_BY_ID = Object.fromEntries(GAME_MODES.map(m => [m.id, m]));
 
