@@ -9710,6 +9710,12 @@ function showSplash(){
   if (btnHallOfFame) btnHallOfFame.onclick = renderHallOfFameScreen;
   const btnRecords = document.getElementById('btnRecords');
   if (btnRecords) btnRecords.onclick = renderRecordsScreen;
+  const btnTitles = document.getElementById('btnTitles');
+  if (btnTitles) btnTitles.onclick = renderTitlePickerScreen;
+  const btnPrestige = document.getElementById('btnPrestige');
+  if (btnPrestige) btnPrestige.onclick = renderPrestigeScreen;
+  const btnMyTeam = document.getElementById('btnMyTeam');
+  if (btnMyTeam) btnMyTeam.onclick = renderMyTeamScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
