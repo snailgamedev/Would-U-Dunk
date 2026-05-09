@@ -2122,6 +2122,55 @@ const STADIUM_TIERS = [
 function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
 function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
+
+// 🆕 v2.26.0 — GAMBLE / BETTING engine
+const BET_TYPES = [
+  { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
+  { id:'margin',  label:'WIN BY 5+',           desc:'P1 wins by 5 or more',                       mult:3.0, icon:'📏' },
+  { id:'first',   label:'FIRST TO SCORE',      desc:'P1 puts up the first basket of the match',   mult:2.2, icon:'⚡' },
+  { id:'thirty',  label:'30+ PERSONAL PTS',    desc:'P1 totals 30+ points across the whole match', mult:4.0, icon:'🔥' },
+  { id:'logo',    label:'LOGO SPLASH',         desc:'P1 sinks at least one 5pt logo shot',         mult:8.0, icon:'🌍' },
+  { id:'sweep',   label:'SHUTOUT (SWEEP)',     desc:'P2 ends the match with 0 points',             mult:3.5, icon:'🚿' },
+];
+function loadGambleHistory(){
+  try { return JSON.parse(localStorage.getItem(`wud:gambleHistory:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
+}
+function saveGambleHistory(arr){
+  try { localStorage.setItem(`wud:gambleHistory:${currentProfileName()}`, JSON.stringify(arr.slice(-50))); } catch(e){}
+}
+function placeBet(typeId, wager){
+  const t = BET_TYPES.find(b => b.id === typeId);
+  if (!t) return false;
+  if (wager <= 0) return false;
+  if (!spendCash(wager)) return false;
+  State._activeBet = { type:typeId, label:t.label, icon:t.icon, wager, mult:t.mult, payout: Math.round(wager * t.mult) };
+  return true;
+}
+function resolveBet(){
+  if (!State._activeBet) return null;
+  const bet = State._activeBet;
+  State._activeBet = null;
+  const myPts = State.matchPoints?.[0] || 0;
+  const oppPts = State.matchPoints?.[1] || 0;
+  const margin = myPts - oppPts;
+  const won = (() => {
+    switch(bet.type){
+      case 'win':    return myPts > oppPts;
+      case 'margin': return margin >= 5;
+      case 'first':  return State._firstScorer === 0;
+      case 'thirty': return myPts >= 30;
+      case 'logo':   return !!State._p1LogoMade;
+      case 'sweep':  return oppPts === 0 && myPts > 0;
+    }
+    return false;
+  })();
+  const payout = won ? bet.payout : 0;
+  if (payout) awardCash(payout);
+  const hist = loadGambleHistory();
+  hist.push({ at:Date.now(), type:bet.type, label:bet.label, icon:bet.icon, wager:bet.wager, mult:bet.mult, payout, won, myPts, oppPts });
+  saveGambleHistory(hist);
+  return { won, payout, bet };
+}
 function spendCash(n){
   const cur = loadCash(); if (cur < n) return false;
   saveCash(cur - n);
