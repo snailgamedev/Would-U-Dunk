@@ -10232,6 +10232,50 @@ function awardCardOnWin(){
   return card;
 }
 
+// 🆕 v3.0.0 — ASCENSION · MyTEAM card-collection screen
+function renderMyTeamScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const team = loadMyTeam();
+  const tierCounts = {};
+  team.forEach(c => { tierCounts[c.tier] = (tierCounts[c.tier]||0) + 1; });
+  const tierRows = CARD_TIERS.map(t => {
+    const count = tierCounts[t.id] || 0;
+    return `<div style="display:flex;justify-content:space-between;padding:6px 10px;margin:3px 0;background:#0008;border-left:4px solid ${t.color};border-radius:4px">
+      <span style="color:${t.color};font-weight:900;letter-spacing:2px;text-shadow:0 0 8px ${t.glow}">${t.name}</span>
+      <span style="color:#fff">${count}</span>
+    </div>`;
+  }).join('');
+  const cards = team.slice(-30).reverse().map(c => {
+    const t = CARD_TIERS.find(x => x.id === c.tier);
+    return `<div style="display:inline-block;width:120px;margin:6px;padding:10px;background:linear-gradient(135deg,${t.color}33,#000);border:2px solid ${t.color};border-radius:8px;text-align:center;box-shadow:0 0 14px ${t.glow}">
+      <div style="font-size:9px;color:${t.color};letter-spacing:2px;font-weight:900">${t.name}</div>
+      <div style="font-size:11px;color:#fff;margin-top:6px;font-weight:900">${c.name}</div>
+      <div style="font-size:9px;color:#aab;margin-top:4px;text-transform:uppercase">${c.arch || 'baller'}</div>
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:760px">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#0f52ba,#b9f2ff,#fff);-webkit-background-clip:text;background-clip:text;color:transparent">🃏 MyTEAM</div>
+      <div class="subtitle" style="text-align:center">${team.length} cards collected · earn more by winning</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0">
+        <div>
+          <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">📊 BY TIER</div>
+          ${tierRows}
+        </div>
+        <div>
+          <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">🎁 RECENT PULLS</div>
+          <div style="max-height:340px;overflow-y:auto;text-align:center">${cards || '<div style="color:#aab;padding:20px">no cards yet · win matches to earn</div>'}</div>
+        </div>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px dashed #ffd76e;border-radius:8px;text-align:center;color:#aab;font-size:11px">
+        💡 every match win earns 1 random card · drop rates favor lower tiers · INVINCIBLE = 0.1% chance<br>
+        ✝️ "build one another up" — 1 Thess 5:11
+      </div>
+      <button class="btn" id="myTeamBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('myTeamBack').onclick = showSplash;
+}
+
 // 🆕 v3.0.0 — HOLY GROUND · FAITH CORNER full screen
 function renderFaithCornerScreen(){
   if (typeof musicForScreen === 'function') musicForScreen('worship');
