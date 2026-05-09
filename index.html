@@ -13026,6 +13026,17 @@ class MatchScene extends Phaser.Scene {
     tier.moveMul /= tiers.length; tier.accuracy /= tiers.length;
     tier.react /= tiers.length; tier.stealRate /= tiers.length;
     tier.shootRange /= tiers.length;
+    // 🆕 v3.23.0 — adaptive difficulty mult applied per-tick (only to human-vs-CPU · not CPU-vs-CPU)
+    try {
+      if (typeof Adapt !== 'undefined' && p && p !== this.p1){
+        const am = Adapt.getMult();
+        tier.moveMul   *= am;
+        tier.accuracy  = Math.min(1, tier.accuracy * am);
+        tier.stealRate = Math.min(1, tier.stealRate * am);
+        // react is INVERSE (lower = better) → divide
+        tier.react = Math.max(0.02, tier.react / am);
+      }
+    } catch(e){}
 
     // 🆕 v2.7.3 — collect NPC archetypes powering this CPU. Drives DECISION-style behavior modulation.
     // 🆕 v2.10.0 — also include base archetype ID so trait-prefixed combos (e.g. "veteran_sniper") still detect as 'sniper'
