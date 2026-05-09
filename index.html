@@ -4145,7 +4145,7 @@ function renderWalkoutRecorderScreen(){
   if (has){
     document.getElementById('woPlay').onclick = () => { if (!playWalkoutClip()) showToast('couldn\'t play', 'allpro'); };
     document.getElementById('woDel').onclick = () => {
-      if (confirm('Delete walkout clip?')){ deleteWalkoutClip(); renderWalkoutRecorderScreen(); }
+      inGameConfirm('Delete walkout clip?').then(ok => { if (ok){ deleteWalkoutClip(); renderWalkoutRecorderScreen(); } });
     };
   }
 }
