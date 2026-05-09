@@ -8592,7 +8592,9 @@ const Online = {
   host(){
     if (typeof Peer === 'undefined') return showToast('PeerJS not loaded — check connection', 'allpro');
     this.code = this.randomCode();
+    this.lastCode = this.code;   // 🆕 v3.23.0
     this.isHost = true;
+    this.isSpectator = false;    // 🆕 v3.23.0
     this.peer = new Peer('wud-' + this.code);
     this.peer.on('open', () => {
       showToast(`HOSTING · ROOM ${this.code}`, 'level');
