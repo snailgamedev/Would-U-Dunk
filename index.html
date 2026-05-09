@@ -6433,6 +6433,11 @@ const BET_TYPES = [
   { id:'rocket',     label:'ROCKET',           desc:'P1 finishes w/ 4× the opp pts',                 mult:7.0, icon:'🚀' },
   // 💎 v3.14.0 — DIAMOND BET · ultimate · only when 5+ green-streak AND 3+ win streak
   { id:'diamond',    label:'💎 DIAMOND BET',   desc:'requires green-streak 5+ AND win-streak 3+ · 100x',  mult:100.0, icon:'💎' },
+  // 🎰 v3.16.0 — JACKPOT BET · perfect game + Diamond VIP · winner takes pool
+  { id:'jackpot',    label:'🎰 JACKPOT',       desc:'perfect game + win + Diamond VIP · WINS the entire jackpot pool', mult:1.0, icon:'🎰' },
+  // 💎 v3.16.0 — VIP exclusive bets
+  { id:'highroller', label:'🥇 HIGH ROLLER',   desc:'Gold+ VIP only · win + margin 5+ · 25x',          mult:25.0, icon:'🥇' },
+  { id:'ultra',      label:'💎 ULTRA WAGER',   desc:'Diamond VIP only · perfect game required · 50x',  mult:50.0, icon:'💎' },
 ];
 function loadGambleHistory(){
   try { return JSON.parse(localStorage.getItem(`wud:gambleHistory:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
