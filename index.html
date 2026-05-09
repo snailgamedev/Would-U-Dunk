@@ -9307,6 +9307,120 @@ function startSurpriseMatch(){
     startMatch();
   }, 1400);
 }
+
+// 🆕 v2.26.0 — CPU vs CPU spectator: random looks both sides, jump straight into the match
+function startCpuVsCpuMatch(){
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:radial-gradient(circle,#ff8a3c66,#000d);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#ffd76e;font-family:Bebas Neue,Impact,sans-serif;letter-spacing:6px;text-shadow:0 0 20px #ffd76e';
+  overlay.innerHTML = `<div style="font-size:72px">🎬</div><div style="font-size:36px;margin-top:20px">SPECTATOR MODE</div><div style="font-size:14px;margin-top:14px;color:#fff;opacity:0.85">BOTH TEAMS AI · GRAB POPCORN BOIIIII</div>`;
+  document.body.appendChild(overlay);
+  State.looks[0] = rollRandomLook(0);
+  State.looks[1] = rollRandomLook(1);
+  State.mode = 'CPU';        // keeps existing tier-roll path happy
+  State.modeId = 'cpu_vs_cpu';
+  setTimeout(() => {
+    overlay.style.transition = 'opacity 0.3s';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 320);
+    showToast(`🎬 CPU vs CPU · enjoy the show`, 'level');
+    startMatch();
+  }, 1400);
+}
+
+// 🆕 v2.26.0 — GAMBLE / BETTING screen
+function renderGambleScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const cash = loadCash();
+  const hist = loadGambleHistory().slice(-5).reverse();
+  let pickedType = null;
+  let pickedWager = Math.min(50, cash);
+  const histRows = hist.length
+    ? hist.map(h => `<tr><td style="padding:4px 6px">${h.icon}</td><td style="padding:4px 6px">${h.label}</td><td style="padding:4px 6px;color:${h.won?'#4cf07a':'#ff3b3b'}">${h.won?`+$${h.payout}`:`-$${h.wager}`}</td><td style="padding:4px 6px;color:#aab;font-size:10px">${h.myPts}-${h.oppPts}</td></tr>`).join('')
+    : `<tr><td colspan="4" style="padding:8px;color:#aab;text-align:center">no bets yet · place your first wager boi 💰</td></tr>`;
+  const betCards = BET_TYPES.map(t => `
+    <button class="betCard" data-bet="${t.id}" style="display:block;width:100%;text-align:left;padding:12px;margin:6px 0;background:#0008;border:2px solid #ffd76e44;border-radius:10px;color:#fff;cursor:pointer;font-family:inherit">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-size:24px">${t.icon}</span> <span style="font-weight:900;letter-spacing:2px;font-size:13px">${t.label}</span></div>
+        <div style="background:linear-gradient(135deg,#1a3d2c,#4cf07a);padding:4px 10px;border-radius:6px;color:#000;font-weight:900;font-size:14px">${t.mult}x</div>
+      </div>
+      <div style="font-size:11px;color:#aab;margin-top:4px;letter-spacing:1px">${t.desc}</div>
+    </button>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px;text-align:left">
+      <div class="title" style="font-size:30px;text-align:center;background:linear-gradient(135deg,#4cf07a,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🎰 GAMBLE</div>
+      <div class="subtitle" style="text-align:center">BET YOUR $CASH · WIN BIG · LOSE BIGGER</div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px dashed #ffd76e;border-radius:10px;text-align:center">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:4px">YOUR BANKROLL</div>
+        <div style="font-size:36px;font-weight:900;color:#4cf07a;text-shadow:0 0 14px #4cf07a88">$${cash.toLocaleString()}</div>
+      </div>
+      <div style="color:#ffd76e;font-size:12px;letter-spacing:3px;margin:10px 0 4px">PICK YA BET</div>
+      <div id="betList">${betCards}</div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:2px solid #ffd76e44;border-radius:10px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">WAGER AMOUNT · <span id="wagerLbl" style="color:#fff">$${pickedWager}</span></div>
+        <input type="range" id="wagerSlider" min="10" max="${Math.max(10, cash)}" step="10" value="${pickedWager}" style="width:100%;accent-color:#4cf07a">
+        <div style="display:flex;justify-content:space-between;margin-top:4px;color:#aab;font-size:10px"><span>$10 min</span><span>$${cash} max</span></div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn quickWager" data-amt="10" style="font-size:11px;padding:6px 10px">$10</button>
+          <button class="btn quickWager" data-amt="50" style="font-size:11px;padding:6px 10px">$50</button>
+          <button class="btn quickWager" data-amt="100" style="font-size:11px;padding:6px 10px">$100</button>
+          <button class="btn quickWager" data-amt="500" style="font-size:11px;padding:6px 10px">$500</button>
+          <button class="btn quickWager" data-amt="${cash}" style="font-size:11px;padding:6px 10px;background:linear-gradient(135deg,#3d1a1a,#ff3b3b);color:#fff;font-weight:900">ALL IN</button>
+        </div>
+      </div>
+      <div id="payoutPreview" style="margin:10px 0;padding:10px;background:linear-gradient(135deg,#1a3d2c44,#4cf07a22);border-radius:8px;text-align:center;color:#aab;font-size:13px;letter-spacing:2px;min-height:32px">↑ pick a bet to see payout</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" id="gambleBack" style="flex:1">← BACK</button>
+        <button class="btn hot" id="gamblePlace" style="flex:2;font-size:16px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900" disabled>🎲 PLACE BET &amp; PLAY →</button>
+      </div>
+      <div style="margin-top:18px;padding:10px;background:#0006;border:1px solid #ffd76e33;border-radius:8px">
+        <div style="color:#ffd76e;font-size:10px;letter-spacing:3px;margin-bottom:6px">📜 LAST 5 BETS</div>
+        <table style="width:100%;font-size:11px;color:#fff;border-collapse:collapse">${histRows}</table>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:#aab;text-align:center;line-height:1.6">
+        💡 bet pairs naturally with 🎬 CPU vs CPU · sportsbook style<br>
+        ✝️ "be content with what you have" — Heb 13:5 · this is a game · play wise
+      </div>
+    </div>`;
+  const slider = document.getElementById('wagerSlider');
+  const wagerLbl = document.getElementById('wagerLbl');
+  const placeBtn = document.getElementById('gamblePlace');
+  const payoutPrev = document.getElementById('payoutPreview');
+  const updatePreview = () => {
+    if (!pickedType){ payoutPrev.innerHTML = '↑ pick a bet to see payout'; placeBtn.disabled = true; return; }
+    const t = BET_TYPES.find(b => b.id === pickedType);
+    const payout = Math.round(pickedWager * t.mult);
+    payoutPrev.innerHTML = `${t.icon} <b>${t.label}</b> · wager <b style="color:#ffd76e">$${pickedWager}</b> · win <b style="color:#4cf07a">$${payout}</b> (profit $${payout - pickedWager})`;
+    placeBtn.disabled = (pickedWager > cash || pickedWager < 10);
+  };
+  slider.oninput = () => { pickedWager = parseInt(slider.value, 10); wagerLbl.textContent = `$${pickedWager}`; updatePreview(); };
+  document.querySelectorAll('.quickWager').forEach(b => b.onclick = () => {
+    const amt = parseInt(b.dataset.amt, 10);
+    pickedWager = Math.min(Math.max(10, amt), cash);
+    slider.value = pickedWager; wagerLbl.textContent = `$${pickedWager}`; updatePreview();
+  });
+  document.querySelectorAll('.betCard').forEach(b => b.onclick = () => {
+    pickedType = b.dataset.bet;
+    document.querySelectorAll('.betCard').forEach(x => x.style.borderColor = '#ffd76e44');
+    b.style.borderColor = '#4cf07a';
+    b.style.background = 'linear-gradient(135deg,#1a3d2c44,#0008)';
+    updatePreview();
+  });
+  document.getElementById('gambleBack').onclick = showSplash;
+  placeBtn.onclick = () => {
+    if (!pickedType) return;
+    if (!placeBet(pickedType, pickedWager)){
+      showToast('💸 NOT ENOUGH CASH', 'allpro'); return;
+    }
+    const t = BET_TYPES.find(b => b.id === pickedType);
+    showToast(`🎰 BET PLACED · ${t.icon} ${t.label} · $${pickedWager} → win $${Math.round(pickedWager*t.mult)}`, 'level');
+    // Pick a CPU-vs-CPU match by default since gamble vibes with watching
+    State.modeId = 'cpu_vs_cpu';
+    State.mode = 'CPU';
+    State.looks[0] = rollRandomLook(0);
+    State.looks[1] = rollRandomLook(1);
+    setTimeout(() => startMatch(), 220);
+  };
+}
 function showModeSelect(){
   musicForScreen('modeselect'); // 🆕 v2.21.0
   const lv = levelFromXp(Career.xp);
