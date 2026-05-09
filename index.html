@@ -347,6 +347,33 @@
   .modalCard .body button{margin:3px 4px 3px 0}
   /* Coach line never overlaps the touch jump button on mobile */
   body.ui-mobile #coachLine{bottom:36vh;font-size:14px;letter-spacing:1px;text-shadow:0 0 8px #ff3b3b,0 2px 0 #000}
+  /* 🆕 v3.2.0 — READABILITY + CONTRAST PASS (additive · no existing rules touched) */
+  .panel { line-height:1.55; }
+  .panel .title { text-shadow:0 2px 0 #000, 0 0 12px #0009; }
+  .panel .subtitle { color:#fff !important; opacity:0.92; font-weight:600; }
+  .panel .small, .small { font-size:12px; line-height:1.6; color:#d4d4d4 !important; }
+  .panel button.btn { min-height:42px; font-size:13px; letter-spacing:1.5px; }
+  .panel button.btn.hot { font-weight:900; letter-spacing:2px; }
+  .modcard { background:#000c !important; }
+  /* readable mode — toggleable accessibility class */
+  body.high-contrast .panel { background:#000 !important; border:3px solid #ffd76e !important; }
+  body.high-contrast .panel .title { color:#ffd76e !important; }
+  body.high-contrast .panel .subtitle { color:#fff !important; }
+  body.high-contrast .panel .small, body.high-contrast .small { color:#fff !important; font-size:13px !important; font-weight:600 !important; }
+  body.high-contrast button.btn { border:3px solid #ffd76e !important; font-size:14px !important; min-height:48px !important; font-weight:900 !important; }
+  body.high-contrast button.btn.hot { background:#ffd76e !important; color:#000 !important; }
+  body.high-contrast .modcard { background:#000 !important; border:2px solid #ffd76e !important; color:#fff !important; }
+  /* mobile tap targets */
+  body.ui-mobile button.btn { min-height:48px !important; font-size:14px !important; padding:12px 14px !important; }
+  body.ui-mobile .panel input[type="range"] { height:38px !important; }
+  /* 🆕 v3.2.0 — TEXT-OVER-BG safety overlays */
+  #revealCpu, #modlist .modcard { text-shadow:0 1px 0 #000 !important; }
+  /* 🆕 v3.2.0 — random event banner styling */
+  #eventBanner { position:fixed; top:14%; left:50%; transform:translateX(-50%); z-index:9000;
+    padding:12px 24px; background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e); color:#000;
+    border:3px solid #fff; border-radius:14px; font-weight:900; letter-spacing:3px; font-size:18px;
+    box-shadow:0 0 30px #ffd76e88; pointer-events:none; opacity:0; transition:opacity .3s; text-align:center; }
+  #eventBanner.on { opacity:1; }
 </style>
 </head>
 <body>
