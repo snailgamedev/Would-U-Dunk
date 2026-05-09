@@ -16635,7 +16635,8 @@ const MobileTitan = {
         </div>
         <button class="btn" onclick="MobileTitan.inertialScroll=!MobileTitan.inertialScroll;MobileTitan.save();MobileTitan.applyInertialScroll();MobileTitan.showPanel();">${this.inertialScroll?'✓ ':''}🔄 Inertial menu scrolling</button>
         <button class="btn" onclick="MobileTitan.edgeSwipeBack=!MobileTitan.edgeSwipeBack;MobileTitan.save();MobileTitan.showPanel();">${this.edgeSwipeBack?'✓ ':''}⬅ Edge-swipe back nav</button>
-        <button class="btn" onclick="MobileTitan.geoTheme=!MobileTitan.geoTheme;MobileTitan.save();MobileTitan.bindGeoTheme();MobileTitan.showPanel();">${this.geoTheme?'✓ ':''}🌎 Geo-based daily theme</button>
+        <button class="btn" onclick="MobileTitan.geoTheme=!MobileTitan.geoTheme;MobileTitan.save();MobileTitan.bindGeoTheme();MobileTitan.showPanel();">${this.geoTheme?'✓ ':''}🌎 Geo-based daily theme (auto)</button>
+        <button class="btn" onclick="MobileTitan.pickGeoTheme();">🎨 Pick theme manually</button>
         <button class="btn" onclick="MobileTitan.perButtonHaptics=!MobileTitan.perButtonHaptics;MobileTitan.save();MobileTitan.hapticPattern('shoot');MobileTitan.showPanel();">${this.perButtonHaptics?'✓ ':''}🎨 Per-button haptic patterns</button>
         <button class="btn" onclick="MobileTitan.showReplay(1);">🪞 Last shot replay</button>
         <button class="btn" onclick="MobileTitan.arHoop();">🤳 AR Hoop preview</button>
