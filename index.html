@@ -8076,6 +8076,8 @@ class MatchScene extends Phaser.Scene {
     if (this._dunking) return;
     this._dunking = true;
     State.usedDunk = true;
+    // 🆕 v3.7.0 — haptic on dunks
+    if (typeof hapticDunk === 'function') hapticDunk();
     // 🆕 v3.1.0 — CINEMATIC CPU DUNK — slow-mo zoom + dramatic flash + signature label per archetype
     if (player.isCpu){
       try {
