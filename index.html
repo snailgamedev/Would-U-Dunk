@@ -9710,6 +9710,8 @@ class MatchScene extends Phaser.Scene {
   // 🆕 v2.8.2 — Standalone block executor · 🆕 v2.19.0 — distance-graded probability so blocks aren't binary
   executeBlock(blocker, opp){
     if (!blocker || !opp || this.ball.getData('held') !== opp) return;
+    // 🆕 v3.7.0 — haptic on blocks
+    if (typeof hapticBlock === 'function') hapticBlock();
     // 🆕 v3.4.0 — CINEMATIC BLOCK · same camera treatment as dunks
     if (blocker.isCpu && Math.random() < 0.6){
       try {
