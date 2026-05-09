@@ -2536,6 +2536,14 @@ function resolveBet(){
       case 'thirty': return myPts >= 30;
       case 'logo':   return !!State._p1LogoMade;
       case 'sweep':  return oppPts === 0 && myPts > 0;
+      // 🆕 v3.0.0 — UNDERDOG: P1 wins after being down 10+ at any point
+      case 'underdog': return myPts > oppPts && (State._maxDeficit||0) >= 10;
+      // 🆕 v3.0.0 — PARLAY: win + margin5+ + first all hit
+      case 'parlay': return (myPts > oppPts) && (margin >= 5) && (State._firstScorer === 0);
+      // 🆕 v3.0.0 — DOUBLE OR NOTHING: win match
+      case 'donothing': return myPts > oppPts;
+      // 🆕 v3.0.0 — CINEMATIC FINISH: win + cinematic mode triggered
+      case 'cinematic': return (myPts > oppPts) && !!State._cinematicTriggered;
     }
     return false;
   })();
