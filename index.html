@@ -3658,6 +3658,8 @@ function renderHotZonesScreen(){
 
 // 🆕 v3.3.0 — HALFTIME BREAKDOWN screen (auto-shows between rounds)
 function showHalftimeBreakdownIfDue(scene){
+  // 🪦 v3.18.0 — HALFTIME DELETED · was cluttering mid-match · noop
+  return;
   if (!State.cfg || State.cfg.cpuVsCpu) return;   // skip in spectator (already has commentary)
   if (scene._halftimeShownRound === State.roundIdx) return;
   // 🩹 v3.9.0 — skip round 0 + round 1 (no halftime when we just started)
