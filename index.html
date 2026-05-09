@@ -11033,6 +11033,11 @@ async function startMatch(){
   State._momentum = 0;
   State._perfectThisRound = 0;
   State._cardAwarded = false;
+  // 🆕 v3.1.0 — restore player's saved look after a spectator match if we shadowed it
+  if (State._savedPlayerLook && State.modeId !== 'cpu_vs_cpu' && (!State.cfg || !State.cfg.cpuVsCpu)){
+    State.looks[0] = State._savedPlayerLook;
+    State._savedPlayerLook = null;
+  }
   State.matchStats = [
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
