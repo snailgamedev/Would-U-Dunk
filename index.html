@@ -5108,7 +5108,9 @@ class MatchScene extends Phaser.Scene {
     p.facing = idx===0 ? 1 : -1;
     p.lastSteal = 0;
     p.shotCharge = 0;
-    p.isCpu = (State.mode === 'CPU' && idx === 1);
+    // 🆕 v2.26.0 — CPU vs CPU: both players are AI when cpuVsCpu cfg is on
+    const isSpectatorMode = !!(State.cfg && State.cfg.cpuVsCpu);
+    p.isCpu = isSpectatorMode || (State.mode === 'CPU' && idx === 1);
     p.isRemote = (State.mode === 'ONLINE' && idx === 1);   // P2 controlled by remote in online
     p.color = idx===0 ? 0xff3b3b : 0x4f9eff;
     p.scoreFlashAt = 0;
