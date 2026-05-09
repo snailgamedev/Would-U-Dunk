@@ -2395,7 +2395,7 @@ function fireComboName(scene, scorerIdx, streak){
   scene.tweens.add({ targets:t, scale:1.2, duration:180, ease:'Back.out', onComplete:()=>{
     scene.tweens.add({ targets:t, alpha:0, y:t.y - 80, duration:1100, onComplete:()=>t.destroy() });
   }});
-  if (streak >= 7) try { scene.cameras.main.shake(180, 0.005); } catch(e){}
+  // 🆕 v3.11.0 — removed combo shake (per user · stop screen-shaking on labels)
 }
 
 // 🆕 v3.0.0 — ASCENSION · CROWD REACTION ENGINE — toast strings react to plays
