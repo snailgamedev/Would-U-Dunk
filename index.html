@@ -8614,7 +8614,9 @@ const Online = {
   join(code){
     if (typeof Peer === 'undefined') return showToast('PeerJS not loaded — check connection', 'allpro');
     this.code = (code||'').toUpperCase().trim();
+    this.lastCode = this.code;   // 🆕 v3.23.0
     this.isHost = false;
+    this.isSpectator = false;    // 🆕 v3.23.0
     this.peer = new Peer();
     this.peer.on('open', () => {
       const c = this.peer.connect('wud-' + this.code);
