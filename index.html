@@ -4399,8 +4399,22 @@ const CPU_SPEED_FAIRNESS_CAP = 1.0;
 const CPU_JUMP_RATE_CAP = 0.025;
 
 /* ------------------- VERSION + CHANGELOG ------------------- */
-const VERSION = 'v3.5.0';
+const VERSION = 'v3.6.0';
 const CHANGELOG = [
+  { v:'v3.6.0', notes:[
+      '🩹 MAIN BUG FIX — "Cannot access uninitialized variable" TDZ error squashed. SHOP_ITEMS.push(...COURT_VENUES_V340) was running BEFORE SHOP_ITEMS const declared in source. Wrapped in setTimeout(0) so deferred until after script parses. Permanent memory rule saved (feedback_no_tdz_errors.md) so this class never returns.',
+      '📺 REPLAY FRAME VIEWER — Highlights screen now shows captured canvas snapshots as scrubbable thumbnails · click to enlarge · per-play frame data visible.',
+      '🎟 BP PREMIUM CLAIM SHOP — purchase tier skips with gems on Battle Pass screen · 5 gems = +1 tier · skip ahead to claim faster.',
+      '🏆 PARLAY PAYOUT CHART — visual breakdown of compound payouts on My Pick parlay · 5x · 25x · 125x · 625x for 1-4 chained champion picks.',
+      '🌍 5 MORE COURT VENUES — total 10: GLOBETROTTER BUS · OLYMPIC COURT · BACKYARD HOOP · SUBWAY STATION · BEACH PIER · added to shop $2.5k-$6k each w/ unique physics.',
+      '🎤 WALKOUT MIXING — record 3 separate clips (slot A · B · C) · plays random one each match · settings UI per-slot record/preview/delete.',
+      '🃏 SET CHEMISTRY — collecting full team of one archetype = chemistry buff: +5% accuracy when 5+ same-archetype cards owned · 8+ same = +10% · 12+ = +15% · displayed on MyTeam.',
+      '📈 CAREER STATS GRAPH — visualize MyCareer points/wins over time · ASCII line chart on career screen · 20-game rolling window.',
+      '🎬 REPLAY EXPORT TO PNG — download captured highlight frames as PNG · share-ready · button on highlights detail.',
+      '🛐 FAITH HALL OF FAME — separate display for faith-tier achievements · 12 faith achievements showcased w/ unlock progress · scripture per achievement.',
+      '🎙 TTS SCRIPTURE READER — speak verse-of-day on splash entry (gated by ttsAnnouncer setting) · soft pace · once per session.',
+      '✝️ "He restoreth my soul · He leadeth me in paths of righteousness" — Ps 23:3 · bug killed · ideas shipped · we go',
+  ]},
   { v:'v3.5.0', notes:[
       '🏀 OPERATION KEEP COOKIN — every "🔮 next idea" from v3.4.0 readout shipped. Additive · existing v3.4 stays sacred.',
       '📺 REPLAY REEL — canvas snapshots auto-captured during big plays · highlight screen now shows ghost-arc replay frames + saved play data.',
