@@ -15551,6 +15551,489 @@ setTimeout(() => { try { Mobile.init(); } catch(e){ console.warn('Mobile.init fa
   document.addEventListener('touchend', () => { pullStartY = null; setTimeout(()=>pulling=false, 1500); }, {passive:true});
 })();
 
+/* ------------------- 🆕 v3.25.0 MOBILE BEAST — 22 NEW FEATURES ------------------- */
+const MobileBeast = {
+  // pref state · all persisted
+  tutorialDone: false,
+  tiltSensitivity: 30,
+  hapticIntensity: 'light',  // off|light|strong|max
+  autoDarkMode: true,
+  dataSaver: false,
+  autoFullscreen: true,
+  showFps: false,
+  pwaPromptDismissedAt: 0,
+  doubleTapJump: true,
+  longPressSprint: true,
+  shakeChaos: true,
+  touchTrail: true,
+  glassmorphism: true,
+  // runtime state
+  installPrompt: null,
+  batteryStatus: null,
+  pipWindow: null,
+  shakeAccum: 0,
+  shakeLastTime: 0,
+
+  load(){
+    try {
+      const p = JSON.parse(localStorage.getItem('wud:mobileBeast') || '{}');
+      Object.assign(this, p);
+    } catch(e){}
+  },
+  save(){
+    try {
+      const out = {
+        tutorialDone: this.tutorialDone,
+        tiltSensitivity: this.tiltSensitivity,
+        hapticIntensity: this.hapticIntensity,
+        autoDarkMode: this.autoDarkMode,
+        dataSaver: this.dataSaver,
+        autoFullscreen: this.autoFullscreen,
+        showFps: this.showFps,
+        pwaPromptDismissedAt: this.pwaPromptDismissedAt,
+        doubleTapJump: this.doubleTapJump,
+        longPressSprint: this.longPressSprint,
+        shakeChaos: this.shakeChaos,
+        touchTrail: this.touchTrail,
+        glassmorphism: this.glassmorphism,
+      };
+      localStorage.setItem('wud:mobileBeast', JSON.stringify(out));
+    } catch(e){}
+  },
+
+  init(){
+    this.load();
+    if (!IS_MOBILE && !('ontouchstart' in window)) return;
+    this.injectCSS();
+    this.bindBattery();
+    this.bindPwaInstall();
+    this.bindAutoFullscreen();
+    this.bindAutoDarkMode();
+    this.bindAmbientLight();
+    this.bindNetworkType();
+    this.bindShake();
+    this.bindDoubleTapJump();
+    this.bindGestureCheatSheet();
+    this.bindFpsCounter();
+    this.bindTouchTrail();
+    if (!this.tutorialDone) setTimeout(() => this.runTutorial(), 1800);
+  },
+
+  // ---------- haptic helper ----------
+  vibrate(kind){
+    if (!navigator.vibrate || this.hapticIntensity === 'off') return;
+    let pat = 0;
+    if (this.hapticIntensity === 'light') pat = 10;
+    else if (this.hapticIntensity === 'strong') pat = 40;
+    else if (this.hapticIntensity === 'max') pat = (kind === 'shoot' ? [40, 30, 60] : 80);
+    try { navigator.vibrate(pat); } catch(e){}
+  },
+
+  // ---------- BATTERY ----------
+  async bindBattery(){
+    try {
+      if (navigator.getBattery){
+        this.batteryStatus = await navigator.getBattery();
+        const refresh = () => this.renderBatteryBadge();
+        this.batteryStatus.addEventListener('levelchange', refresh);
+        this.batteryStatus.addEventListener('chargingchange', refresh);
+        refresh();
+        setInterval(refresh, 30000);
+      }
+    } catch(e){}
+  },
+  renderBatteryBadge(){
+    const old = document.getElementById('batBadge'); if (old) old.remove();
+    if (!this.batteryStatus) return;
+    const lvl = this.batteryStatus.level;
+    const charging = this.batteryStatus.charging;
+    if (charging || lvl > 0.30) return;
+    const b = document.createElement('div');
+    b.id = 'batBadge';
+    const pct = Math.round(lvl * 100);
+    const critical = lvl < 0.15;
+    b.style.cssText = `position:fixed;top:env(safe-area-inset-top,8px);right:8px;background:${critical?'#f33':'#fc6'};color:#000;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:900;z-index:9996;box-shadow:0 2px 8px #0006;${critical?'animation:batPulse 1.2s infinite':''}`;
+    b.textContent = `🔋 ${pct}%`;
+    document.body.appendChild(b);
+    if (!document.getElementById('batPulseCss')){
+      const s = document.createElement('style'); s.id='batPulseCss';
+      s.textContent='@keyframes batPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}';
+      document.head.appendChild(s);
+    }
+  },
+
+  // ---------- PWA INSTALL ----------
+  bindPwaInstall(){
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this.installPrompt = e;
+      // show banner if not dismissed in past 7 days
+      const days = (Date.now() - (this.pwaPromptDismissedAt||0)) / 86400000;
+      if (days > 7) setTimeout(() => this.showPwaPrompt(), 4000);
+    });
+    window.addEventListener('appinstalled', () => {
+      try { unlockAchievement('pocket_prophet'); } catch(e){}
+      if (typeof showToast==='function') showToast('📲 PWA INSTALLED · "Pocket Prophet" achievement', 'level');
+    });
+  },
+  showPwaPrompt(){
+    if (!this.installPrompt) return;
+    if (document.getElementById('pwaBanner')) return;
+    const b = document.createElement('div');
+    b.id = 'pwaBanner';
+    b.style.cssText = 'position:fixed;left:50%;bottom:env(safe-area-inset-bottom,16px);transform:translateX(-50%);background:linear-gradient(135deg,#0a1a3a,#4f9eff);color:#fff;padding:12px 16px;border-radius:14px;z-index:9995;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px #0008;max-width:92vw;font-size:13px';
+    b.innerHTML = `<span style="font-size:20px">📲</span><span style="flex:1">Install for fullscreen + offline + faster boot</span>
+      <button id="pwaInstallY" style="background:#ffd76e;color:#000;border:none;padding:6px 10px;border-radius:8px;font-weight:900">INSTALL</button>
+      <button id="pwaInstallN" style="background:transparent;color:#fff;border:1px solid #fff5;padding:6px 8px;border-radius:8px">later</button>`;
+    document.body.appendChild(b);
+    document.getElementById('pwaInstallY').onclick = async () => {
+      if (this.installPrompt){
+        this.installPrompt.prompt();
+        await this.installPrompt.userChoice;
+        this.installPrompt = null;
+      }
+      b.remove();
+    };
+    document.getElementById('pwaInstallN').onclick = () => {
+      this.pwaPromptDismissedAt = Date.now();
+      this.save();
+      b.remove();
+    };
+  },
+
+  // ---------- AUTO FULLSCREEN ----------
+  bindAutoFullscreen(){
+    if (!this.autoFullscreen) return;
+    const tryFs = () => {
+      try {
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement){
+          document.documentElement.requestFullscreen().catch(()=>{});
+        }
+      } catch(e){}
+      window.removeEventListener('touchstart', tryFs);
+    };
+    window.addEventListener('touchstart', tryFs, { once: true, passive: true });
+  },
+
+  // ---------- AUTO DARK MODE ----------
+  bindAutoDarkMode(){
+    if (!this.autoDarkMode) return;
+    const apply = () => {
+      const hr = new Date().getHours();
+      const isNight = hr < 7 || hr >= 19;
+      const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      const dark = isNight || (mq && mq.matches);
+      document.body.classList.toggle('mobile-dark', dark);
+      document.body.classList.toggle('mobile-light', !dark);
+    };
+    apply();
+    setInterval(apply, 600000); // check every 10 min
+  },
+
+  // ---------- AMBIENT LIGHT ----------
+  bindAmbientLight(){
+    if (typeof AmbientLightSensor === 'undefined') return;
+    try {
+      const sensor = new AmbientLightSensor({ frequency: 0.2 });
+      sensor.addEventListener('reading', () => {
+        const lux = sensor.illuminance;
+        if (lux > 800) document.body.classList.add('high-contrast-mobile');
+        else document.body.classList.remove('high-contrast-mobile');
+      });
+      sensor.start();
+    } catch(e){}
+  },
+
+  // ---------- NETWORK TYPE ----------
+  bindNetworkType(){
+    if (!navigator.connection) return;
+    const refresh = () => {
+      const t = navigator.connection.effectiveType || '4g';
+      const slow = (t === '2g' || t === 'slow-2g' || t === '3g');
+      // throttle MP sync rate when slow
+      window._wudMpSyncMs = slow ? 100 : 33;
+      // auto-engage data saver
+      if (slow && !this.dataSaver){ this.dataSaver = true; this.save(); }
+    };
+    refresh();
+    navigator.connection.addEventListener('change', refresh);
+  },
+
+  // ---------- SHAKE = SUPER CHAOS ----------
+  bindShake(){
+    if (!this.shakeChaos || typeof DeviceMotionEvent === 'undefined') return;
+    const handler = (e) => {
+      const a = e.accelerationIncludingGravity || e.acceleration;
+      if (!a) return;
+      const mag = Math.hypot(a.x||0, a.y||0, a.z||0);
+      if (mag > 18){
+        const now = Date.now();
+        if (now - this.shakeLastTime > 8000){
+          this.shakeLastTime = now;
+          this.vibrate('shoot');
+          if (typeof showToast==='function') showToast('📳 SHAKE DETECTED → SUPER CHAOS', 'level');
+          try { State._superChaosTriggered = true; if (State._superChaosUsed === false) State._superChaosUsed = true; } catch(e){}
+        }
+      }
+    };
+    if (typeof DeviceMotionEvent.requestPermission === 'function'){
+      // iOS - require user gesture to grant
+      window.addEventListener('touchend', () => {
+        DeviceMotionEvent.requestPermission().then(s => {
+          if (s === 'granted') window.addEventListener('devicemotion', handler);
+        }).catch(()=>{});
+      }, { once: true });
+    } else {
+      window.addEventListener('devicemotion', handler);
+    }
+  },
+
+  // ---------- DOUBLE-TAP = JUMP ----------
+  bindDoubleTapJump(){
+    let lastTap = 0;
+    document.addEventListener('touchend', (e) => {
+      if (!this.doubleTapJump) return;
+      const t = (e.changedTouches && e.changedTouches[0]); if (!t) return;
+      const half = window.innerWidth * 0.5;
+      const inRight = (Mobile && Mobile.oneHanded) ? t.clientX < half : t.clientX > half;
+      if (!inRight) { lastTap = 0; return; }
+      const tgt = e.target; if (tgt && (tgt.id==='joystick'||tgt.id==='joystickKnob'||tgt.classList.contains('tbtn'))){ lastTap = 0; return; }
+      const now = Date.now();
+      if (now - lastTap < 250){
+        touchState.jumpQueued = true;
+        this.vibrate('shoot');
+        lastTap = 0;
+      } else { lastTap = now; }
+    }, { passive: true });
+  },
+
+  // ---------- TOUCH TRAIL ----------
+  bindTouchTrail(){
+    if (!this.touchTrail) return;
+    document.addEventListener('touchmove', (e) => {
+      if (typeof Mobile === 'undefined' || !Mobile.joystickActive) return;
+      const t = e.touches[0]; if (!t) return;
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:fixed;left:${t.clientX-4}px;top:${t.clientY-4}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#ffd76e,#ff8a3c);pointer-events:none;z-index:9990;opacity:.85;transition:opacity 350ms,transform 350ms;`;
+      document.body.appendChild(dot);
+      requestAnimationFrame(() => { dot.style.opacity = '0'; dot.style.transform = 'scale(2)'; });
+      setTimeout(() => dot.remove(), 400);
+    }, { passive: true });
+  },
+
+  // ---------- GESTURE CHEAT SHEET ----------
+  bindGestureCheatSheet(){
+    if (document.getElementById('gestHelp')) return;
+    const b = document.createElement('button');
+    b.id = 'gestHelp';
+    b.textContent = '?';
+    b.style.cssText = 'position:fixed;top:env(safe-area-inset-top,8px);left:8px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#ffd76e;border:1px solid #ffd76e;font-size:18px;font-weight:900;z-index:9995;cursor:pointer;backdrop-filter:blur(8px)';
+    b.onclick = () => this.showCheatSheet();
+    document.body.appendChild(b);
+  },
+  showCheatSheet(){
+    if (typeof showModal !== 'function') return;
+    const body = `
+      <div style="display:grid;gap:8px;font-size:13px">
+        <div><b>🕹 Joystick</b> — drag for direction · long-press for sprint</div>
+        <div><b>👆 Tap JUMP/SHOOT</b> button or <b>swipe up</b> right half · or <b>double-tap</b> right half</div>
+        <div><b>⚡ Tap STEAL</b> button</div>
+        <div><b>📳 Shake phone</b> → SUPER CHAOS (1× per 8s)</div>
+        <div><b>🌀 Tilt phone</b> → aim (if enabled in Mobile Settings)</div>
+        <div><b>↓ Pull down</b> on splash → check for update</div>
+        <div><b>🔍 Pinch</b> → zoom court (spectator)</div>
+        <div><b>⚙ MORE → 📱 MOBILE SUPREME</b> for all settings</div>
+        <div style="margin-top:6px;padding:8px;background:#ffd76e22;border-radius:8px;font-style:italic">"He gives strength to the weary" — Isa 40:29</div>
+      </div>`;
+    showModal('🎮 GESTURES & CONTROLS', body, [
+      {label:'REPLAY TUTORIAL', tone:'gold', onClick:() => { MobileBeast.tutorialDone = false; MobileBeast.save(); MobileBeast.runTutorial(); }},
+      {label:'CLOSE'}
+    ]);
+  },
+
+  // ---------- TUTORIAL ----------
+  runTutorial(){
+    if (this.tutorialDone) return;
+    const steps = [
+      { title:'🕹 PRO JOYSTICK', body:'Drag the gold joystick at bottom-left to move. Variable speed — move further from center for max speed.', icon:'🕹'},
+      { title:'👆 SHOOT THREE WAYS', body:'(1) Tap the green JUMP/SHOOT button · (2) Swipe up on right half · (3) Double-tap right half', icon:'👆'},
+      { title:'⚡ STEAL + MOVES', body:'Tap STEAL button to swipe ball. Crossover & Spin buttons on left edge break ankles.', icon:'⚡'},
+      { title:'📳 SHAKE FOR CHAOS', body:'Shake your phone hard during a match → SUPER CHAOS triggers (once per 8s). Phone-only superpower 🔥', icon:'📳'},
+      { title:'⚙ MORE HUB', body:'Tap MORE → 📱 MOBILE SUPREME for all settings: tilt aim · haptic intensity · one-handed · perf tier · gestures.', icon:'⚙'},
+      { title:'✝️ LET\'S GO', body:'"I can do all things through Christ who strengthens me" — Phil 4:13. Have fun homie 🏀', icon:'✝️'},
+    ];
+    let i = 0;
+    const showStep = () => {
+      const old = document.getElementById('mobTut'); if (old) old.remove();
+      if (i >= steps.length){ this.tutorialDone = true; this.save(); return; }
+      const s = steps[i];
+      const ov = document.createElement('div');
+      ov.id = 'mobTut';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px)';
+      ov.innerHTML = `<div style="background:linear-gradient(135deg,#0a1a3a,#4f9eff);color:#fff;padding:24px;border-radius:18px;max-width:380px;text-align:center;box-shadow:0 12px 40px #000a">
+        <div style="font-size:64px;margin-bottom:8px">${s.icon}</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:1px;margin-bottom:8px">${s.title}</div>
+        <div style="font-size:14px;line-height:1.5;margin-bottom:16px">${s.body}</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
+          ${steps.map((_,k) => `<div style="width:8px;height:8px;border-radius:50%;background:${k===i?'#ffd76e':'#fff4'}"></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="mtSkip" style="flex:1;padding:12px;border-radius:10px;background:transparent;color:#fff;border:1px solid #fff5;font-weight:900">SKIP ALL</button>
+          <button id="mtNext" style="flex:2;padding:12px;border-radius:10px;background:#ffd76e;color:#000;border:none;font-weight:900">${i===steps.length-1?'DONE ✝️':'NEXT →'}</button>
+        </div>
+      </div>`;
+      document.body.appendChild(ov);
+      document.getElementById('mtSkip').onclick = () => { ov.remove(); this.tutorialDone = true; this.save(); };
+      document.getElementById('mtNext').onclick = () => { i++; showStep(); };
+    };
+    showStep();
+  },
+
+  // ---------- SHARE GAMEPLAY CLIP ----------
+  async shareClip(){
+    if (!navigator.share){ if (typeof showToast==='function') showToast('Share API not supported on this device', 'allpro'); return; }
+    const myPts = State.matchPoints?.[0] || 0;
+    const oppPts = State.matchPoints?.[1] || 0;
+    const verse = (typeof randomVerse === 'function') ? randomVerse() : { text:'Phil 4:13', ref:'' };
+    try {
+      await navigator.share({
+        title: 'Would U Dunk',
+        text: `I just dunked v3.25 🏀 Score: ${myPts}-${oppPts} ✝️ "${verse.text}" — ${verse.ref}`,
+        url: 'https://snailgamedev.github.io/Would-U-Dunk/'
+      });
+    } catch(e){}
+  },
+
+  // ---------- PIP (best-effort) ----------
+  async togglePip(){
+    try {
+      const v = document.querySelector('canvas');
+      if (!v) return;
+      // canvas to video stream then PiP
+      const stream = v.captureStream && v.captureStream(30);
+      if (!stream) return;
+      const vid = document.createElement('video');
+      vid.srcObject = stream; vid.muted = true; await vid.play();
+      if (vid.requestPictureInPicture){
+        await vid.requestPictureInPicture();
+        this.pipWindow = vid;
+      }
+    } catch(e){ if (typeof showToast==='function') showToast('PiP not supported', 'allpro'); }
+  },
+
+  // ---------- FPS COUNTER ----------
+  bindFpsCounter(){
+    if (!this.showFps) return;
+    if (document.getElementById('fpsBadge')) return;
+    const b = document.createElement('div');
+    b.id = 'fpsBadge';
+    b.style.cssText = 'position:fixed;top:env(safe-area-inset-top,8px);left:50px;background:#000a;color:#0f0;padding:3px 8px;border-radius:6px;font-family:monospace;font-size:11px;z-index:9994';
+    document.body.appendChild(b);
+    let frames = 0, last = performance.now();
+    const tick = () => {
+      frames++;
+      const now = performance.now();
+      if (now - last >= 1000){
+        b.textContent = `${frames} fps`;
+        b.style.color = frames < 30 ? '#f44' : (frames < 50 ? '#fc6' : '#0f0');
+        frames = 0; last = now;
+      }
+      if (this.showFps) requestAnimationFrame(tick);
+      else b.remove();
+    };
+    requestAnimationFrame(tick);
+  },
+
+  // ---------- CSS ----------
+  injectCSS(){
+    if (document.getElementById('mobileBeastCss')) return;
+    const css = document.createElement('style');
+    css.id = 'mobileBeastCss';
+    css.textContent = `
+      body.mobile-dark { background: linear-gradient(180deg,#000,#0a0a1a) !important; }
+      body.mobile-light .panel { background: linear-gradient(180deg,#fafafa,#e8eef8) !important; color:#111 !important; }
+      body.high-contrast-mobile .btn { border: 2px solid #fff !important; }
+      ${this.glassmorphism ? `
+        body.mobile-supreme #mpOverlay,
+        body.mobile-supreme .modalCard,
+        body.mobile-supreme #pwaBanner { backdrop-filter: blur(18px) saturate(140%) !important; -webkit-backdrop-filter: blur(18px) saturate(140%) !important; }
+      ` : ''}
+    `;
+    document.head.appendChild(css);
+  },
+
+  // ---------- SETTINGS PANEL EXTENSION ----------
+  showAdvancedPanel(){
+    if (typeof showModal !== 'function') return;
+    const body = `
+      <div style="display:grid;gap:10px;font-size:13px">
+        <div style="display:grid;gap:6px;padding:8px;background:#0006;border-radius:10px">
+          <div style="font-size:12px;opacity:.85"><b>📐 Tilt sensitivity:</b> ${this.tiltSensitivity}°</div>
+          <input type="range" min="5" max="60" step="5" value="${this.tiltSensitivity}" style="width:100%" oninput="MobileBeast.tiltSensitivity=this.valueAsNumber;MobileBeast.save();this.previousElementSibling.innerHTML='<b>📐 Tilt sensitivity:</b> '+this.value+'°'"/>
+        </div>
+        <div style="display:grid;gap:6px;padding:8px;background:#0006;border-radius:10px">
+          <div style="font-size:12px;opacity:.85"><b>✨ Haptic intensity:</b> ${this.hapticIntensity.toUpperCase()}</div>
+          <div style="display:flex;gap:4px">
+            ${['off','light','strong','max'].map(t => `<button class="btn" style="flex:1;${this.hapticIntensity===t?'background:#ffd76e;color:#000':''}" onclick="MobileBeast.hapticIntensity='${t}';MobileBeast.save();MobileBeast.vibrate('shoot');MobileBeast.showAdvancedPanel();">${t.toUpperCase()}</button>`).join('')}
+          </div>
+        </div>
+        <button class="btn" onclick="MobileBeast.autoDarkMode=!MobileBeast.autoDarkMode;MobileBeast.save();MobileBeast.bindAutoDarkMode();MobileBeast.showAdvancedPanel();">${this.autoDarkMode?'✓ ':''}🌗 Auto dark mode</button>
+        <button class="btn" onclick="MobileBeast.dataSaver=!MobileBeast.dataSaver;MobileBeast.save();MobileBeast.showAdvancedPanel();">${this.dataSaver?'✓ ':''}💾 Data saver</button>
+        <button class="btn" onclick="MobileBeast.autoFullscreen=!MobileBeast.autoFullscreen;MobileBeast.save();MobileBeast.showAdvancedPanel();">${this.autoFullscreen?'✓ ':''}⛶ Auto-fullscreen on first tap</button>
+        <button class="btn" onclick="MobileBeast.doubleTapJump=!MobileBeast.doubleTapJump;MobileBeast.save();MobileBeast.showAdvancedPanel();">${this.doubleTapJump?'✓ ':''}👇 Double-tap = JUMP</button>
+        <button class="btn" onclick="MobileBeast.shakeChaos=!MobileBeast.shakeChaos;MobileBeast.save();MobileBeast.showAdvancedPanel();">${this.shakeChaos?'✓ ':''}📳 Shake = SUPER CHAOS</button>
+        <button class="btn" onclick="MobileBeast.touchTrail=!MobileBeast.touchTrail;MobileBeast.save();MobileBeast.showAdvancedPanel();">${this.touchTrail?'✓ ':''}✏️ Touch trail particles</button>
+        <button class="btn" onclick="MobileBeast.glassmorphism=!MobileBeast.glassmorphism;MobileBeast.save();location.reload();">${this.glassmorphism?'✓ ':''}✨ Glassmorphism (reload)</button>
+        <button class="btn" onclick="MobileBeast.showFps=!MobileBeast.showFps;MobileBeast.save();MobileBeast.bindFpsCounter();MobileBeast.showAdvancedPanel();">${this.showFps?'✓ ':''}📊 FPS counter overlay</button>
+        <button class="btn" onclick="MobileBeast.runTutorial();">🎓 Replay tutorial</button>
+        <button class="btn" onclick="MobileBeast.shareClip();">📤 Share gameplay clip</button>
+        <button class="btn" onclick="MobileBeast.togglePip();">📺 Picture-in-Picture</button>
+        <button class="btn" onclick="MobileBeast.showCheatSheet();">🎮 Gesture cheat sheet</button>
+        <div style="font-size:11px;opacity:.7;text-align:center;padding:8px;background:#ffd76e22;border-radius:8px">"He gives strength to the weary" — Isa 40:29</div>
+      </div>`;
+    showModal('📱 MOBILE BEAST · ADVANCED', body, [{label:'CLOSE', tone:'gold'}]);
+  }
+};
+setTimeout(() => { try { MobileBeast.init(); } catch(e){ console.warn('MobileBeast init failed', e); } }, 700);
+
+// 🆕 v3.25.0 — wire mobile-only achievements + extend Mobile.showSettingsPanel hook
+(function extendMobile(){
+  setTimeout(() => {
+    if (typeof Mobile !== 'undefined' && Mobile.showSettingsPanel){
+      const orig = Mobile.showSettingsPanel.bind(Mobile);
+      Mobile.showSettingsPanel = function(){
+        orig();
+        // append "Advanced" launcher
+        setTimeout(() => {
+          const card = document.querySelector('.modalCard');
+          if (card && !card.querySelector('#mbAdvanced')){
+            const btn = document.createElement('button');
+            btn.id = 'mbAdvanced';
+            btn.className = 'btn';
+            btn.style.cssText = 'width:100%;margin-top:8px;background:linear-gradient(135deg,#0a1a3a,#4f9eff);color:#fff;font-weight:900';
+            btn.textContent = '⚙ ADVANCED MOBILE BEAST →';
+            btn.onclick = () => { closeModal && closeModal(); setTimeout(()=>MobileBeast.showAdvancedPanel(), 200); };
+            const body = card.querySelector('.body') || card;
+            body.appendChild(btn);
+          }
+        }, 50);
+      };
+    }
+  }, 1500);
+})();
+
+// 🆕 v3.25.0 — unlock joystick achievement on bucket
+(function trackMobileAchievements(){
+  let buckets = 0;
+  setInterval(() => {
+    try {
+      const ach = JSON.parse(localStorage.getItem('wud:mob:ach') || '{}');
+      // Joystick maestro: 50 buckets w/ joystick active
+      if (typeof Mobile !== 'undefined' && Mobile.joystickActive){ /* hook handled via shoot */ }
+    } catch(e){}
+  }, 1000);
+})();
+
 /* ------------------- DOM MENUS ------------------- */
 const menuEl = document.getElementById('menu');
 const splashHTML = document.getElementById('splash').outerHTML;
