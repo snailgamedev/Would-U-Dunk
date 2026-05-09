@@ -8706,6 +8706,46 @@ const Online = {
     try { if (this.conn) this.conn.close(); if (this.peer) this.peer.destroy(); } catch(e){}
     this.peer = null; this.conn = null; this.connected = false;
   },
+  // 🆕 v3.23.0 — RECONNECT to last code
+  lastCode: null,
+  reconnect(){
+    if (!this.lastCode){ if (typeof showToast==='function') showToast('⚠ NO LAST ROOM TO RECONNECT', 'allpro'); return; }
+    this.closeAll();
+    if (this.isHost) this.host(); else this.join(this.lastCode);
+    if (typeof showToast==='function') showToast('🔄 RECONNECTING TO ' + this.lastCode + '...', 'level');
+  },
+  // 🆕 v3.23.0 — SPECTATOR MODE
+  isSpectator: false,
+  spectators: [],   // host-side: list of spectator conns
+  joinAsSpectator(code){
+    if (typeof Peer === 'undefined') return showToast('PeerJS not loaded — check connection', 'allpro');
+    this.code = (code||'').toUpperCase().trim();
+    this.lastCode = this.code;
+    this.isSpectator = true;
+    this.isHost = false;
+    this.peer = new Peer();
+    this.peer.on('open', () => {
+      const c = this.peer.connect('wud-' + this.code);
+      this.conn = c;
+      c.on('open', () => { this.connected = true; if (typeof showToast==='function') showToast(`👁 SPECTATING ${this.code}`, 'level'); this.send({ type:'spec_hello' }); });
+      c.on('data', (msg) => this.onData(msg));
+      c.on('close', () => { this.connected = false; if (typeof showToast==='function') showToast('⚠ SPECTATE ENDED', 'allpro'); });
+    });
+  },
+  // 🆕 v3.23.0 — PIN-protected rooms
+  pin: null,
+  setPin(p){ this.pin = (p||'').replace(/[^0-9]/g,'').slice(0,4) || null; },
+  // 🆕 v3.23.0 — SYNC MUSIC start
+  syncMusicStart(track){
+    this.send({ type:'musicStart', track, at: Date.now() });
+    try { if (typeof MUSIC !== 'undefined') MUSIC.start(track || 'menu'); } catch(e){}
+  },
+  // 🆕 v3.23.0 — PRAYER HUDDLE
+  startPrayerHuddle(){
+    this.send({ type:'huddle' });
+    if (typeof showToast==='function') showToast('🙏 PRAYER HUDDLE — +5% holy aura buff this match', 'level');
+    State._holyAuraBuff = 1.05;
+  },
 };
 
 /* ------------------- WEBAUDIO SFX ------------------- */
