@@ -5197,6 +5197,8 @@ function resolveBet(){
       case 'donothing': return myPts > oppPts;
       // 🆕 v3.0.0 — CINEMATIC FINISH: win + cinematic mode triggered
       case 'cinematic': return (myPts > oppPts) && !!State._cinematicTriggered;
+      // 🆕 v3.9.0 — FRONTRUNNER · win without trailing
+      case 'frontrunner': return (myPts > oppPts) && (State._maxDeficit || 0) === 0;
     }
     return false;
   })();
