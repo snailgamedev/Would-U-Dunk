@@ -5956,6 +5956,8 @@ const BET_TYPES = [
   { id:'century',    label:'CENTURY',          desc:'P1 totals 100+ pts in this match',              mult:6.0, icon:'💯' },
   { id:'impossible', label:'IMPOSSIBLE',       desc:'P1 wins on hardest CPU tier (rolled+)',         mult:15.0, icon:'🌌' },
   { id:'rocket',     label:'ROCKET',           desc:'P1 finishes w/ 4× the opp pts',                 mult:7.0, icon:'🚀' },
+  // 💎 v3.14.0 — DIAMOND BET · ultimate · only when 5+ green-streak AND 3+ win streak
+  { id:'diamond',    label:'💎 DIAMOND BET',   desc:'requires green-streak 5+ AND win-streak 3+ · 100x',  mult:100.0, icon:'💎' },
 ];
 function loadGambleHistory(){
   try { return JSON.parse(localStorage.getItem(`wud:gambleHistory:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
