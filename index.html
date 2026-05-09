@@ -3565,9 +3565,11 @@ function renderHotZonesScreen(){
 function showHalftimeBreakdownIfDue(scene){
   if (!State.cfg || State.cfg.cpuVsCpu) return;   // skip in spectator (already has commentary)
   if (scene._halftimeShownRound === State.roundIdx) return;
-  // show if we're transitioning rounds
-  if (State.roundIdx <= 0) return;
+  // 🩹 v3.9.0 — skip round 0 + round 1 (no halftime when we just started)
+  if (State.roundIdx <= 1) { scene._halftimeShownRound = State.roundIdx; return; }
   scene._halftimeShownRound = State.roundIdx;
+  // 🩹 v3.9.0 — clear any existing halftime banner first (prevent stack)
+  document.querySelectorAll('[data-halftime-banner]').forEach(b => b.remove());
   const myPts = State.scores[0] || 0;
   const oppPts = State.scores[1] || 0;
   const lead = myPts - oppPts;
