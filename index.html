@@ -3618,6 +3618,8 @@ function maybeFireInjury(scene){
     c.narrativeBeats.push({ at:Date.now(), beat:`🏥 INJURY · ankle tweak · ${games} game absence`, stage:c.stage });
     saveMyCareerState(c);
     if (typeof showToast === 'function') showToast(`🏥 INJURY · ankle · keep playing this one tho boi`, 'allpro');
+    // 🆕 v3.5.0 — flag for return ceremony next match
+    State._lastMatchInjured = true;
   }
 }
 
