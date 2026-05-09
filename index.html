@@ -8429,6 +8429,9 @@ function renderSettingsScreen(){
     } catch(e){}
     location.reload();
   };
+  // 🆕 v3.0.0 — wire SAVE EXPORT/IMPORT button
+  const exp = document.getElementById('btnSaveExport');
+  if (exp) exp.onclick = renderSaveExportModal;
 }
 
 function renderHowToPlayScreen(){
