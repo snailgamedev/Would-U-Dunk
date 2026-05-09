@@ -5147,6 +5147,8 @@ const BET_TYPES = [
   { id:'parlay',  label:'PARLAY 3x',           desc:'win match · margin 5+ · first to score (all 3 must hit)', mult:6.0, icon:'🎲' },
   { id:'donothing',label:'DOUBLE OR NOTHING',  desc:'requires hot-streak ≥ 1 already · 2x win',   mult:2.0, icon:'🎰' },
   { id:'cinematic',label:'CINEMATIC FINISH',   desc:'P1 wins after cinematic mode triggers',      mult:5.0, icon:'🎬' },
+  // 🆕 v3.9.0 — FRONTRUNNER · anti-underdog · safe bet · 1.3× payout
+  { id:'frontrunner',label:'FRONTRUNNER',      desc:'P1 wins WITHOUT EVER trailing the whole match', mult:1.3, icon:'🚀' },
 ];
 function loadGambleHistory(){
   try { return JSON.parse(localStorage.getItem(`wud:gambleHistory:${currentProfileName()}`)||'[]'); } catch(e){ return []; }
