@@ -15166,6 +15166,9 @@ function renderSplashLvlBar(){
 function showSplash(){
   menuEl.classList.remove('hide');
   menuEl.innerHTML = splashHTML;
+  // 🆕 v3.23.0 — auto-update banner if pending
+  try { if (UpdateGate.pending) renderUpdateBanner(); } catch(e){}
+  try { UpdateGate.setInMatch(false); } catch(e){}
   document.getElementById('splashLvlBar').innerHTML = renderSplashLvlBar();
   // 🆕 v2.20.0 — MUSIC: start menu loop on splash (deferred until first user gesture)
   if (typeof MUSIC !== 'undefined'){
