@@ -12898,8 +12898,10 @@ function renderGambleScreen(){
   if (typeof musicForScreen === 'function') musicForScreen('shop');
   const cash = loadCash();
   const hist = loadGambleHistory().slice(-5).reverse();
-  let pickedType = null;
-  let pickedWager = Math.min(50, cash);
+  // 🆕 v3.9.0 — load + apply persisted bet prefs
+  const prefs = (typeof loadBetPrefs === 'function') ? loadBetPrefs() : {};
+  let pickedType = prefs.lastType || null;
+  let pickedWager = Math.min(prefs.lastWager || 50, cash);
   const histRows = hist.length
     ? hist.map(h => `<tr><td style="padding:4px 6px">${h.icon}</td><td style="padding:4px 6px">${h.label}</td><td style="padding:4px 6px;color:${h.won?'#4cf07a':'#ff3b3b'}">${h.won?`+$${h.payout}`:`-$${h.wager}`}</td><td style="padding:4px 6px;color:#aab;font-size:10px">${h.myPts}-${h.oppPts}</td></tr>`).join('')
     : `<tr><td colspan="4" style="padding:8px;color:#aab;text-align:center">no bets yet · place your first wager boi 💰</td></tr>`;
