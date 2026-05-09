@@ -8666,6 +8666,11 @@ function renderSettingsScreen(){
       if (cb.dataset.set === 'musicComfort' && typeof MUSIC !== 'undefined' && MUSIC.setComfort){
         try { MUSIC.setComfort(cb.checked); } catch(e){}
       }
+      // 🆕 v3.2.0 — high contrast applies live
+      if (cb.dataset.set === 'highContrast'){
+        document.body.classList.toggle('high-contrast', cb.checked);
+        if (typeof showToast === 'function') showToast(cb.checked ? '👁 HIGH CONTRAST ON' : '👁 HIGH CONTRAST OFF', 'level');
+      }
     };
   });
   // 🆕 v2.13.11 — Stadium tier upgrade buttons
