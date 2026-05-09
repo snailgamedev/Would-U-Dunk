@@ -9082,6 +9082,11 @@ function showSplash(){
   // 🆕 v2.19.2 — GOSPEL button
   const btnGospel = document.getElementById('btnGospel');
   if (btnGospel) btnGospel.onclick = renderGospelScreen;
+  // 🆕 v2.26.0 — GAMBLE + WATCH (CPU vs CPU)
+  const btnGamble = document.getElementById('btnGamble');
+  if (btnGamble) btnGamble.onclick = renderGambleScreen;
+  const btnWatch = document.getElementById('btnWatch');
+  if (btnWatch) btnWatch.onclick = startCpuVsCpuMatch;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
