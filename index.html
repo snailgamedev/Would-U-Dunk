@@ -12598,18 +12598,18 @@ function showSplash(){
   const btnHubProgress = document.getElementById('btnHubProgress'); if (btnHubProgress) btnHubProgress.onclick = renderHubProgress;
   const btnHubEconomy = document.getElementById('btnHubEconomy');  if (btnHubEconomy) btnHubEconomy.onclick = renderHubEconomy;
   const btnHubMore = document.getElementById('btnHubMore');      if (btnHubMore) btnHubMore.onclick = renderHubMore;
-  document.getElementById('btnStats').onclick = renderStatsScreen;
-  document.getElementById('btnAch').onclick   = renderAchievementsScreen;
-  document.getElementById('btnBoard').onclick = renderLeaderboardScreen;
-  document.getElementById('btnHow').onclick   = renderHowToPlayScreen;
-  document.getElementById('btnSet').onclick   = renderSettingsScreen;
-  document.getElementById('btnAbout').onclick = renderAboutScreen;
-  document.getElementById('btnUpdates').onclick = renderUpdatesScreen;
-  // 🆕 v2.16.1 — visual chronicle (rich version history with semver rationale + meta)
-  const btnChron = document.getElementById('btnChronicle');
-  if (btnChron) btnChron.onclick = renderChronicleScreen;
-  document.getElementById('btnShareGame').onclick = renderShareGameScreen;
-  document.getElementById('btnProfile').onclick = renderProfileScreen;
+  // 🩹 v3.10.0 — guard ALL legacy splash button refs (buttons moved to MORE hub in v3.8)
+  const _wire = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = fn; };
+  _wire('btnStats', renderStatsScreen);
+  _wire('btnAch', renderAchievementsScreen);
+  _wire('btnBoard', renderLeaderboardScreen);
+  _wire('btnHow', renderHowToPlayScreen);
+  _wire('btnSet', renderSettingsScreen);
+  _wire('btnAbout', renderAboutScreen);
+  _wire('btnUpdates', renderUpdatesScreen);
+  _wire('btnChronicle', renderChronicleScreen);
+  _wire('btnShareGame', renderShareGameScreen);
+  _wire('btnProfile', renderProfileScreen);
   // 🆕 v2.6.3 — SURPRISE ME: roll random looks + random mode + start match immediately
   const btnSurprise = document.getElementById('btnSurprise');
   if (btnSurprise) btnSurprise.onclick = startSurpriseMatch;
