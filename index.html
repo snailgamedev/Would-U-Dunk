@@ -5754,6 +5754,187 @@ function renderParlayTrackerScreen(){
   };
 }
 
+// 🏛 v3.14.0 — CASINO LOUNGE · single hub for all gambling
+function renderCasinoLoungeScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const cash = loadCash();
+  const gems = (typeof loadGems === 'function') ? loadGems() : 0;
+  const milProgress = Math.min(100, (cash / 1000000) * 100);
+  const milMissing = Math.max(0, 1000000 - cash);
+  const lifetimeProfit = (typeof loadRecords === 'function') ? loadRecords().gambleProfit || 0 : 0;
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:32px;text-align:center;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🏛 CASINO LOUNGE</div>
+      <div class="subtitle" style="text-align:center">all gambling · all leaderboards · all parlays · in one place</div>
+      <div style="margin:14px 0;padding:16px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;text-align:center">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">🏆 MILLIONAIRE PROGRESS</div>
+        <div style="font-size:36px;font-weight:900;margin-top:6px">$${cash.toLocaleString()}</div>
+        <div style="margin-top:8px;background:#000c;height:14px;border-radius:7px;overflow:hidden;border:2px solid #fff">
+          <div style="height:100%;background:linear-gradient(135deg,#4cf07a,#ffd76e);width:${milProgress.toFixed(1)}%;transition:width .4s"></div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;font-weight:900">${milMissing > 0 ? `$${milMissing.toLocaleString()} TO MILLIONAIRE` : '👑 MILLIONAIRE UNLOCKED'} · 💎 ${gems} GEMS · LIFETIME PROFIT $${lifetimeProfit}</div>
+      </div>
+      <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn hot" data-cl="gamble" style="padding:14px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900;grid-column:span 2">🎰 PLACE A BET</button>
+        <button class="btn" data-cl="parlay" style="padding:14px;background:linear-gradient(135deg,#ff66cc,#ffd76e);color:#000;font-weight:900">🏆 PARLAY TRACKER</button>
+        <button class="btn" data-cl="lb" style="padding:14px;background:linear-gradient(135deg,#a040ff,#ffd76e);color:#000;font-weight:900">📊 LEADERBOARDS</button>
+        <button class="btn" data-cl="hist" style="padding:14px;background:linear-gradient(135deg,#3d1a1a,#ff8a3c);color:#fff;font-weight:900">📜 BET HISTORY</button>
+        <button class="btn" data-cl="autobet" style="padding:14px;background:linear-gradient(135deg,#1a3a8a,#4f9eff);color:#fff;font-weight:900">🤖 AUTO-BET STATUS</button>
+      </div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">
+        ✝️ "Be very careful how you live · making the most of every opportunity" — Eph 5:15-16
+      </div>
+      <button class="btn" id="clBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('clBack').onclick = showSplash;
+  const actions = {
+    gamble: renderGambleScreen,
+    parlay: renderParlayTrackerScreen,
+    lb: renderLeaderboardsScreen,
+    hist: renderBetHistoryScreen,
+    autobet: renderAutoBetStatusScreen,
+  };
+  document.querySelectorAll('[data-cl]').forEach(b => b.onclick = () => {
+    const fn = actions[b.dataset.cl];
+    if (fn) fn();
+  });
+}
+
+// 📜 v3.14.0 — BET HISTORY screen with filter + totals
+function renderBetHistoryScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const hist = loadGambleHistory();
+  let filter = 'all';
+  const render = () => {
+    const filtered = filter === 'all' ? hist : hist.filter(h => filter === 'won' ? h.won : !h.won);
+    const totalWagered = hist.reduce((s, h) => s + h.wager, 0);
+    const totalWon = hist.filter(h => h.won).reduce((s, h) => s + h.payout, 0);
+    const profit = totalWon - totalWagered;
+    const winRate = hist.length > 0 ? (hist.filter(h => h.won).length / hist.length * 100).toFixed(0) : 0;
+    const rows = filtered.length
+      ? filtered.slice().reverse().map(h => `<div style="padding:8px 12px;margin:3px 0;background:#0008;border-left:5px solid ${h.won?'#4cf07a':'#ff3b3b'};border-radius:4px;color:#fff;font-size:11px">
+          <div>${h.icon} <b>${h.label}</b> · ${h.won ? `+$${h.payout}` : `-$${h.wager}`}</div>
+          <div style="color:#aab;font-size:10px;margin-top:2px">${new Date(h.at).toLocaleString()} · ${h.myPts}-${h.oppPts}</div>
+        </div>`).join('')
+      : '<div style="color:#aab;text-align:center;padding:20px">no bets matching filter</div>';
+    menuEl.innerHTML = `
+      <div class="panel" style="max-width:600px">
+        <div class="title" style="font-size:30px;text-align:center">📜 BET HISTORY</div>
+        <div class="subtitle" style="text-align:center">${hist.length} total bets · ${winRate}% win rate</div>
+        <div style="margin:14px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="padding:10px;background:#0008;border-left:4px solid #ffd76e;border-radius:6px;color:#fff;text-align:center">
+            <div style="font-size:10px;color:#ffd76e;letter-spacing:2px">WAGERED</div>
+            <div style="font-size:14px;font-weight:900;margin-top:4px">$${totalWagered.toLocaleString()}</div>
+          </div>
+          <div style="padding:10px;background:#0008;border-left:4px solid #4cf07a;border-radius:6px;color:#fff;text-align:center">
+            <div style="font-size:10px;color:#4cf07a;letter-spacing:2px">WON</div>
+            <div style="font-size:14px;font-weight:900;margin-top:4px">$${totalWon.toLocaleString()}</div>
+          </div>
+          <div style="padding:10px;background:#0008;border-left:4px solid ${profit>=0?'#4cf07a':'#ff3b3b'};border-radius:6px;color:#fff;text-align:center">
+            <div style="font-size:10px;color:${profit>=0?'#4cf07a':'#ff3b3b'};letter-spacing:2px">PROFIT</div>
+            <div style="font-size:14px;font-weight:900;margin-top:4px;color:${profit>=0?'#4cf07a':'#ff3b3b'}">${profit>=0?'+':''}$${profit.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style="margin:10px 0;text-align:center">
+          <button class="btn bhFilter" data-f="all" style="padding:8px 14px;background:${filter==='all'?'#ffd76e':'#0008'};color:${filter==='all'?'#000':'#ffd76e'};font-weight:900">ALL</button>
+          <button class="btn bhFilter" data-f="won" style="padding:8px 14px;background:${filter==='won'?'#4cf07a':'#0008'};color:${filter==='won'?'#000':'#4cf07a'};font-weight:900">WON</button>
+          <button class="btn bhFilter" data-f="lost" style="padding:8px 14px;background:${filter==='lost'?'#ff3b3b':'#0008'};color:${filter==='lost'?'#000':'#ff3b3b'};font-weight:900">LOST</button>
+        </div>
+        <div style="margin:14px 0;max-height:50vh;overflow-y:auto">${rows}</div>
+        <button class="btn" id="bhBack" style="width:100%">← BACK</button>
+      </div>`;
+    document.getElementById('bhBack').onclick = showSplash;
+    document.querySelectorAll('.bhFilter').forEach(b => b.onclick = () => { filter = b.dataset.f; render(); });
+  };
+  render();
+}
+
+// 🤖 v3.14.0 — AUTO-BET STATUS screen
+function renderAutoBetStatusScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('rules');
+  const s = loadAutoBetState() || { active: false, count: 0, type: null, wager: 0, confidence: false };
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px">
+      <div class="title" style="font-size:30px;text-align:center">🤖 AUTO-BET STATUS</div>
+      <div class="subtitle" style="text-align:center">${s.active ? '🟢 ACTIVE' : '⚪ INACTIVE'}</div>
+      <div style="margin:14px 0;padding:14px;background:#0008;border:2px solid ${s.active?'#4cf07a':'#ffd76e44'};border-radius:10px;color:#fff">
+        ${s.active
+          ? `<div style="font-size:13px;line-height:1.7">
+              <div>📍 BET TYPE: <b style="color:#ffd76e">${s.type}</b></div>
+              <div>💰 WAGER: <b style="color:#ffd76e">$${s.wager}</b></div>
+              <div>🔒 CONFIDENCE: <b style="color:#ffd76e">${s.confidence ? 'ON (+30%)' : 'OFF'}</b></div>
+              <div>🔢 PLACED: <b style="color:#4cf07a">${s.count} / 50</b></div>
+              <div style="margin-top:8px;color:#aab;font-size:11px">auto-bet places before every match · cancels at 50 or when broke</div>
+            </div>`
+          : `<div style="text-align:center;color:#aab;font-size:13px;line-height:1.7">
+              no auto-bet active<br>
+              <span style="font-size:11px">enable from gamble screen → check ☑ AUTO-BET</span>
+            </div>`}
+      </div>
+      ${s.active ? '<button class="btn hot" id="abCancel" style="width:100%;font-size:13px;background:#3d1a1a;color:#fff;font-weight:900">✖ CANCEL AUTO-BET</button>' : ''}
+      <button class="btn" id="abBack" style="margin-top:8px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('abBack').onclick = showSplash;
+  if (s.active){
+    document.getElementById('abCancel').onclick = () => {
+      saveAutoBetState({ active: false, count: 0 });
+      if (typeof showToast === 'function') showToast('🤖 AUTO-BET CANCELED', 'level');
+      renderAutoBetStatusScreen();
+    };
+  }
+}
+
+// 🥇 v3.14.0 — LEADERBOARD REWARDS · top 3 daily get gems
+function checkLeaderboardRewards(){
+  const today = new Date().toISOString().slice(0,10);
+  const rewardKey = `wud:lbReward:${currentProfileName()}`;
+  let claimed = {};
+  try { claimed = JSON.parse(localStorage.getItem(rewardKey) || '{}'); } catch(e){}
+  if (claimed[today]) return;
+  const profile = currentProfileName();
+  let topRanks = 0;
+  LEADERBOARD_CATS.forEach(cat => {
+    const arr = loadLeaderboard(cat.id, 'daily');
+    const idx = arr.findIndex(e => e.profile === profile);
+    if (idx >= 0 && idx < 3) topRanks++;
+  });
+  if (topRanks > 0){
+    const gemReward = topRanks * 5;
+    if (typeof awardGems === 'function') awardGems(gemReward);
+    claimed[today] = topRanks;
+    try { localStorage.setItem(rewardKey, JSON.stringify(claimed)); } catch(e){}
+    if (typeof showToast === 'function') showToast(`🥇 TOP-3 in ${topRanks} board${topRanks!==1?'s':''} · +${gemReward} 💎 GEMS`, 'level');
+  }
+}
+setTimeout(checkLeaderboardRewards, 2500);
+
+// 📈 v3.14.0 — CASH FLOW GRAPH (last 7 days)
+function renderCashFlowGraphHtml(){
+  // Use gamble history + records as proxy data · show ASCII bar chart per day
+  const hist = loadGambleHistory();
+  const today = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--){
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    days.push({ date: d.toISOString().slice(0,10), label: d.toLocaleDateString('en-US', { weekday:'short' }), profit: 0 });
+  }
+  hist.forEach(h => {
+    const d = new Date(h.at).toISOString().slice(0,10);
+    const day = days.find(x => x.date === d);
+    if (day){ day.profit += (h.won ? h.payout : -h.wager); }
+  });
+  const maxAbs = Math.max(1, ...days.map(d => Math.abs(d.profit)));
+  return `<div style="font-family:monospace;color:#fff;background:#000c;padding:10px;border-radius:6px;font-size:11px;line-height:1.6">
+    ${days.map(d => {
+      const w = Math.abs(d.profit) / maxAbs * 30;
+      const bar = (d.profit >= 0 ? '🟩'.repeat(Math.ceil(w)) : '🟥'.repeat(Math.ceil(w)));
+      return `<div>${d.label} · ${d.profit>=0?'+':''}$${d.profit.toLocaleString().padStart(8)} · ${bar}</div>`;
+    }).join('')}
+  </div>`;
+}
+
+// 💎 v3.14.0 — DIAMOND BET infrastructure (added to BET_TYPES below)
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
