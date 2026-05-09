@@ -9734,8 +9734,8 @@ class MatchScene extends Phaser.Scene {
       this.tweens.add({ targets:dove, y: dove.y - 200, alpha:{from:1, to:0}, duration:1400, onComplete:()=>dove.destroy() });
 
     } else if (cel === 'dunk'){
-      // POSTERIZED flash + zoom
-      this.cameras.main.flash(180, 255, 60, 30);
+      // POSTERIZED label · 🆕 v3.11.0 removed flash (kept popup)
+      // (cameras.flash removed)
       const post = this.add.text(player.x, player.y - 50, 'POSTERIZED', {fontFamily:'monospace', fontSize:50, color:'#ff3b3b', stroke:'#000', strokeThickness:8, fontStyle:'bold'}).setOrigin(0.5).setDepth(45).setScale(0.2);
       this.tweens.add({ targets:post, scale:1.4, alpha:{from:1, to:0}, duration:1100, ease:'Cubic.easeOut', onComplete:()=>post.destroy() });
 
