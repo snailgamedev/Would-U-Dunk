@@ -11729,6 +11729,8 @@ function showSplash(){
   const v = verseOfTheDay();
   const splashVerse = document.getElementById('splashVerse');
   if (splashVerse) splashVerse.innerHTML = `📜 verse of the day · "${v.text}" — ${v.ref} 🙏`;
+  // 🆕 v3.6.0 — TTS scripture reader (once per session, gated by setting)
+  if (typeof maybeSpeakVerseOfDay === 'function') setTimeout(maybeSpeakVerseOfDay, 1500);
   document.getElementById('btnPlay').onclick = showModeSelect;
   document.getElementById('btnStats').onclick = renderStatsScreen;
   document.getElementById('btnAch').onclick   = renderAchievementsScreen;
