@@ -9876,6 +9876,7 @@ async function startMatch(){
   // 🆕 v2.26.0 — reset gamble bet trackers per match
   State._firstScorer = null;
   State._p1LogoMade = false;
+  State._betResolved = false;
   State.matchStats = [
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
     { buckets:0, dunks:0, blocks:0, steals:0, attempts:0, longRange:0, longMade:0, shots:[] },
