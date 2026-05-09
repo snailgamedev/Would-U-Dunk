@@ -13232,7 +13232,9 @@ async function startRound(){
   // 🆕 v3.4.0 — show rival intro card if matched up against declared rival
   if (typeof maybeShowRivalIntro === 'function') setTimeout(() => maybeShowRivalIntro(), 100);
   // 🆕 v3.5.0 — play custom walkout clip if user recorded one
-  if (typeof playWalkoutClip === 'function') setTimeout(() => playWalkoutClip(), 600);
+  // 🆕 v3.6.0 — uses random slot (A/B/C) if any recorded, fallback to single v3.5 clip
+  if (typeof playRandomWalkoutSlot === 'function') setTimeout(() => playRandomWalkoutSlot(), 600);
+  else if (typeof playWalkoutClip === 'function') setTimeout(() => playWalkoutClip(), 600);
   // 🆕 v3.5.0 — injury return ceremony if last match had an injury
   if (State._lastMatchInjured && typeof fireInjuryReturnCeremony === 'function'){
     State._lastMatchInjured = false;
