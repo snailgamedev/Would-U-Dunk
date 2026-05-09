@@ -6017,6 +6017,8 @@ function resolveBet(){
       case 'century':      return myPts >= 100;
       case 'impossible':   return (myPts > oppPts) && (State.rolls?.cpuTiers?.[0]?.accuracy || 0) >= 0.95;
       case 'rocket':       return (myPts > oppPts) && oppPts > 0 && myPts >= oppPts * 4;
+      // 💎 DIAMOND BET — wins on perfect form
+      case 'diamond':      return (myPts > oppPts) && (State._greenStreak || 0) >= 3 && (Career.currentStreak || 0) >= 3;
     }
     return false;
   })();
