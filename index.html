@@ -7115,6 +7115,131 @@ function renderFriendQrScreen(){
   document.getElementById('qrBack').onclick = renderFriendsHubScreen;
 }
 
+// ✅ v3.20.0 — FRIEND CODE VALIDATION · checksum char on end · prevents random adds
+function generateFriendCodeV320(){
+  const profile = currentProfileName();
+  const hash = Array.from(profile).reduce((h, c) => ((h * 31 + c.charCodeAt(0)) >>> 0), 5381);
+  const fingerprint = (navigator.userAgent.length + screen.width + screen.height) >>> 0;
+  const combined = ((hash ^ fingerprint) >>> 0).toString(36).toUpperCase().padStart(5, '0').slice(-5);
+  // Checksum: sum char codes mod 36
+  const sum = Array.from(combined).reduce((s, ch) => s + ch.charCodeAt(0), 0);
+  const checksum = (sum % 36).toString(36).toUpperCase();
+  return combined + checksum;
+}
+function validateFriendCode(code){
+  if (!code || code.length !== 6) return false;
+  const body = code.slice(0, 5);
+  const expected = code.slice(5, 6);
+  const sum = Array.from(body).reduce((s, ch) => s + ch.charCodeAt(0), 0);
+  const checksum = (sum % 36).toString(36).toUpperCase();
+  return checksum === expected;
+}
+// Override original generateFriendCode
+window.generateFriendCode = generateFriendCodeV320;
+
+// ✉ v3.20.0 — FRIEND REQUEST SYSTEM · pending → accept/reject
+function loadFriendRequests(){ try { return JSON.parse(localStorage.getItem(`wud:friendReqs:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveFriendRequests(arr){ try { localStorage.setItem(`wud:friendReqs:${currentProfileName()}`, JSON.stringify(arr.slice(0, 50))); } catch(e){} }
+function sendFriendRequest(code){
+  if (!validateFriendCode(code)){ if (typeof showToast === 'function') showToast('❌ INVALID CODE · 6-char w/ checksum required', 'allpro'); return false; }
+  if (code === generateFriendCodeV320()){ if (typeof showToast === 'function') showToast('🤔 thats your own code', 'allpro'); return false; }
+  const existing = loadFriends().find(f => f.code === code);
+  if (existing){ if (typeof showToast === 'function') showToast('already friends', 'allpro'); return false; }
+  // In single-device this just queues a fake request to "self" simulating remote ack
+  const reqs = loadFriendRequests();
+  if (reqs.find(r => r.code === code && r.dir === 'sent')){ if (typeof showToast === 'function') showToast('request already sent', 'allpro'); return false; }
+  reqs.push({ code, dir:'sent', at: Date.now(), status:'pending' });
+  saveFriendRequests(reqs);
+  if (typeof showToast === 'function') showToast(`✉ REQUEST SENT to ${code} · waiting for accept`, 'level');
+  return true;
+}
+function receiveFriendRequest(code, name){
+  if (!validateFriendCode(code)) return false;
+  const reqs = loadFriendRequests();
+  reqs.push({ code, name, dir:'received', at: Date.now(), status:'pending' });
+  saveFriendRequests(reqs);
+  return true;
+}
+function acceptFriendRequest(code){
+  const reqs = loadFriendRequests();
+  const idx = reqs.findIndex(r => r.code === code && r.status === 'pending');
+  if (idx < 0) return false;
+  reqs[idx].status = 'accepted';
+  saveFriendRequests(reqs);
+  if (typeof addFriend === 'function') addFriend(code, reqs[idx].name);
+  if (typeof showToast === 'function') showToast(`✅ FRIEND ${code} ACCEPTED`, 'level');
+  return true;
+}
+function rejectFriendRequest(code){
+  const reqs = loadFriendRequests().filter(r => !(r.code === code && r.status === 'pending'));
+  saveFriendRequests(reqs);
+  if (typeof showToast === 'function') showToast(`❌ Request from ${code} rejected`, 'allpro');
+}
+function pendingRequestCount(){ return loadFriendRequests().filter(r => r.status === 'pending').length; }
+function renderFriendRequestsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const reqs = loadFriendRequests().filter(r => r.status === 'pending');
+  const sentReqs = reqs.filter(r => r.dir === 'sent');
+  const recvReqs = reqs.filter(r => r.dir === 'received');
+  const recvHtml = recvReqs.length
+    ? recvReqs.map(r => `<div style="padding:10px 14px;margin:5px 0;background:#0008;border-left:5px solid #4cf07a;border-radius:6px;color:#fff;display:flex;justify-content:space-between;align-items:center">
+        <div><b>${r.name || r.code}</b><br><span style="font-size:10px;color:#aab">${r.code} · ${new Date(r.at).toLocaleString()}</span></div>
+        <div>
+          <button class="btn frAccept" data-code="${r.code}" style="font-size:10px;padding:6px 12px;background:#4cf07a;color:#000;font-weight:900">ACCEPT</button>
+          <button class="btn frReject" data-code="${r.code}" style="font-size:10px;padding:6px 12px;background:#3d1a1a;color:#fff;font-weight:900;margin-left:4px">✖</button>
+        </div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:14px;font-size:11px">no incoming requests</div>';
+  const sentHtml = sentReqs.length
+    ? sentReqs.map(r => `<div style="padding:10px 14px;margin:5px 0;background:#0008;border-left:5px solid #ffd76e;border-radius:6px;color:#fff">
+        <div><b>${r.code}</b> · waiting · sent ${new Date(r.at).toLocaleString()}</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:14px;font-size:11px">no outgoing requests</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">✉ FRIEND REQUESTS</div>
+      <div class="subtitle" style="text-align:center">${reqs.length} pending · accept/reject before adding</div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e;border-radius:8px">
+        <div style="color:#4cf07a;font-size:11px;letter-spacing:3px;margin-bottom:8px">📥 INCOMING</div>
+        ${recvHtml}
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e44;border-radius:8px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">📤 OUTGOING</div>
+        ${sentHtml}
+      </div>
+      <div style="text-align:center;color:#aab;font-size:10px;margin:8px 0">📡 single-device demo · paste full payload from friend's EXPORT for instant connect</div>
+      <button class="btn" id="frBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('frBack').onclick = renderFriendsHubScreen;
+  document.querySelectorAll('.frAccept').forEach(b => b.onclick = () => { acceptFriendRequest(b.dataset.code); renderFriendRequestsScreen(); });
+  document.querySelectorAll('.frReject').forEach(b => b.onclick = () => { rejectFriendRequest(b.dataset.code); renderFriendRequestsScreen(); });
+}
+
+// 🎮 v3.20.0 — IN-GAME pause menu shortcuts (settings · accessibility · faith corner)
+// (Existing pause buttons enriched in btnPauseSettings/btnPauseHow handlers · kept additive)
+
+// 🏠 v3.20.0 — splash QUICK-STATS strip · cash · gems · streak · tier
+function quickStatsHtml(){
+  const cash = (typeof loadCash === 'function') ? loadCash() : 0;
+  const gems = (typeof loadGems === 'function') ? loadGems() : 0;
+  const streak = Career.currentStreak || 0;
+  const tier = (typeof currentWealthTier === 'function') ? currentWealthTier() : { label:'🆕 ROOKIE', color:'#aab' };
+  return `<div style="margin:10px 0;padding:10px;background:#0008;border:2px solid #ffd76e44;border-radius:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center">
+    <div style="color:#4cf07a;font-size:10px;letter-spacing:2px"><div>$${cash.toLocaleString()}</div><div style="font-size:9px;opacity:0.7">CASH</div></div>
+    <div style="color:#b9f2ff;font-size:10px;letter-spacing:2px"><div>${gems}💎</div><div style="font-size:9px;opacity:0.7">GEMS</div></div>
+    <div style="color:#ff8a3c;font-size:10px;letter-spacing:2px"><div>${streak}🔥</div><div style="font-size:9px;opacity:0.7">STREAK</div></div>
+    <div style="color:${tier.color};font-size:10px;letter-spacing:2px"><div>${tier.label.split(' ')[0]}</div><div style="font-size:9px;opacity:0.7">TIER</div></div>
+  </div>`;
+}
+
+// 🎁 v3.20.0 — splash quick-launch CAROUSEL · last 3 used screens
+function loadRecentScreens(){ try { return JSON.parse(localStorage.getItem(`wud:recentScreens:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function recordRecentScreen(name){
+  const recent = loadRecentScreens().filter(s => s !== name);
+  recent.unshift(name);
+  try { localStorage.setItem(`wud:recentScreens:${currentProfileName()}`, JSON.stringify(recent.slice(0, 5))); } catch(e){}
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
