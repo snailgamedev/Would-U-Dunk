@@ -3599,10 +3599,16 @@ function signEndorsement(id){
   if (e.signed.includes(id)) return false;
   const dealObj = ENDORSEMENTS.find(x => x.id === id);
   if (!dealObj) return false;
+  // 🆕 v3.5.0 — category bonus
+  const mul = (typeof endorsementBonusMul === 'function') ? endorsementBonusMul(id) : 1.0;
+  const finalPayout = Math.round(dealObj.payout * mul);
   e.signed.push(id);
   saveEndorsements(e);
-  awardCash(dealObj.payout);
-  if (typeof showToast === 'function') showToast(`💼 SIGNED · ${dealObj.name} · +$${dealObj.payout}`, 'level');
+  awardCash(finalPayout);
+  if (typeof showToast === 'function'){
+    const bonusMsg = mul > 1 ? ` (×${mul} cat bonus)` : '';
+    showToast(`💼 SIGNED · ${dealObj.name} · +$${finalPayout}${bonusMsg}`, 'level');
+  }
   return true;
 }
 
