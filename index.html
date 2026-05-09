@@ -13850,7 +13850,9 @@ function showSplash(){
   const btnHubMore = document.getElementById('btnHubMore');      if (btnHubMore) btnHubMore.onclick = renderHubMore;
   // 🆕 v3.14.0 — direct splash CASINO + LEADERBOARDS
   const btnCasino = document.getElementById('btnCasino'); if (btnCasino) btnCasino.onclick = renderCasinoLoungeScreen;
-  const btnLeaderboards = document.getElementById('btnLeaderboards'); if (btnLeaderboards) btnLeaderboards.onclick = renderLeaderboardsScreen;
+  // 🆕 v3.15.0 — point Leaderboards button to NEW PRO version
+  const btnLeaderboards = document.getElementById('btnLeaderboards'); if (btnLeaderboards) btnLeaderboards.onclick = renderProLeaderboardsScreen;
+  const btnVip = document.getElementById('btnVip'); if (btnVip) btnVip.onclick = renderVipScreen;
   // 🩹 v3.10.0 — guard ALL legacy splash button refs (buttons moved to MORE hub in v3.8)
   const _wire = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = fn; };
   _wire('btnStats', renderStatsScreen);
