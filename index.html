@@ -10384,13 +10384,26 @@ class MatchScene extends Phaser.Scene {
       const s = p.totalScale || 1;
       // --- CHARGE METER (always visible while holding ball) ---
       const charge = p._charging ? (p._chargeAmount || 0) : 0;
-      const w = 60, h = 8, x = p.x - w/2, y = p.y - 80*s;
-      this.chargeBar.fillStyle(0x000000, 0.8); this.chargeBar.fillRect(x-2, y-2, w+4, h+4);
-      this.chargeBar.fillStyle(0x222222, 0.9); this.chargeBar.fillRect(x, y, w, h);
-      const c = charge > 0.85 ? 0xff3b3b : (charge > 0.5 ? 0xffd76e : 0x4cf07a);
+      // 🎯 v3.12.0 — 2K-STYLE METER · bigger w/ visible color zones
+      const w = 80, h = 10, x = p.x - w/2, y = p.y - 80*s;
+      // Outer black border
+      this.chargeBar.fillStyle(0x000000, 0.85); this.chargeBar.fillRect(x-2, y-2, w+4, h+4);
+      // Color-zoned background bars (red · yellow · GREEN · purple)
+      this.chargeBar.fillStyle(0x3a1a1a, 1.0); this.chargeBar.fillRect(x, y, w*0.50, h);                     // red zone (0-0.50)
+      this.chargeBar.fillStyle(0x3a3a1a, 1.0); this.chargeBar.fillRect(x + w*0.50, y, w*0.16, h);            // yellow (0.50-0.66)
+      this.chargeBar.fillStyle(0x1a3d2c, 1.0); this.chargeBar.fillRect(x + w*0.66, y, w*0.08, h);            // GREEN sweet spot (0.66-0.74)
+      this.chargeBar.fillStyle(0x3d1a3d, 1.0); this.chargeBar.fillRect(x + w*0.74, y, w*0.26, h);            // purple (0.74-1.0 · overcharge)
+      // Active fill (color matches the zone you're in)
+      const inGreen = charge >= 0.66 && charge <= 0.74;
+      const inPurple = charge > 0.74;
+      const inYellow = charge >= 0.50 && charge < 0.66;
+      const c = inGreen ? 0x4cf07a : (inPurple ? 0xa040ff : (inYellow ? 0xffd76e : 0xff3b3b));
       this.chargeBar.fillStyle(c, 1); this.chargeBar.fillRect(x, y, w*charge, h);
-      // sweet-spot tick at 0.7
-      this.chargeBar.fillStyle(0xffffff, 0.9); this.chargeBar.fillRect(x + w*0.7 - 1, y - 3, 2, h + 6);
+      // GREEN sweet-spot tick (✓ marker)
+      this.chargeBar.fillStyle(0xffffff, 1.0); this.chargeBar.fillRect(x + w*0.70 - 1, y - 4, 2, h + 8);
+      // Glowing border around green zone for visibility
+      this.chargeBar.lineStyle(2, 0x4cf07a, inGreen ? 1.0 : 0.5);
+      this.chargeBar.strokeRect(x + w*0.66, y - 1, w*0.08, h + 2);
       // little label "HOLD W → AIM" or charge %
       // (rendered each frame — kept terse to avoid fontSize overhead)
 
