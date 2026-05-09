@@ -968,10 +968,15 @@ function cullBannedMods(rolls){
 function sanitizeCfg(cfg, mode){
   if (!cfg) return cfg;
   const fixes = [];
-  // Rim scale floor (tight + slim + triple_rim could shrink rim under 0.5)
-  if (cfg.rimScale != null && cfg.rimScale < 0.55){ cfg.rimScale = 0.55; fixes.push('rimScale↑0.55'); }
-  // Player speed floor (molasses + sticky + weighted_ankle)
-  if (cfg.playerSpeedMul != null && cfg.playerSpeedMul < 0.4){ cfg.playerSpeedMul = 0.4; fixes.push('playerSpeed↑0.4'); }
+  // 🛡 v3.12.0 — ALWAYS-SCORE harder floors
+  // Rim scale floor (was 0.55 · now 0.70 to ALWAYS allow scoring)
+  if (cfg.rimScale != null && cfg.rimScale < 0.70){ cfg.rimScale = 0.70; fixes.push('rimScale↑0.70'); }
+  // Court scale floor (tiny_court was 0.55 · enforce ≥0.85 so player has space)
+  if (cfg.courtScale != null && cfg.courtScale < 0.85){ cfg.courtScale = 0.85; fixes.push('courtScale↑0.85'); }
+  // Player speed floor (was 0.4 · now 0.55 so player can always reach hoop area)
+  if (cfg.playerSpeedMul != null && cfg.playerSpeedMul < 0.55){ cfg.playerSpeedMul = 0.55; fixes.push('playerSpeed↑0.55'); }
+  // Half-court rule disabled in non-target modes too (was only dunkOnly)
+  if (cfg.halfCourtRule){ cfg.halfCourtRule = false; fixes.push('halfCourt→off (always-score guard)'); }
   // Jump floor (weighted_ankle unlucky jelly_legs roll)
   if (cfg.jumpMul != null && cfg.jumpMul < 0.5){ cfg.jumpMul = 0.5; fixes.push('jump↑0.5'); }
   // Ball anti-gravity needs SOME gravity or ball floats forever
