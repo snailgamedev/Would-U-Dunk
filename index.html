@@ -13091,7 +13091,7 @@ function renderFaithCornerScreen(){
     const ref = r.dataset.ref;
     const v = loadFaith().favorites.find(x => x.ref === ref);
     if (!v) return;
-    if (confirm(`Remove "${v.ref}" from favorites?`)){ toggleFavoriteVerse(v); renderFaithCornerScreen(); }
+    inGameConfirm(`Remove "${v.ref}" from favorites?`).then(ok => { if (ok){ toggleFavoriteVerse(v); renderFaithCornerScreen(); } });
   });
 }
 
