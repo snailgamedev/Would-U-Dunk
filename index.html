@@ -10935,7 +10935,9 @@ function showReveal(rolls){
     try { MUSIC.start(rolls.superChaos ? 'superchaos' : 'revealchaos'); } catch(e){}
   }
   return new Promise(res => {
-    const DURATION_MS = 15000;
+    // 🆕 v3.1.0 — auto-shorten reveal in spectator (CPU vs CPU) since user isnt picking strategy
+    const isSpectator = !!(State.cfg && State.cfg.cpuVsCpu);
+    const DURATION_MS = isSpectator ? 4000 : 15000;
     const startedAt = Date.now();
     let resolved = false;
     let skipBtn = document.getElementById('revealSkipBtn');
