@@ -16591,7 +16591,26 @@ function showEndCard(){
     document.getElementById('endcard').classList.remove('on');
     if (game.scene.getScene('Match')) game.scene.stop('Match');
     State.matchOver = true;
-    showSplash();
+    // 🔄 v3.18.0 — return to Casino Lounge if there was an active bet (or active CPU's Fate)
+    const hadBet = !!State._activeBet || State._betResolved || State._cpuFateActive;
+    if (hadBet){
+      State._cpuFateActive = false;
+      // CPU Fate auto-leg-resolve · use State.matchPoints
+      if (State._cpuFateActive === false && typeof loadCpuFate === 'function'){
+        const f = loadCpuFate();
+        if (f.active && State.cfg?.cpuVsCpu){
+          const myPts = State.matchPoints?.[0] || 0;
+          const oppPts = State.matchPoints?.[1] || 0;
+          // Default predict P1 won the match
+          const actualWinnerIdx = myPts >= oppPts ? 0 : 1;
+          if (typeof recordCpuFateLeg === 'function') recordCpuFateLeg(0, actualWinnerIdx);
+        }
+      }
+      if (typeof renderCasinoLoungeScreen === 'function') renderCasinoLoungeScreen();
+      else showSplash();
+    } else {
+      showSplash();
+    }
   };
   document.getElementById('endcard').classList.add('on');
   // CONFETTI on match-done win
