@@ -3435,10 +3435,14 @@ function renderBattlePassScreen(){
       ${claimable ? `<button class="btn bpClaim" data-tier="${r.tier}" style="margin-left:8px;font-size:10px;padding:4px 10px;background:#4cf07a;color:#000;font-weight:900">CLAIM</button>` : ''}
     </div>`;
   }).join('');
+  // 🆕 v3.5.0 — season info
+  const season = (typeof getCurrentBpSeason === 'function') ? getCurrentBpSeason() : { seasonNum:1, daysRemaining:30 };
+  const theme = (typeof currentBpSeasonTheme === 'function') ? currentBpSeasonTheme() : { name:'GLORY', color:'#ffd76e', verse:'Phil 4:13' };
   menuEl.innerHTML = `
     <div class="panel" style="max-width:680px">
       <div class="title" style="font-size:30px;text-align:center">🎟 BATTLE PASS</div>
-      <div class="subtitle" style="text-align:center">SEASON 1 · 50 TIERS · CURRENT TIER ${tier}</div>
+      <div class="subtitle" style="text-align:center">SEASON ${season.seasonNum} · "${theme.name}" · ${season.daysRemaining}d til next season · CURRENT TIER ${tier}</div>
+      <div style="margin:8px 0;padding:8px;background:#0008;border:1px dashed ${theme.color};border-radius:6px;color:${theme.color};font-size:11px;text-align:center;font-style:italic">📖 ${theme.verse}</div>
       <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:12px;color:#000;text-align:center">
         <div style="font-size:11px;letter-spacing:3px;font-weight:900">${xp} XP · ${next?`${xpToNext} XP TO TIER ${tier+1}`:'MAX TIER REACHED'}</div>
         <div style="margin-top:8px;background:#000c;height:14px;border-radius:7px;overflow:hidden;border:2px solid #fff">
