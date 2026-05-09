@@ -8672,6 +8672,8 @@ class MatchScene extends Phaser.Scene {
       if (typeof maybeFireRandomEvent === 'function') maybeFireRandomEvent(this);
       // 🆕 v3.3.0 — halftime breakdown between rounds
       if (typeof showHalftimeBreakdownIfDue === 'function') showHalftimeBreakdownIfDue(this);
+      // 🆕 v3.4.0 — injury check (MyCareer mode only)
+      if (typeof maybeFireInjury === 'function') maybeFireInjury(this);
     }
     const remain = Math.max(0, this.roundSecs - this.elapsed);
     document.getElementById('timer').textContent = formatTime(remain);
