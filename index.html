@@ -12782,6 +12782,22 @@ function showEndCard(){
     if (won && (State._franchiseActive || State._tourneyActive) && typeof fireChampionshipCinematic === 'function'){
       setTimeout(() => fireChampionshipCinematic(), 800);
     }
+    // 🆕 v3.4.0 — resolve My Pick if tournament ended w/ a winner
+    if (won && State._tourneyActive && typeof loadMyPick === 'function'){
+      const t = (typeof loadTourney === 'function') ? loadTourney() : null;
+      const mp = loadMyPick();
+      if (t && t.champion && mp.active){
+        if (mp.active.npcId === t.champion){
+          awardCash(mp.active.payout);
+          if (typeof showToast === 'function') showToast(`🏆 MY PICK HIT · +$${mp.active.payout}`, 'level');
+        } else {
+          if (typeof showToast === 'function') showToast(`🎯 MY PICK BUSTED · ${t.champion} won it instead`, 'allpro');
+        }
+        mp.history.push({ ...mp.active, won: mp.active.npcId === t.champion, champion: t.champion, at: Date.now() });
+        mp.active = null;
+        saveMyPick(mp);
+      }
+    }
     if (won && (State._maxDeficit || 0) >= 10 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'comeback');
     if (won && (Career.currentStreak || 0) >= 5 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'championship');
     if (!won && (Career.currentLossStreak || 0) >= 3 && typeof fireAutoVerse === 'function') fireAutoVerse(this, 'loss_streak');
