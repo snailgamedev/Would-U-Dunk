@@ -14817,7 +14817,8 @@ function showSplash(){
   const btnVip = document.getElementById('btnVip'); if (btnVip) btnVip.onclick = renderVipScreen;
   const btnChallenges = document.getElementById('btnChallenges'); if (btnChallenges) btnChallenges.onclick = renderWagerChallengesScreen;
   const btnCrowns = document.getElementById('btnCrowns'); if (btnCrowns) btnCrowns.onclick = renderCrownCollectionScreen;
-  const btnFriendLb = document.getElementById('btnFriendLb'); if (btnFriendLb) btnFriendLb.onclick = renderFriendLeaderboardScreen;
+  // 👥 v3.19.0 — splash FRIENDS now opens new HUB (was just leaderboard)
+  const btnFriendLb = document.getElementById('btnFriendLb'); if (btnFriendLb) btnFriendLb.onclick = renderFriendsHubScreen;
   // 🩹 v3.10.0 — guard ALL legacy splash button refs (buttons moved to MORE hub in v3.8)
   const _wire = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = fn; };
   _wire('btnStats', renderStatsScreen);
