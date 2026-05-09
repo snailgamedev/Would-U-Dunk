@@ -11560,6 +11560,11 @@ function showSplash(){
   if (btnSpectatorHall) btnSpectatorHall.onclick = renderSpectatorHallScreen;
   const btnPackOpen = document.getElementById('btnPackOpen');
   if (btnPackOpen) btnPackOpen.onclick = renderPackOpeningScreen;
+  // 🆕 v3.5.0 — Card Trading · Walkout Recorder
+  const btnCardTrade = document.getElementById('btnCardTrade');
+  if (btnCardTrade) btnCardTrade.onclick = renderCardTradingScreen;
+  const btnWalkout = document.getElementById('btnWalkout');
+  if (btnWalkout) btnWalkout.onclick = renderWalkoutRecorderScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
