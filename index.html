@@ -10870,6 +10870,19 @@ function showSplash(){
   if (btnMystery) btnMystery.onclick = renderMysteryBoxScreen;
   const btnUnlocks = document.getElementById('btnUnlocks');
   if (btnUnlocks) btnUnlocks.onclick = renderUnlockChainsScreen;
+  // 🆕 v3.3.0 — MyCareer · Battle Pass · Themes · Hot Zones · Rivalries · Keyboard
+  const btnMyCareer = document.getElementById('btnMyCareer');
+  if (btnMyCareer) btnMyCareer.onclick = renderMyCareerScreen;
+  const btnBattlePass = document.getElementById('btnBattlePass');
+  if (btnBattlePass) btnBattlePass.onclick = renderBattlePassScreen;
+  const btnThemes = document.getElementById('btnThemes');
+  if (btnThemes) btnThemes.onclick = renderThemePickerScreen;
+  const btnHotZones = document.getElementById('btnHotZones');
+  if (btnHotZones) btnHotZones.onclick = renderHotZonesScreen;
+  const btnRivalries = document.getElementById('btnRivalries');
+  if (btnRivalries) btnRivalries.onclick = renderRivalriesScreen;
+  const btnKeyboard = document.getElementById('btnKeyboard');
+  if (btnKeyboard) btnKeyboard.onclick = renderKeyboardShortcutsScreen;
   // 🆕 v2.21.0 — PRAISE RADIO button
   const btnPraise = document.getElementById('btnPraiseRadio');
   if (btnPraise) btnPraise.onclick = () => {
