@@ -2912,6 +2912,630 @@ function renderMysteryBoxScreen(){
   document.getElementById('mbBack').onclick = showSplash;
 }
 
+// 🆕 v3.3.0 — GEMS CURRENCY · earned only from achievement unlocks
+function loadGems(){ try { return parseInt(localStorage.getItem(`wud:gems:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
+function saveGems(n){ try { localStorage.setItem(`wud:gems:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
+function awardGems(n){ const cur = loadGems(); saveGems(cur + n); return cur + n; }
+function spendGems(n){
+  const cur = loadGems();
+  if (cur < n) return false;
+  saveGems(cur - n);
+  return true;
+}
+
+// 🆕 v3.3.0 — HOT ZONES · track makes per zone · buff future shots
+function loadHotZones(){ try { return JSON.parse(localStorage.getItem(`wud:hotzones:${currentProfileName()}`)||'{}'); } catch(e){ return {}; } }
+function saveHotZones(z){ try { localStorage.setItem(`wud:hotzones:${currentProfileName()}`, JSON.stringify(z)); } catch(e){} }
+function recordZoneShot(zone, made){
+  const z = loadHotZones();
+  if (!z[zone]) z[zone] = { makes:0, attempts:0 };
+  z[zone].attempts += 1;
+  if (made) z[zone].makes += 1;
+  saveHotZones(z);
+}
+function zoneAccuracyMul(zone){
+  const z = loadHotZones();
+  const stats = z[zone];
+  if (!stats || stats.attempts < 3) return 1.0;
+  const pct = stats.makes / stats.attempts;
+  if (stats.makes >= 5 && pct >= 0.5) return 1.05;     // HOT zone
+  if (stats.attempts >= 8 && pct < 0.25) return 0.95;  // COLD zone
+  return 1.0;
+}
+function zoneIsHot(zone){
+  const z = loadHotZones();
+  const stats = z[zone];
+  if (!stats || stats.makes < 5) return false;
+  return (stats.makes / Math.max(1, stats.attempts)) >= 0.5;
+}
+
+// 🆕 v3.3.0 — DYNAMIC RIVALRIES · beat same NPC 3x → permanent rival tag
+function loadRivalries(){ try { return JSON.parse(localStorage.getItem(`wud:rivalries:${currentProfileName()}`)||'{}'); } catch(e){ return {}; } }
+function saveRivalries(r){ try { localStorage.setItem(`wud:rivalries:${currentProfileName()}`, JSON.stringify(r)); } catch(e){} }
+function recordWinVsNpc(npcId){
+  if (!npcId) return;
+  const r = loadRivalries();
+  if (!r[npcId]) r[npcId] = { wins:0, declared:false, declaredAt:null };
+  r[npcId].wins += 1;
+  if (r[npcId].wins >= 3 && !r[npcId].declared){
+    r[npcId].declared = true;
+    r[npcId].declaredAt = Date.now();
+    if (typeof showToast === 'function') showToast(`⚔ RIVALRY DECLARED · ${npcId.toUpperCase()}`, 'level');
+  }
+  saveRivalries(r);
+}
+function isRival(npcId){
+  const r = loadRivalries();
+  return !!(r[npcId] && r[npcId].declared);
+}
+
+// 🆕 v3.3.0 — MyCAREER MODE skeleton
+const MYCAREER_KEY = () => `wud:mycareer:${currentProfileName()}`;
+function defaultMyCareer(){
+  return {
+    started: false,
+    stage: 'high_school',          // high_school · college · nba_draft · pro_career · retired
+    age: 16,
+    gamesPlayed: 0,
+    careerPoints: 0,
+    careerWins: 0,
+    careerLosses: 0,
+    championships: 0,
+    mvpAwards: 0,
+    finalsMvp: 0,
+    rookieOfYear: false,
+    inductedHoF: false,
+    narrativeBeats: [],            // arr of {at, beat, stage}
+    createdAt: null,
+  };
+}
+function loadMyCareer(){
+  try { const raw = localStorage.getItem(MYCAREER_KEY()); return raw ? Object.assign(defaultMyCareer(), JSON.parse(raw)) : defaultMyCareer(); }
+  catch(e){ return defaultMyCareer(); }
+}
+function saveMyCareerState(c){ try { localStorage.setItem(MYCAREER_KEY(), JSON.stringify(c)); } catch(e){} }
+const MYCAREER_STAGES = [
+  { id:'high_school', name:'🏫 HIGH SCHOOL',   minGames:0,  nextAt:5,  desc:'small gym · big dreams · scout begins watching' },
+  { id:'college',     name:'🎓 COLLEGE',       minGames:5,  nextAt:15, desc:'NCAA spotlight · NIL deals · march madness' },
+  { id:'nba_draft',   name:'🏀 NBA DRAFT',     minGames:15, nextAt:16, desc:'one-game showcase · cinematic moment · drafted' },
+  { id:'pro_career',  name:'⭐ PRO CAREER',    minGames:16, nextAt:60, desc:'the show · 60 games to retirement · MVPs · rings' },
+  { id:'retired',     name:'🏆 RETIRED · HoF', minGames:60, nextAt:99, desc:'plaque hung · legacy locked · play forever in legends' },
+];
+const NARRATIVE_BEATS = {
+  high_school: [
+    { trigger:'first_game',   text:'COACH: "kid, you got something. Don\'t waste it."' },
+    { trigger:'first_win',    text:'LOCAL PAPER: "Freshman phenom turning heads."' },
+    { trigger:'5_games',      text:'SCOUT: "He\'s ready for the next level."' },
+  ],
+  college: [
+    { trigger:'first_college_win', text:'COACH: "Welcome to the big leagues kid."' },
+    { trigger:'10_games',          text:'ESPN: "Top 5 NBA prospect this year."' },
+    { trigger:'15_games',          text:'AGENT: "Time to declare for the draft."' },
+  ],
+  pro_career: [
+    { trigger:'first_pro_win',     text:'TEAMMATE: "Welcome to the league rookie."' },
+    { trigger:'20_games',          text:'COMMISSIONER: "Rookie of the Year — you earned it."' },
+    { trigger:'40_games',          text:'GM: "MVP whispers · championship contender."' },
+    { trigger:'championship',      text:'OWNER: "We just won it ALL."' },
+    { trigger:'60_games',          text:'YOU: "It\'s time. Hang em up. Glory to God."' },
+  ],
+};
+function startMyCareer(){
+  const c = defaultMyCareer();
+  c.started = true;
+  c.createdAt = Date.now();
+  c.narrativeBeats = [{ at:Date.now(), beat:'CAREER STARTED · the journey begins', stage:'high_school' }];
+  saveMyCareerState(c);
+  return c;
+}
+function tickMyCareer(won){
+  const c = loadMyCareer();
+  if (!c.started) return c;
+  c.gamesPlayed += 1;
+  if (won) c.careerWins += 1; else c.careerLosses += 1;
+  c.careerPoints += (State.matchPoints?.[0] || 0);
+  // Stage advance check
+  const cur = MYCAREER_STAGES.find(s => s.id === c.stage);
+  const next = MYCAREER_STAGES[MYCAREER_STAGES.findIndex(s => s.id === c.stage) + 1];
+  if (next && c.gamesPlayed >= next.minGames){
+    c.stage = next.id;
+    c.narrativeBeats.push({ at:Date.now(), beat:`STAGE ADVANCE · entered ${next.name}`, stage:next.id });
+    if (typeof showToast === 'function') showToast(`📈 CAREER ADVANCE · ${next.name}`, 'level');
+  }
+  // Achievement-style awards
+  if (c.gamesPlayed === 1 && (NARRATIVE_BEATS[c.stage]||[]).find(b => b.trigger === 'first_game')){
+    c.narrativeBeats.push({ at:Date.now(), beat:NARRATIVE_BEATS[c.stage].find(b=>b.trigger==='first_game').text, stage:c.stage });
+  }
+  if (c.stage === 'pro_career' && c.gamesPlayed === 20 && !c.rookieOfYear){
+    c.rookieOfYear = true;
+    c.narrativeBeats.push({ at:Date.now(), beat:'🏆 ROOKIE OF THE YEAR — well done good and faithful', stage:c.stage });
+  }
+  if (c.gamesPlayed === 60){
+    c.stage = 'retired';
+    c.inductedHoF = true;
+    c.narrativeBeats.push({ at:Date.now(), beat:'🏛 INDUCTED INTO HALL OF FAME · "Run the race · keep the faith" — 2 Tim 4:7', stage:'retired' });
+  }
+  saveMyCareerState(c);
+  return c;
+}
+function renderMyCareerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('franchise');
+  const c = loadMyCareer();
+  if (!c.started){
+    menuEl.innerHTML = `
+      <div class="panel" style="max-width:580px;text-align:center">
+        <div class="title" style="font-size:32px;background:linear-gradient(135deg,#ffd76e,#fff,#ffd76e);-webkit-background-clip:text;background-clip:text;color:transparent">🎓 MyCAREER</div>
+        <div class="subtitle">your journey · HS → College → NBA → HoF</div>
+        <div style="margin:18px 0;padding:18px;background:#0008;border:2px dashed #ffd76e;border-radius:14px;color:#fff;font-size:13px;line-height:1.7">
+          start a career arc — every match counts toward your legacy.<br>
+          • <b>HS</b> 5 games → <b>College</b> 10 → <b>Draft</b> → <b>Pro</b> 45 → <b>HoF</b> 🏛<br>
+          • narrative beats fire at milestones<br>
+          • Rookie of the Year · MVP · Championships tracked<br>
+          • retire to permanent legacy display<br><br>
+          ✝️ "I have fought the good fight · finished the race" — 2 Tim 4:7
+        </div>
+        <button class="btn hot" id="mcStart" style="width:100%;font-size:18px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);color:#000">🏀 START CAREER</button>
+        <button class="btn" id="mcBack" style="margin-top:8px;width:100%">← BACK</button>
+      </div>`;
+    document.getElementById('mcStart').onclick = () => { startMyCareer(); renderMyCareerScreen(); };
+    document.getElementById('mcBack').onclick = showSplash;
+    return;
+  }
+  const stage = MYCAREER_STAGES.find(s => s.id === c.stage);
+  const stageIdx = MYCAREER_STAGES.findIndex(s => s.id === c.stage);
+  const next = MYCAREER_STAGES[stageIdx + 1];
+  const progressPct = next ? Math.min(100, ((c.gamesPlayed - stage.minGames) / (next.minGames - stage.minGames)) * 100) : 100;
+  const beatsHtml = c.narrativeBeats.slice(-10).reverse().map(b => `
+    <div style="padding:8px 10px;margin:4px 0;background:#0008;border-left:3px solid #ffd76e;border-radius:4px;color:#fff;font-size:12px">
+      <div style="color:#ffd76e;font-size:9px;letter-spacing:2px">${MYCAREER_STAGES.find(s=>s.id===b.stage)?.name || b.stage}</div>
+      <div style="margin-top:2px;font-style:italic">${b.beat}</div>
+    </div>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:620px">
+      <div class="title" style="font-size:30px;text-align:center">🎓 MyCAREER</div>
+      <div class="subtitle" style="text-align:center">${stage.name}</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:12px;color:#000;text-align:center">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">${stage.desc}</div>
+        ${next ? `<div style="margin-top:10px;background:#000c;height:14px;border-radius:7px;overflow:hidden;border:2px solid #fff">
+          <div style="height:100%;background:linear-gradient(135deg,#4cf07a,#ffd76e);width:${progressPct.toFixed(0)}%;transition:width .4s"></div>
+        </div>
+        <div style="margin-top:6px;font-size:10px;letter-spacing:2px;color:#000">${c.gamesPlayed} / ${next.minGames} games · ${(next.minGames - c.gamesPlayed)} til ${next.name}</div>` : '<div style="margin-top:10px;font-size:14px">🏛 ENSHRINED · LEGACY LOCKED</div>'}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0">
+        <div style="padding:10px;background:#0008;border:1px solid #ffd76e44;border-radius:8px;color:#fff">
+          <div style="color:#ffd76e;font-size:10px;letter-spacing:2px">CAREER LINE</div>
+          <div style="font-size:14px;margin-top:4px"><b>${c.careerWins}</b>W · <b>${c.careerLosses}</b>L · <b>${c.careerPoints}</b> pts</div>
+        </div>
+        <div style="padding:10px;background:#0008;border:1px solid #ffd76e44;border-radius:8px;color:#fff">
+          <div style="color:#ffd76e;font-size:10px;letter-spacing:2px">AWARDS</div>
+          <div style="font-size:14px;margin-top:4px">${c.rookieOfYear?'🥇 RoY · ':''}${c.mvpAwards?'🏆 '+c.mvpAwards+' MVP · ':''}${c.championships?'💍 '+c.championships+' rings':'no rings yet'}</div>
+        </div>
+      </div>
+      <div style="margin:14px 0;padding:12px;background:#0008;border:1px solid #ffd76e44;border-radius:10px;max-height:280px;overflow-y:auto">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:8px">📜 NARRATIVE BEATS (last 10)</div>
+        ${beatsHtml || '<div style="color:#aab;text-align:center;padding:10px">play matches to unlock beats</div>'}
+      </div>
+      <button class="btn hot" id="mcPlay" style="width:100%;font-size:16px;background:linear-gradient(135deg,#1a3a8a,#4f9eff,#ffd76e);color:#000">🏀 PLAY NEXT CAREER GAME</button>
+      <button class="btn" id="mcBack" style="margin-top:8px;width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('mcPlay').onclick = () => {
+    State._myCareerActive = true;
+    State.modeId = '5x5';
+    State.mode = 'CPU';
+    State.looks[1] = rollRandomLook(1);
+    setTimeout(() => startMatch(), 200);
+  };
+  document.getElementById('mcBack').onclick = showSplash;
+}
+
+// 🆕 v3.3.0 — UI THEMES (6 total) · CSS injection per theme
+const UI_THEMES = [
+  { id:'classic', name:'CLASSIC',  colors:{ primary:'#ffd76e', accent:'#ff8a3c', bg:'#1a0e02' } },
+  { id:'dark',    name:'DARK',     colors:{ primary:'#4cf07a', accent:'#1a3d2c', bg:'#000000' } },
+  { id:'gold',    name:'GOLD',     colors:{ primary:'#ffd700', accent:'#daa520', bg:'#1a1a00' } },
+  { id:'street',  name:'STREET',   colors:{ primary:'#ff66cc', accent:'#a040ff', bg:'#1a0a2a' } },
+  { id:'retro',   name:'RETRO',    colors:{ primary:'#ff6b6b', accent:'#ffd166', bg:'#2a1a0a' } },
+  { id:'neon',    name:'NEON',     colors:{ primary:'#00fff7', accent:'#ff00d4', bg:'#0a0028' } },
+];
+function applyTheme(themeId){
+  const theme = UI_THEMES.find(t => t.id === themeId) || UI_THEMES[0];
+  let style = document.getElementById('themeStyle');
+  if (!style){ style = document.createElement('style'); style.id = 'themeStyle'; document.head.appendChild(style); }
+  style.textContent = `
+    body.theme-${theme.id} :root { --gold:${theme.colors.primary}; --hot:${theme.colors.accent}; }
+    body.theme-${theme.id} .panel { box-shadow: 0 0 24px ${theme.colors.primary}33; }
+    body.theme-${theme.id} .title { color:${theme.colors.primary} !important; }
+  `;
+  UI_THEMES.forEach(t => document.body.classList.remove(`theme-${t.id}`));
+  document.body.classList.add(`theme-${theme.id}`);
+  try { localStorage.setItem(`wud:theme:${currentProfileName()}`, theme.id); } catch(e){}
+}
+function loadTheme(){ try { return localStorage.getItem(`wud:theme:${currentProfileName()}`) || 'classic'; } catch(e){ return 'classic'; } }
+setTimeout(() => applyTheme(loadTheme()), 80);
+
+// 🆕 v3.3.0 — RANDOM EVENTS expansion (10 more · total 16)
+const RANDOM_EVENTS_V330 = [
+  { id:'triple_threat',  label:'⚡ TRIPLE THREAT',     desc:'next 3 buckets = +3 each',           cfgPatch:{ _eventTripleThreat:3 } },
+  { id:'tidal_wave',     label:'🌊 TIDAL WAVE',         desc:'mega momentum swing · ±10 mom',     cfgPatch:{ _eventTidal:true } },
+  { id:'lucky_coin',     label:'🪙 LUCKY COIN',         desc:'2× cash on next 3 buckets',         cfgPatch:{ _eventLucky:3 } },
+  { id:'time_warp',      label:'⏳ TIME WARP',          desc:'5s slow-mo · world @ 0.5×',         cfgPatch:{ _eventSlowMo:5 } },
+  { id:'sharpshooter',   label:'🎯 SHARPSHOOTER',      desc:'next 3 shots = perfect green',      cfgPatch:{ _eventGreen:3 } },
+  { id:'fortress',       label:'🛡 FORTRESS',           desc:'defense buff 30s · 50% block rate', cfgPatch:{ _eventFortress:30 } },
+  { id:'star_power',     label:'🌟 STAR POWER',        desc:'cinematic on every bucket 30s',     cfgPatch:{ _eventStar:30 } },
+  { id:'chaos_wheel',    label:'🎪 CHAOS WHEEL',       desc:'random mod swap · re-roll 1 mod',   cfgPatch:{ _eventChaosWheel:true } },
+  { id:'dunk_fever',     label:'💥 DUNK FEVER',        desc:'all dunks count as 3pt 30s',        cfgPatch:{ _eventDunkFever:30 } },
+  { id:'kings_ransom',   label:'👑 KINGS RANSOM',      desc:'next bucket = +$500 cash',          cfgPatch:{ _eventRansom:1 } },
+];
+// EXTEND RANDOM_EVENTS array (additive)
+RANDOM_EVENTS.push(...RANDOM_EVENTS_V330);
+
+// 🆕 v3.3.0 — MULTIPLIER EXPANSION
+function streakChainMul(streak){
+  // every consecutive bucket compounds: 1.0 · 1.1 · 1.21 · 1.33 · 1.46 · etc, capped at 2.0
+  return Math.min(2.0, Math.pow(1.10, Math.max(0, streak - 1)));
+}
+function comebackMul(){
+  // ×2 if down 10+ when scoring
+  if ((State._maxDeficit || 0) >= 10 && (State.scores[0] || 0) < (State.scores[1] || 0)) return 2.0;
+  return 1.0;
+}
+function clutchMul(scene){
+  const remaining = (scene.roundSecs || 120) - (scene.elapsed || 0);
+  if (remaining > 0 && remaining <= 30) return 1.5;
+  return 1.0;
+}
+function comboChainMul(){
+  // 3 different shot zones in a row = ×2
+  const recent = State._recentZones || [];
+  if (recent.length >= 3 && new Set(recent.slice(-3)).size === 3) return 2.0;
+  return 1.0;
+}
+function goldilocksBonusMul(){
+  // winning 4/5 of recent games = +25%
+  const arr = (typeof loadRecentResults === 'function') ? loadRecentResults().slice(-5) : [];
+  const wins = arr.filter(r => r.won).length;
+  if (wins >= 4) return 1.25;
+  return 1.0;
+}
+
+// 🆕 v3.3.0 — AUTO-FAITH VERSE popups · key moments
+function fireAutoVerse(scene, trigger){
+  const verseMap = {
+    comeback:    { cat:'victory',     msg:'COMEBACK!',          color:'#4cf07a' },
+    perfect:     { cat:'identity',    msg:'PERFECT GAME!',       color:'#ffd76e' },
+    loss_streak: { cat:'perseverance', msg:'KEEP GOING',          color:'#4f9eff' },
+    championship:{ cat:'victory',     msg:'CHAMPIONSHIP!',       color:'#ff66cc' },
+    halftime:    { cat:'peace',       msg:'HALFTIME',            color:'#fff'    },
+    wager_loss:  { cat:'perseverance', msg:'NEXT BET HITS',       color:'#aab'   },
+  };
+  const m = verseMap[trigger] || verseMap.peace;
+  const v = (typeof verseByCategory === 'function') ? verseByCategory(m.cat) : (typeof randomVerse === 'function' ? randomVerse() : null);
+  if (!v) return;
+  if (typeof recordVerseSeen === 'function') recordVerseSeen(v);
+  // Visual popup (corner toast style — never lock screen)
+  try {
+    const pop = document.createElement('div');
+    pop.style.cssText = `position:fixed;bottom:80px;right:20px;z-index:9000;max-width:320px;padding:12px 16px;background:linear-gradient(135deg,#1a0e02,#7a5a14,${m.color});border:2px solid #fff;border-radius:10px;color:#fff;font-size:12px;box-shadow:0 0 20px ${m.color}88;opacity:0;transition:opacity .3s`;
+    pop.innerHTML = `<div style="font-weight:900;letter-spacing:2px;font-size:11px;color:${m.color}">🙏 ${m.msg}</div><div style="margin-top:6px;font-style:italic">"${v.text}"</div><div style="margin-top:4px;color:#ffd76e;font-size:10px">— ${v.ref}</div>`;
+    document.body.appendChild(pop);
+    setTimeout(() => pop.style.opacity = '1', 50);
+    setTimeout(() => { pop.style.opacity = '0'; setTimeout(() => pop.remove(), 400); }, 5500);
+  } catch(e){}
+}
+
+// 🆕 v3.3.0 — CPU FAITH COMMENTARY · extends combo names with biblical flavor
+const CPU_FAITH_LINES = [
+  '🙏 BLESSED BUCKET!',
+  '✝️ ANOINTED FINISH!',
+  '🌟 GLORY!',
+  '🕊 FAITHFUL SERVANT!',
+  '👑 CROWNED!',
+  '🔥 REFINER\'S FIRE!',
+  '⚡ MORE THAN A CONQUEROR!',
+  '🌅 NEW MERCIES!',
+];
+function maybeFireCpuFaithLine(scene, scorerIdx){
+  if (Math.random() > 0.18) return;   // 18% chance per CPU bucket
+  const line = CPU_FAITH_LINES[(Math.random()*CPU_FAITH_LINES.length)|0];
+  const player = scorerIdx === 0 ? scene.p1 : scene.p2;
+  try {
+    const t = scene.add.text(player.x, player.y - 170, line, {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:24, color:'#ffd76e', stroke:'#000', strokeThickness:6, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+    scene.tweens.add({ targets:t, y:t.y - 50, alpha:0, scale:1.2, duration:1300, onComplete:()=>t.destroy() });
+  } catch(e){}
+}
+
+// 🆕 v3.3.0 — DAILY DEALS shop (3 rotating discounted items per day · date-seeded)
+function dailyDeals(){
+  const d = new Date();
+  const seed = d.getFullYear()*1000 + (d.getMonth()+1)*32 + d.getDate();
+  const items = (typeof SHOP_ITEMS !== 'undefined') ? SHOP_ITEMS : [];
+  if (items.length === 0) return [];
+  const picks = [
+    items[seed % items.length],
+    items[(seed * 7) % items.length],
+    items[(seed * 13) % items.length],
+  ];
+  return picks.map((it, i) => ({ item:it, discount: [25, 35, 50][i] }));
+}
+
+// 🆕 v3.3.0 — WISHLIST per profile
+function loadWishlist(){ try { return JSON.parse(localStorage.getItem(`wud:wishlist:${currentProfileName()}`)||'[]'); } catch(e){ return []; } }
+function saveWishlist(arr){ try { localStorage.setItem(`wud:wishlist:${currentProfileName()}`, JSON.stringify(arr)); } catch(e){} }
+function toggleWishlist(itemId){
+  const w = loadWishlist();
+  const idx = w.indexOf(itemId);
+  if (idx >= 0) w.splice(idx, 1); else w.push(itemId);
+  saveWishlist(w);
+  return idx < 0;
+}
+function isOnWishlist(itemId){ return loadWishlist().includes(itemId); }
+
+// 🆕 v3.3.0 — AUTO-SAVE INDICATOR · pulse on every save
+let _lastSaveTimestamp = Date.now();
+function pulseSaveIndicator(){
+  _lastSaveTimestamp = Date.now();
+  let dot = document.getElementById('saveDot');
+  if (!dot){
+    dot = document.createElement('div');
+    dot.id = 'saveDot';
+    dot.style.cssText = 'position:fixed;top:8px;left:8px;z-index:9999;width:10px;height:10px;background:#4cf07a;border-radius:50%;box-shadow:0 0 8px #4cf07a;opacity:0;transition:opacity .2s;pointer-events:none';
+    dot.title = '💾 saving...';
+    document.body.appendChild(dot);
+  }
+  dot.style.opacity = '1';
+  setTimeout(() => { dot.style.opacity = '0'; }, 600);
+}
+// monkey-patch localStorage.setItem to pulse (additive · doesn't break existing)
+(function(){
+  const _orig = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k, v){
+    _orig(k, v);
+    if (typeof k === 'string' && k.startsWith('wud:')){
+      try { pulseSaveIndicator(); } catch(e){}
+    }
+  };
+})();
+
+// 🆕 v3.3.0 — BATTLE PASS · 50 tiers seasonal (XP-driven)
+const BATTLE_PASS_REWARDS = (() => {
+  const out = [];
+  for (let tier = 1; tier <= 50; tier++){
+    const isPremium = tier % 3 === 0 || tier === 50;
+    let reward;
+    if (tier === 50)        reward = { type:'card', tier:'invincible', label:'🌌 INVINCIBLE CARD' };
+    else if (tier % 10 === 0) reward = { type:'gems', amt:5, label:'5 💎 GEMS' };
+    else if (tier % 5 === 0)  reward = { type:'cash', amt:1000, label:'$1000 BONUS' };
+    else if (tier % 7 === 0)  reward = { type:'card', tier:'gold', label:'GOLD CARD' };
+    else if (tier % 4 === 0)  reward = { type:'cash', amt:500, label:'$500' };
+    else                       reward = { type:'cash', amt:200, label:'$200' };
+    out.push({ tier, isPremium, reward, xpRequired: tier * 250 });
+  }
+  return out;
+})();
+function loadBattlePass(){ try { return JSON.parse(localStorage.getItem(`wud:bpass:${currentProfileName()}`)||'{"tier":0,"premium":false,"claimed":[]}'); } catch(e){ return {tier:0,premium:false,claimed:[]}; } }
+function saveBattlePass(b){ try { localStorage.setItem(`wud:bpass:${currentProfileName()}`, JSON.stringify(b)); } catch(e){} }
+function bpassCurrentTier(){
+  const xp = Career.xp || 0;
+  let tier = 0;
+  for (const r of BATTLE_PASS_REWARDS){ if (xp >= r.xpRequired) tier = r.tier; }
+  const b = loadBattlePass();
+  b.tier = tier;
+  saveBattlePass(b);
+  return tier;
+}
+function claimBattlePassReward(tierNum){
+  const b = loadBattlePass();
+  if (b.claimed.includes(tierNum)) return false;
+  const r = BATTLE_PASS_REWARDS.find(x => x.tier === tierNum);
+  if (!r || tierNum > b.tier) return false;
+  if (r.isPremium && !b.premium) return false;
+  b.claimed.push(tierNum);
+  saveBattlePass(b);
+  if (r.reward.type === 'cash') awardCash(r.reward.amt);
+  if (r.reward.type === 'gems') awardGems(r.reward.amt);
+  if (r.reward.type === 'card'){
+    const t = loadMyTeam();
+    t.push({ tier:r.reward.tier, name:`BPASS T${tierNum}`, arch:'baller', at:Date.now() });
+    saveMyTeam(t);
+  }
+  return r.reward;
+}
+
+// 🆕 v3.3.0 — "MY PICK" tournament champion bet
+function loadMyPick(){ try { return JSON.parse(localStorage.getItem(`wud:mypick:${currentProfileName()}`)||'{"history":[],"active":null}'); } catch(e){ return {history:[], active:null}; } }
+function saveMyPick(p){ try { localStorage.setItem(`wud:mypick:${currentProfileName()}`, JSON.stringify(p)); } catch(e){} }
+function placeMyPick(npcId, wager){
+  if (!spendCash(wager)) return false;
+  const p = loadMyPick();
+  p.active = { npcId, wager, payout: wager * 5, at:Date.now() };
+  saveMyPick(p);
+  return true;
+}
+
+// 🆕 v3.3.0 — KEYBOARD SHORTCUTS reference
+const KEYBOARD_SHORTCUTS = [
+  { key:'A / ←', desc:'P1 move LEFT' },
+  { key:'D / →', desc:'P1 move RIGHT' },
+  { key:'W / ↑', desc:'P1 jump · charge shot' },
+  { key:'E',     desc:'P1 steal' },
+  { key:'1-5',   desc:'emote bubbles mid-game' },
+  { key:'P / ESC', desc:'pause game · open settings' },
+  { key:'←',     desc:'P2 move LEFT (local 2P)' },
+  { key:'→',     desc:'P2 move RIGHT (local 2P)' },
+  { key:'↑',     desc:'P2 jump · charge shot (local 2P)' },
+  { key:'M',     desc:'mute / unmute music' },
+];
+
+// 🆕 v3.3.0 — render screens for new systems
+function renderBattlePassScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const tier = bpassCurrentTier();
+  const b = loadBattlePass();
+  const xp = Career.xp || 0;
+  const next = BATTLE_PASS_REWARDS[tier];
+  const xpToNext = next ? Math.max(0, next.xpRequired - xp) : 0;
+  const rows = BATTLE_PASS_REWARDS.map(r => {
+    const claimed = b.claimed.includes(r.tier);
+    const claimable = r.tier <= tier && !claimed && (!r.isPremium || b.premium);
+    const lockedReason = r.isPremium && !b.premium ? '🔒 PREMIUM' : (r.tier > tier ? `${r.xpRequired} XP needed` : claimed ? '✅ claimed' : '✨ ready');
+    return `<div style="display:flex;align-items:center;padding:8px 10px;margin:3px 0;background:${claimable?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0008'};border-left:4px solid ${r.isPremium?'#ffd76e':'#4f9eff'};border-radius:6px">
+      <div style="flex:0 0 50px;color:${claimable?'#4cf07a':'#aab'};font-weight:900;letter-spacing:2px;font-size:14px">T${r.tier}</div>
+      <div style="flex:1;color:#fff;font-size:12px">${r.reward.label}${r.isPremium?' <span style="color:#ffd76e;font-size:10px">★ PREMIUM</span>':''}</div>
+      <div style="color:${claimable?'#4cf07a':'#aab'};font-size:10px;letter-spacing:2px">${lockedReason}</div>
+      ${claimable ? `<button class="btn bpClaim" data-tier="${r.tier}" style="margin-left:8px;font-size:10px;padding:4px 10px;background:#4cf07a;color:#000;font-weight:900">CLAIM</button>` : ''}
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:680px">
+      <div class="title" style="font-size:30px;text-align:center">🎟 BATTLE PASS</div>
+      <div class="subtitle" style="text-align:center">SEASON 1 · 50 TIERS · CURRENT TIER ${tier}</div>
+      <div style="margin:14px 0;padding:14px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border-radius:12px;color:#000;text-align:center">
+        <div style="font-size:11px;letter-spacing:3px;font-weight:900">${xp} XP · ${next?`${xpToNext} XP TO TIER ${tier+1}`:'MAX TIER REACHED'}</div>
+        <div style="margin-top:8px;background:#000c;height:14px;border-radius:7px;overflow:hidden;border:2px solid #fff">
+          <div style="height:100%;background:linear-gradient(135deg,#4cf07a,#ffd76e);width:${Math.min(100, (tier/50)*100)}%;transition:width .4s"></div>
+        </div>
+      </div>
+      <div style="margin:10px 0;text-align:center">${b.premium ? '⭐ PREMIUM ACTIVE' : `<button class="btn hot" id="bpUpgrade" style="font-size:13px;background:linear-gradient(135deg,#ff66cc,#ffd76e);color:#000;font-weight:900;padding:10px 18px">⭐ UPGRADE TO PREMIUM · 50 💎 GEMS</button>`}</div>
+      <div style="margin:14px 0;max-height:50vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="bpBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('bpBack').onclick = showSplash;
+  document.querySelectorAll('.bpClaim').forEach(btn => btn.onclick = () => {
+    const t = parseInt(btn.dataset.tier, 10);
+    const r = claimBattlePassReward(t);
+    if (r){
+      if (typeof showToast === 'function') showToast(`🎟 CLAIMED · ${r.label}`, 'level');
+      renderBattlePassScreen();
+    }
+  });
+  const upgrade = document.getElementById('bpUpgrade');
+  if (upgrade) upgrade.onclick = () => {
+    if (loadGems() < 50){ showToast('💎 NEED 50 GEMS · earn via achievements', 'allpro'); return; }
+    if (!spendGems(50)) return;
+    const bp = loadBattlePass();
+    bp.premium = true;
+    saveBattlePass(bp);
+    if (typeof showToast === 'function') showToast('⭐ PREMIUM UNLOCKED', 'level');
+    renderBattlePassScreen();
+  };
+}
+
+function renderKeyboardShortcutsScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('howto');
+  const rows = KEYBOARD_SHORTCUTS.map(s => `<tr><td style="padding:8px 12px;color:#ffd76e;font-family:monospace;font-weight:900">${s.key}</td><td style="padding:8px 12px;color:#fff">${s.desc}</td></tr>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">⌨ KEYBOARD MAP</div>
+      <div class="subtitle" style="text-align:center">all bindings · desktop play</div>
+      <table style="width:100%;font-size:13px;color:#fff;margin:14px 0;background:#0008;border-radius:10px;overflow:hidden">${rows}</table>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">📱 mobile: tap controls bottom of screen</div>
+      <button class="btn" id="kbBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('kbBack').onclick = showSplash;
+}
+
+function renderThemePickerScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('shop');
+  const current = loadTheme();
+  const cards = UI_THEMES.map(t => `
+    <button class="btn themeCard" data-theme="${t.id}" style="display:block;width:100%;text-align:left;padding:12px;margin:6px 0;background:linear-gradient(135deg,${t.colors.bg},${t.colors.primary}33);border:3px solid ${current===t.id?t.colors.primary:'#ffd76e44'};border-radius:10px;color:#fff;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:900;letter-spacing:3px;font-size:14px;color:${t.colors.primary}">${current===t.id?'★ ':''}${t.name}</div>
+        <div style="display:flex;gap:4px">
+          <div style="width:20px;height:20px;background:${t.colors.primary};border-radius:50%"></div>
+          <div style="width:20px;height:20px;background:${t.colors.accent};border-radius:50%"></div>
+        </div>
+      </div>
+    </button>`).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:520px">
+      <div class="title" style="font-size:30px;text-align:center">🎨 UI THEMES</div>
+      <div class="subtitle" style="text-align:center">${UI_THEMES.length} themes · live-applies</div>
+      <div style="margin:14px 0">${cards}</div>
+      <button class="btn" id="thBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('thBack').onclick = showSplash;
+  document.querySelectorAll('.themeCard').forEach(b => b.onclick = () => {
+    applyTheme(b.dataset.theme);
+    if (typeof showToast === 'function') showToast(`🎨 THEME · ${b.dataset.theme.toUpperCase()}`, 'level');
+    renderThemePickerScreen();
+  });
+}
+
+function renderRivalriesScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('victory');
+  const r = loadRivalries();
+  const declared = Object.entries(r).filter(([_, v]) => v.declared);
+  const rows = declared.length
+    ? declared.map(([id, v]) => `<div style="padding:10px;margin:5px 0;background:#0008;border-left:5px solid #ff3b3b;border-radius:6px;color:#fff">
+        <div style="font-weight:900;letter-spacing:2px;color:#ff3b3b">⚔ ${id.toUpperCase()}</div>
+        <div style="font-size:11px;color:#aab;margin-top:4px">${v.wins} wins against · declared ${new Date(v.declaredAt).toLocaleDateString()}</div>
+      </div>`).join('')
+    : '<div style="color:#aab;text-align:center;padding:20px">no rivalries yet · beat the same NPC 3x to declare one ⚔</div>';
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">⚔ RIVALRIES</div>
+      <div class="subtitle" style="text-align:center">${declared.length} declared · 2× cash on rival match wins</div>
+      <div style="margin:14px 0;max-height:60vh;overflow-y:auto">${rows}</div>
+      <button class="btn" id="rvBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('rvBack').onclick = showSplash;
+}
+
+function renderHotZonesScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const z = loadHotZones();
+  const allZones = ['paint', 'midrange', '3pt', 'halfcourt', 'logo'];
+  const rows = allZones.map(zn => {
+    const stats = z[zn] || { makes:0, attempts:0 };
+    const pct = stats.attempts > 0 ? ((stats.makes / stats.attempts) * 100).toFixed(0) : 0;
+    const mul = (typeof zoneAccuracyMul === 'function') ? zoneAccuracyMul(zn) : 1.0;
+    const status = mul > 1 ? '🔥 HOT (+5%)' : (mul < 1 ? '❄️ COLD (-5%)' : '⚪ neutral');
+    const color = mul > 1 ? '#ff3b3b' : (mul < 1 ? '#4f9eff' : '#aab');
+    return `<div style="display:flex;justify-content:space-between;padding:10px;margin:5px 0;background:#0008;border-left:5px solid ${color};border-radius:6px;color:#fff">
+      <div><b style="text-transform:uppercase;letter-spacing:2px">${zn}</b><br><span style="font-size:11px;color:#aab">${stats.makes} / ${stats.attempts} (${pct}%)</span></div>
+      <div style="color:${color};letter-spacing:2px">${status}</div>
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">🔥 HOT ZONES</div>
+      <div class="subtitle" style="text-align:center">5+ makes / 50%+ rate = HOT zone</div>
+      <div style="margin:14px 0">${rows}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "Every good gift is from above" — James 1:17</div>
+      <button class="btn" id="hzBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('hzBack').onclick = showSplash;
+}
+
+// 🆕 v3.3.0 — HALFTIME BREAKDOWN screen (auto-shows between rounds)
+function showHalftimeBreakdownIfDue(scene){
+  if (!State.cfg || State.cfg.cpuVsCpu) return;   // skip in spectator (already has commentary)
+  if (scene._halftimeShownRound === State.roundIdx) return;
+  // show if we're transitioning rounds
+  if (State.roundIdx <= 0) return;
+  scene._halftimeShownRound = State.roundIdx;
+  const myPts = State.scores[0] || 0;
+  const oppPts = State.scores[1] || 0;
+  const lead = myPts - oppPts;
+  const winningSide = lead > 0 ? 'P1' : (lead < 0 ? 'P2' : 'TIE');
+  const ms = State.matchStats || [{},{}];
+  // verse for halftime
+  if (typeof fireAutoVerse === 'function') fireAutoVerse(scene, 'halftime');
+  // banner
+  let banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9000;padding:18px 28px;background:linear-gradient(135deg,#1a0e02,#7a5a14,#ffd76e);border:3px solid #fff;border-radius:14px;color:#000;font-weight:900;letter-spacing:3px;font-size:14px;text-align:center;max-width:420px';
+  banner.innerHTML = `
+    <div style="font-size:18px;color:#000">⏱ HALFTIME · ROUND ${State.roundIdx}</div>
+    <div style="margin-top:8px;font-size:12px">${winningSide === 'TIE' ? 'TIED' : winningSide + ' LEADS BY ' + Math.abs(lead)}</div>
+    <div style="margin-top:8px;font-size:11px;letter-spacing:2px;color:#000c">P1 ${myPts}-${oppPts} P2 · dunks ${ms[0]?.dunks||0}-${ms[1]?.dunks||0} · blocks ${ms[0]?.blocks||0}-${ms[1]?.blocks||0}</div>
+    <div style="margin-top:8px;font-size:10px;color:#000a">tap to dismiss</div>`;
+  banner.style.cursor = 'pointer';
+  banner.onclick = () => banner.remove();
+  document.body.appendChild(banner);
+  setTimeout(() => banner.parentNode && banner.remove(), 4500);
+}
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
