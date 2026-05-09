@@ -10847,8 +10847,13 @@ function renderTournamentScreen(){
     </div>`;
   };
   const champBig = t.champion === t.myTeam ? `<div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,#ffd76e44,#ff8a3c44);border:3px solid #ffd76e;border-radius:10px;text-align:center"><div style="font-size:48px">🏆 👑 🏆</div><div style="color:#ffd76e;font-size:22px;font-weight:900;letter-spacing:3px;margin-top:6px">TOURNAMENT CHAMPION!</div></div>` : '';
+  // 🆕 v3.4.0 — MY PICK pre-bracket champion bet section
+  const myPickState = (typeof loadMyPick === 'function') ? loadMyPick() : { active:null, history:[] };
+  const myPickHtml = myPickState.active
+    ? `<div style="margin-bottom:10px;padding:10px;background:linear-gradient(135deg,#1a3d2c,#4cf07a44);border:2px solid #4cf07a;border-radius:6px;color:#fff;font-size:12px">🏆 MY PICK · <b>${myPickState.active.npcId}</b> · wager $${myPickState.active.wager} · win $${myPickState.active.payout}</div>`
+    : `<div style="margin-bottom:10px;padding:10px;background:#0008;border:2px dashed #ffd76e;border-radius:6px;color:#ffd76e;font-size:11px;letter-spacing:2px;text-align:center">🏆 MY PICK · pick a champion before bracket starts · 5× payout · <button class="btn" id="myPickPick" style="font-size:10px;padding:4px 10px;margin-left:6px">PICK ${t.myTeam} ($100)</button></div>`;
   openModal(`⚔️ ${lg.name} TOURNAMENT — ${t.myTeam}`,
-    `<div style="font-size:12px;color:#fff;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    `${myPickHtml}<div style="font-size:12px;color:#fff;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
       <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">QUARTERFINALS</div>${t.qf.map((m,i)=>matchHtml(m,'QF'+(i+1), i===0)).join('')}</div>
       <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">SEMIFINALS</div>${t.sf.map((m,i)=>matchHtml(m,'SF'+(i+1), i===0)).join('')}</div>
       <div><div style="color:var(--gold);letter-spacing:3px;font-size:10px;margin-bottom:4px">FINAL</div>${matchHtml(t.final,'CHAMPIONSHIP', true)}</div>
