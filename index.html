@@ -12257,8 +12257,9 @@ class MatchScene extends Phaser.Scene {
     if (this.p2.isRemote) this.handleRemoteInput(this.p2);
     else if (this.p2.isCpu) this.runCpu(this.p2, dt);
     else this.handleHumanInput(this.p2, [this.keys.LEFT], [this.keys.RIGHT], [this.keys.UP]);
-    // ONLINE — stream local input to opponent (every ~50ms)
+    // ONLINE — stream local input + position + (host) ball state
     if (State.mode === 'ONLINE' && Online.connected){
+      // Input messages every ~50ms
       if (!this._lastInputSend || time - this._lastInputSend > 50){
         this._lastInputSend = time;
         const k = this.keys;
@@ -12267,6 +12268,28 @@ class MatchScene extends Phaser.Scene {
           x: this.p1.x, y: this.p1.y, vx: this.p1.body.velocity.x, vy: this.p1.body.velocity.y,
           charging: this.p1._charging, charge: this.p1._chargeAmount || 0,
         }});
+      }
+      // 🆕 v3.22.0 — high-freq POS broadcast (30Hz)
+      if (!this._lastPosSend || time - this._lastPosSend > 33){
+        this._lastPosSend = time;
+        Online.sendPos(this.p1.x, this.p1.y, this.p1.body.velocity.x, this.p1.body.velocity.y);
+      }
+      // 🆕 v3.22.0 — HOST authoritative ball broadcast (20Hz)
+      if (Online.isHost && this.ball && (!this._lastBallSend || time - this._lastBallSend > 50)){
+        this._lastBallSend = time;
+        Online.sendBall(this.ball.x, this.ball.y, this.ball.body.velocity.x, this.ball.body.velocity.y, !!this.ball.getData('held'));
+      }
+      // 🆕 v3.22.0 — GUEST applies remote ball position (host is source of truth)
+      if (!Online.isHost && Online.remoteBall.x != null && this.ball){
+        const dt = (time - Online.remoteBall.lastUpdate) / 1000;
+        if (dt < 0.4){
+          // Smoothly correct ball toward remote pos
+          const corrFactor = 0.5;
+          const targetX = Online.remoteBall.x + Online.remoteBall.vx * dt;
+          const targetY = Online.remoteBall.y + Online.remoteBall.vy * dt;
+          this.ball.x += (targetX - this.ball.x) * corrFactor;
+          this.ball.y += (targetY - this.ball.y) * corrFactor;
+        }
       }
     }
 
