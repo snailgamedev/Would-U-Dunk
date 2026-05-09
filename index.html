@@ -8764,6 +8764,50 @@ const Online = {
   },
 };
 
+/* ------------------- 🆕 v3.23.0 MP OVERLAY (chat + ping + reconnect + huddle) ------------------- */
+function renderMpOverlay(){
+  // remove existing
+  const old = document.getElementById('mpOverlay'); if (old) old.remove();
+  if (!Online.connected && !Online.lastCode) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'mpOverlay';
+  wrap.style.cssText = 'position:fixed;bottom:8px;right:8px;width:280px;background:linear-gradient(135deg,rgba(8,12,28,.95),rgba(20,8,40,.95));color:#fff;padding:10px;border-radius:14px;font-size:12px;z-index:9997;box-shadow:0 8px 24px rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.15);font-family:system-ui,sans-serif';
+  const pingColor = Online.ping <= 0 ? '#888' : (Online.ping < 100 ? '#0f0' : (Online.ping < 250 ? '#fc0' : '#f44'));
+  const stateLabel = Online.isSpectator ? '👁 SPEC' : (Online.isHost ? '🏠 HOST' : '🚪 GUEST');
+  const chatHtml = (Online.chatLog || []).slice(-5).map(c => `<div style="margin:2px 0;color:${c.from==='me'?'#9cf':'#fc9'}"><b>${c.from==='me'?'me':'opp'}:</b> ${(c.text||'').replace(/[<>]/g,'')}</div>`).join('') || '<div style="opacity:.5">no messages yet · say hi 👋</div>';
+  wrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-weight:900">${stateLabel} · ${Online.code||'—'}</span>
+      <span style="background:${pingColor};color:#000;padding:2px 6px;border-radius:6px;font-weight:900">${Online.ping||'—'}ms</span>
+    </div>
+    <div id="mpChat" style="max-height:90px;overflow-y:auto;background:rgba(0,0,0,.3);padding:4px;border-radius:6px;margin-bottom:6px">${chatHtml}</div>
+    <div style="display:flex;gap:4px;margin-bottom:6px">
+      <input id="mpChatInput" placeholder="say something..." maxlength="60" style="flex:1;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:#fff;font-size:12px"/>
+      <button id="mpChatSend" style="padding:4px 8px;border-radius:6px;background:#36c;color:#fff;border:none;cursor:pointer">SEND</button>
+    </div>
+    <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">
+      ${['🔥','GG','🙏','LOL','😤','✝️'].map(e => `<button class="mpEmote" data-e="${e}" style="flex:1;min-width:36px;padding:3px;border-radius:5px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);cursor:pointer;font-size:13px">${e}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:4px">
+      <button id="mpReconnect" style="flex:1;padding:5px;border-radius:6px;background:#a60;color:#fff;border:none;cursor:pointer;font-weight:700">🔄 RECONNECT</button>
+      <button id="mpHuddle" style="flex:1;padding:5px;border-radius:6px;background:#603;color:#fff;border:none;cursor:pointer;font-weight:700">🙏 HUDDLE</button>
+      <button id="mpClose" style="padding:5px 8px;border-radius:6px;background:#600;color:#fff;border:none;cursor:pointer">✕</button>
+    </div>`;
+  document.body.appendChild(wrap);
+  document.getElementById('mpChatSend').onclick = () => {
+    const inp = document.getElementById('mpChatInput');
+    const t = (inp.value||'').trim().slice(0,60);
+    if (t){ Online.sendChat(t); inp.value=''; renderMpOverlay(); }
+  };
+  document.getElementById('mpChatInput').onkeydown = (ev) => { if (ev.key === 'Enter') document.getElementById('mpChatSend').click(); };
+  document.querySelectorAll('.mpEmote').forEach(b => b.onclick = () => { Online.sendChat(b.dataset.e); renderMpOverlay(); });
+  document.getElementById('mpReconnect').onclick = () => Online.reconnect();
+  document.getElementById('mpHuddle').onclick = () => Online.startPrayerHuddle();
+  document.getElementById('mpClose').onclick = () => { wrap.remove(); };
+}
+// auto-render MP overlay when connected · poll every 2s for ping refresh
+setInterval(() => { try { if (Online.connected) renderMpOverlay(); } catch(e){} }, 2000);
+
 /* ------------------- WEBAUDIO SFX ------------------- */
 const SFX = (() => {
   let ctx = null;
