@@ -8376,6 +8376,8 @@ class MatchScene extends Phaser.Scene {
     if (this._currentRoundIdx !== State.roundIdx){
       this._currentRoundIdx = State.roundIdx;
       if (typeof maybeFireRandomEvent === 'function') maybeFireRandomEvent(this);
+      // 🆕 v3.3.0 — halftime breakdown between rounds
+      if (typeof showHalftimeBreakdownIfDue === 'function') showHalftimeBreakdownIfDue(this);
     }
     const remain = Math.max(0, this.roundSecs - this.elapsed);
     document.getElementById('timer').textContent = formatTime(remain);
