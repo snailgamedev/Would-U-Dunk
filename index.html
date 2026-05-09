@@ -3486,6 +3486,12 @@ function renderBattlePassScreen(){
     if (typeof showToast === 'function') showToast('⭐ PREMIUM UNLOCKED', 'level');
     renderBattlePassScreen();
   };
+  // 🆕 v3.6.0 — tier skip button
+  const ts = document.getElementById('bpTierSkip');
+  if (ts) ts.onclick = () => {
+    if (loadGems() < 5){ showToast('💎 NEED 5 GEMS', 'allpro'); return; }
+    if (buyBpTierSkip()){ if (typeof showToast === 'function') showToast('⏩ +1 TIER · cookin', 'level'); renderBattlePassScreen(); }
+  };
 }
 
 function renderKeyboardShortcutsScreen(){
