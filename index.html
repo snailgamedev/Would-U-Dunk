@@ -6556,16 +6556,32 @@ class MatchScene extends Phaser.Scene {
       }
     }
     // 🆕 v2.7.0 — PERSISTENT HUD: CPU TIER badge top-left of viewport
+    // 🆕 v2.26.0 — CPU vs CPU mode: show "P1 vs P2" tier names + 🎬 SPECTATOR badge
     if (!this.cpuTierHud && State.mode === 'CPU' && State.rolls && State.rolls.cpuTiers){
-      const names = State.rolls.cpuTiers.map(t => t.name).join(' + ');
+      const isSpec = !!(State.cfg && State.cfg.cpuVsCpu);
+      const tiersArr = State.rolls.cpuTiers;
+      const names = isSpec && tiersArr.length >= 2
+        ? `🔴 ${tiersArr[0].name}  vs  🔵 ${tiersArr[1].name}`
+        : tiersArr.map(t => t.name).join(' + ');
+      const headerLbl = isSpec ? '🎬 SPECTATING' : '🤖 CPU';
+      const headerColor = isSpec ? '#4cf07a' : '#ff8a3c';
       this.cpuTierHud = this.add.container(0, 0).setDepth(DEPTH.HUD_FIXED).setScrollFactor(0);
-      const bg = this.add.rectangle(8, 8, 280, 36, 0x000000, 0.78).setOrigin(0,0).setStrokeStyle(2, 0xff8a3c);
-      const lbl = this.add.text(16, 12, '🤖 CPU', {fontFamily:'monospace', fontSize:11, color:'#ff8a3c', fontStyle:'bold'}).setOrigin(0,0);
+      const bg = this.add.rectangle(8, 8, 280, 36, 0x000000, 0.78).setOrigin(0,0).setStrokeStyle(2, isSpec ? 0x4cf07a : 0xff8a3c);
+      const lbl = this.add.text(16, 12, headerLbl, {fontFamily:'monospace', fontSize:11, color:headerColor, fontStyle:'bold'}).setOrigin(0,0);
       const nm = this.add.text(16, 26, names, {fontFamily:'monospace', fontSize:13, color:'#ffd76e', fontStyle:'bold'}).setOrigin(0,0);
       this.cpuTierHud.add([bg, lbl, nm]);
-      // dynamic width to fit name
       const w = Math.max(280, nm.width + 24);
       bg.width = w;
+    }
+    // 🆕 v2.26.0 — ACTIVE BET HUD (top-center) when wager is live
+    if (!this.betHud && State._activeBet){
+      const b = State._activeBet;
+      this.betHud = this.add.container(0, 0).setDepth(DEPTH.HUD_FIXED).setScrollFactor(0);
+      const bg = this.add.rectangle(VIEW_W/2, 8, 280, 36, 0x000000, 0.85).setOrigin(0.5,0).setStrokeStyle(2, 0x4cf07a);
+      const lbl = this.add.text(VIEW_W/2, 12, '🎰 ACTIVE BET', {fontFamily:'monospace', fontSize:10, color:'#4cf07a', fontStyle:'bold'}).setOrigin(0.5,0);
+      const nm = this.add.text(VIEW_W/2, 24, `${b.icon} ${b.label} · $${b.wager} → $${b.payout}`, {fontFamily:'monospace', fontSize:12, color:'#ffd76e', fontStyle:'bold'}).setOrigin(0.5,0);
+      this.betHud.add([bg, lbl, nm]);
+      bg.width = Math.max(280, nm.width + 24);
     }
     // 🆕 v2.7.0 — SERIES SCORE PANEL top-right of viewport for SERIES / BO7 modes
     if (!this.seriesHud && State.cfg && (State.cfg.isSeries || (State.mode2 && State.mode2.id === 'series'))){
