@@ -6239,6 +6239,177 @@ function renderProLeaderboardsScreen(){
   render();
 }
 
+// 💰 v3.16.0 — 13-TIER WEALTH LADDER · hundredaire → 999 trillionaire
+const WEALTH_TIERS = [
+  { id:'rookie',         min:0,             label:'🆕 ROOKIE',                  color:'#aab' },
+  { id:'hundredaire',    min:100,           label:'💵 HUNDREDAIRE',              color:'#4cf07a' },
+  { id:'thousandaire',   min:1000,          label:'💵 THOUSANDAIRE',             color:'#4cf07a' },
+  { id:'tenthousand',    min:10000,         label:'💸 10K-AIRE',                  color:'#ffd76e' },
+  { id:'hundredthou',    min:100000,        label:'💸 100K-AIRE',                 color:'#ffd76e' },
+  { id:'millionaire',    min:1000000,       label:'💎 MILLIONAIRE',              color:'#fff' },
+  { id:'tenmillion',     min:10000000,      label:'💎 10M-AIRE',                  color:'#fff' },
+  { id:'hundredmil',     min:100000000,     label:'💎 100M-AIRE',                 color:'#fff' },
+  { id:'billionaire',    min:1000000000,    label:'🌟 BILLIONAIRE',               color:'#a040ff' },
+  { id:'tenbillion',     min:10000000000,   label:'🌟 10B-AIRE',                  color:'#a040ff' },
+  { id:'hundredbil',     min:100000000000,  label:'🌟 100B-AIRE',                 color:'#a040ff' },
+  { id:'trillionaire',   min:1000000000000, label:'👑 TRILLIONAIRE',              color:'#ff66cc' },
+  { id:'tentrillion',    min:10000000000000,label:'👑 10T-AIRE',                  color:'#ff66cc' },
+  { id:'hundredtril',    min:100000000000000,label:'👑 100T-AIRE',                color:'#ff66cc' },
+  { id:'maxout',         min:999000000000000,label:'⚡ MAX (999T+)',              color:'#ff3b3b' },
+];
+function currentWealthTier(){
+  const cash = loadCash();
+  let tier = WEALTH_TIERS[0];
+  for (const t of WEALTH_TIERS){ if (cash >= t.min) tier = t; }
+  return tier;
+}
+function checkWealthTierPromotion(){
+  const tier = currentWealthTier();
+  let prev = null;
+  try { prev = localStorage.getItem(`wud:wealthTier:${currentProfileName()}`) || 'rookie'; } catch(e){}
+  if (prev !== tier.id){
+    try { localStorage.setItem(`wud:wealthTier:${currentProfileName()}`, tier.id); } catch(e){}
+    if (prev !== null && prev !== 'rookie' && prev !== tier.id){
+      // Promotion!
+      if (typeof showToast === 'function') showToast(`${tier.label} · WEALTH TIER UP`, 'level');
+      if (typeof MUSIC !== 'undefined' && MUSIC.stinger) MUSIC.stinger('victory');
+      try {
+        const banner = document.createElement('div');
+        banner.style.cssText = `position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;padding:20px 30px;background:linear-gradient(135deg,${tier.color}88,#fff,${tier.color});border:3px solid ${tier.color};border-radius:14px;color:#000;font-weight:900;letter-spacing:3px;text-align:center;box-shadow:0 0 40px ${tier.color};cursor:pointer`;
+        banner.innerHTML = `<div style="font-size:36px">${tier.label}</div><div style="font-size:12px;margin-top:8px">WEALTH TIER UP · grace upon grace</div>`;
+        banner.onclick = () => banner.remove();
+        document.body.appendChild(banner);
+        setTimeout(() => banner.parentNode && banner.remove(), 5000);
+      } catch(e){}
+    }
+  }
+}
+setTimeout(checkWealthTierPromotion, 4000);
+
+// 💎 v3.16.0 — VIP TIERS STACK · benefits compound
+function vipBetBoostStacked(){
+  const cur = currentVipTier();
+  const idx = VIP_TIERS.findIndex(t => t.id === cur.id);
+  if (idx <= 0) return 1.0;
+  let mul = 1.0;
+  for (let i = 1; i <= idx; i++){ mul *= VIP_TIERS[i].betBoost; }
+  return mul;
+}
+function vipDailyGemStacked(){
+  const cur = currentVipTier();
+  const idx = VIP_TIERS.findIndex(t => t.id === cur.id);
+  if (idx <= 0) return 0;
+  let total = 0;
+  for (let i = 1; i <= idx; i++){ total += VIP_TIERS[i].dailyGem; }
+  return total;
+}
+// Override the daily gem to use stacked total
+function maybeAwardDailyGemStacked(){
+  const v = loadVip();
+  const total = vipDailyGemStacked();
+  if (total === 0) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (v.lastDailyGem === today) return;
+  v.lastDailyGem = today;
+  saveVip(v);
+  if (typeof awardGems === 'function') awardGems(total);
+  if (typeof showToast === 'function') showToast(`💎 +${total} gems · VIP daily (stacked)`, 'level');
+}
+setTimeout(maybeAwardDailyGemStacked, 3500);
+
+// 🎰 v3.16.0 — JACKPOT BET wired (visible pool · resolves on perfect game + win + diamond VIP)
+function isDiamondVip(){ return currentVipTier().id === 'diamond'; }
+
+// 🃏 v3.16.0 — CARD BOOST EQUIP UI helpers
+function setEquippedBoostCard(cardKey){ saveEquippedBoostCard(cardKey); if (typeof showToast === 'function') showToast(`🃏 BET BOOST CARD EQUIPPED`, 'level'); }
+function clearEquippedBoostCard(){ saveEquippedBoostCard(''); if (typeof showToast === 'function') showToast(`🃏 BET BOOST UNEQUIPPED`, 'level'); }
+
+// 🎯 v3.16.0 — WAGER CHALLENGE PROGRESS BARS screen
+function renderWagerChallengesScreen(){
+  if (typeof musicForScreen === 'function') musicForScreen('arena');
+  const d = loadWagerChallenges();
+  const today = new Date().toISOString().slice(0,10);
+  if (d.day !== today){ d.day = today; d.progress = {}; d.claimed = []; saveWagerChallenges(d); }
+  const rows = WAGER_CHALLENGES.map(ch => {
+    const cur = ch.getter(d.progress);
+    const pct = Math.min(100, (cur / ch.target) * 100);
+    const isClaimed = d.claimed.includes(ch.id);
+    return `<div style="padding:12px;margin:6px 0;background:${isClaimed?'linear-gradient(135deg,#1a3d2c,#4cf07a44)':'#0008'};border:2px solid ${isClaimed?'#4cf07a':'#ffd76e44'};border-radius:8px;color:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:900;letter-spacing:2px;font-size:13px">${isClaimed?'✅ ':''}${ch.label}</div>
+        <div style="color:#ffd76e;font-weight:900;font-size:11px">+${ch.reward.gems} 💎</div>
+      </div>
+      <div style="margin-top:8px;background:#000c;height:14px;border-radius:7px;overflow:hidden;border:1px solid #ffd76e44">
+        <div style="height:100%;background:linear-gradient(90deg,${isClaimed?'#4cf07a':'#ffd76e'},${isClaimed?'#fff':'#ff8a3c'});width:${pct.toFixed(1)}%;transition:width .4s"></div>
+      </div>
+      <div style="margin-top:4px;font-size:10px;color:#aab;text-align:right">${cur.toLocaleString()} / ${ch.target.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  menuEl.innerHTML = `
+    <div class="panel" style="max-width:560px">
+      <div class="title" style="font-size:30px;text-align:center">🎯 DAILY CHALLENGES</div>
+      <div class="subtitle" style="text-align:center">resets midnight · gem rewards auto-claim</div>
+      <div style="margin:14px 0">${rows}</div>
+      <div style="text-align:center;color:#aab;font-size:11px;margin:10px 0">✝️ "Run in such a way as to take the prize" — 1 Cor 9:24</div>
+      <button class="btn" id="wcBack" style="width:100%">← BACK</button>
+    </div>`;
+  document.getElementById('wcBack').onclick = showSplash;
+}
+
+// 🎁 v3.16.0 — WEEKLY MYSTERY WAGER · Fridays get 10x mult
+function isMysteryFridayBoost(){ return new Date().getDay() === 5; }
+const _origPlaceMystery = placeMysteryWager;
+function placeMysteryWagerV316(){
+  const cash = loadCash();
+  if (cash < 50) return null;
+  const wager = Math.min(cash, 50 + (Math.random() * Math.min(cash, 500)) | 0);
+  const eligibleBets = BET_TYPES.filter(b => b.id !== 'diamond' && b.id !== 'jackpot' && b.id !== 'ultra' && b.id !== 'highroller');
+  const pickType = eligibleBets[(Math.random() * eligibleBets.length) | 0];
+  if (typeof placeBet === 'function' && placeBet(pickType.id, wager, { confidence: false })){
+    if (State._activeBet){
+      const mult = isMysteryFridayBoost() ? 10 : 3;
+      State._activeBet.mult *= mult;
+      State._activeBet.payout = Math.round(State._activeBet.wager * State._activeBet.mult);
+      State._activeBet.bonus = (State._activeBet.bonus || 0) + State._activeBet.mult * (mult - 1);
+    }
+    const dayLabel = isMysteryFridayBoost() ? 'FRIDAY 10x' : '3x';
+    if (typeof showToast === 'function') showToast(`🎁 MYSTERY (${dayLabel}) · ${pickType.label} · $${wager} → $${State._activeBet?.payout || wager*3}`, 'level');
+    return State._activeBet;
+  }
+  return null;
+}
+window.placeMysteryWager = placeMysteryWagerV316;
+
+// 👑 v3.16.0 — VIP PROFILE AURA helpers
+function vipAuraStyle(){
+  const v = currentVipTier();
+  if (v.id === 'diamond') return `text-shadow:0 0 20px ${v.color}, 0 0 30px #fff;`;
+  if (v.id === 'gold') return `text-shadow:0 0 14px ${v.color};`;
+  if (v.id === 'silver' || v.id === 'bronze') return `border:2px solid ${v.color}; padding:2px 6px; border-radius:6px;`;
+  return '';
+}
+
+// 🔥 v3.16.0 — HOT STREAK PARLAY · +20% per leg when on 5+ win streak
+function hotStreakParlayMul(legs){
+  const streak = Career.currentStreak || 0;
+  if (streak < 5) return 1.0;
+  return Math.pow(1.20, legs);
+}
+
+// 🏅 v3.16.0 — ACHIEVEMENT SHOWCASE · pin top 3
+function loadAchPins(){ try { return JSON.parse(localStorage.getItem(`wud:achPins:${currentProfileName()}`) || '[]'); } catch(e){ return []; } }
+function saveAchPins(arr){ try { localStorage.setItem(`wud:achPins:${currentProfileName()}`, JSON.stringify(arr.slice(0, 3))); } catch(e){} }
+
+// 🏟 v3.16.0 — DIAMOND-ONLY court (deferred push)
+const COURT_DIAMOND_V316 = [
+  { id:'court_diamond', name:'💎 DIAMOND COURT', cat:'COURT', price:0, icon:'💎', desc:'VIP Diamond exclusive · ice-pristine surface · +10% shot power · earned not bought' },
+];
+setTimeout(() => { try { SHOP_ITEMS.push(...COURT_DIAMOND_V316); } catch(e){} }, 0);
+const COURT_PHYSICS_V316 = {
+  court_diamond: { label:'DIAMOND', shotPower: 1.10, rimRattle: 0.85, desc:'pristine VIP exclusive' },
+};
+setTimeout(() => { try { Object.assign(COURT_PHYSICS, COURT_PHYSICS_V316); } catch(e){} }, 0);
+
 // 🆕 v2.26.0 — GAMBLE / BETTING engine
 const BET_TYPES = [
   { id:'win',     label:'WIN MATCH',           desc:'P1 score > P2 score at the buzzer',          mult:1.8, icon:'🏆' },
