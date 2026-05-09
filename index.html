@@ -734,6 +734,8 @@ function applyScreenDim(){
   el.style.opacity = Settings.screenDim ? '0.18' : '0';
 }
 setTimeout(applyScreenDim, 50);
+// 🆕 v3.2.0 — apply high-contrast class on page load if setting is on
+setTimeout(() => { try { document.body.classList.toggle('high-contrast', !!Settings.highContrast); } catch(e){} }, 60);
 
 const COURT_W = 2400, COURT_H = 720;
 const VIEW_W = 960,  VIEW_H = 540;
