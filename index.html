@@ -17782,15 +17782,70 @@ setTimeout(() => { if (WeatherTheme.enabled) WeatherTheme.check(); }, 5000);
 setInterval(() => { if (WeatherTheme.enabled) WeatherTheme.check(); }, 1800000);
 
 // ━━━━━━━ 5) TITLE_FIXER tracker (visit splash 7 days) ━━━━━━━
-setInterval(() => {
+function _v328TrackSplashDay(){
   try {
+    if (!document.getElementById('splash')) return;
     const k = 'wud:splashDays';
     const days = new Set(JSON.parse(localStorage.getItem(k) || '[]'));
     days.add(new Date().toISOString().slice(0,10));
     localStorage.setItem(k, JSON.stringify(Array.from(days).slice(-30)));
-    if (days.size >= 7) unlockAchievement('title_fixer');
+    if (days.size >= 7) try { unlockAchievement('title_fixer'); } catch(e){}
   } catch(e){}
-}, 60000);
+}
+setInterval(_v328TrackSplashDay, 30000);
+setTimeout(_v328TrackSplashDay, 3000);
+
+// ━━━━━━━ CHECK 2 POLISH (v3.28.0) ━━━━━━━
+// POLISH: weather first-time auto-prompt
+setTimeout(() => {
+  try {
+    const k = 'wud:weatherPrompted';
+    if (!localStorage.getItem(k) && (IS_MOBILE || ('ontouchstart' in window))){
+      localStorage.setItem(k, '1');
+      if (typeof showToast === 'function') showToast('🌧 Enable weather-aware theme? Open MORE → 🌎 Theme picker', 'level');
+    }
+  } catch(e){}
+}, 8000);
+
+// POLISH: Daily theme bonus also indicated on toast when match starts
+setInterval(() => {
+  try {
+    if (!State || !State.matchOver) return;
+    if (DailyTheme.isActive() && !window._dailyBonusShownThisMatch){
+      window._dailyBonusShownThisMatch = true;
+      if (typeof showToast === 'function') showToast('🪙 BLESSED THEME ACTIVE · +20% gold/XP this match', 'level');
+      DailyTheme.recordUse();
+      setTimeout(() => { window._dailyBonusShownThisMatch = false; }, 30000);
+    }
+  } catch(e){}
+}, 5000);
+
+// POLISH: meta achievement V328 PILGRIM (all 4 v3.28 ach)
+setInterval(() => {
+  try {
+    const ids = ['daily_devotee','weather_watcher','cross_device','title_fixer'];
+    const got = ids.filter(id => Career.achievements && Career.achievements[id]).length;
+    // v3.28 doesn't have a meta yet · we can leave that as next-version idea
+  } catch(e){}
+}, 11000);
+
+// POLISH: theme-aware daily verse rotation on splash
+const _dailyVerses = [
+  '"From the rising of the sun to its setting, the name of the LORD is to be praised" — Ps 113:3',
+  '"This is the day the LORD has made; let us rejoice and be glad in it" — Ps 118:24',
+  '"Be still and know that I am God" — Ps 46:10',
+  '"His mercies are new every morning" — Lam 3:23',
+  '"Trust in the LORD with all your heart" — Prov 3:5',
+  '"I can do all things through Christ" — Phil 4:13',
+  '"The joy of the LORD is your strength" — Neh 8:10',
+];
+setTimeout(() => {
+  try {
+    const v = _dailyVerses[(new Date().getDate()) % _dailyVerses.length];
+    const el = document.getElementById('splashVerse');
+    if (el && DailyTheme.isActive()) el.textContent = '🪙 BLESSED · ' + v + ' 🙏';
+  } catch(e){}
+}, 1800);
 
 // ━━━━━━━ Wire entry points + extend ThemeEngine.pick with new buttons ━━━━━━━
 (function extendThemePicker(){
