@@ -2483,7 +2483,7 @@ function maybeCinematicMode(scene){
     try {
       const vignette = scene.add.rectangle(VIEW_W/2, VIEW_H/2, VIEW_W, VIEW_H, 0x000000, 0).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED - 1);
       scene.tweens.add({ targets:vignette, alpha:0.25, duration:600 });
-      scene.cameras.main.flash(220, 255, 215, 110);
+      // 🆕 v3.11.0 — removed cinematic-mode flash (jarring · vignette + banner enough)
       const banner = scene.add.text(VIEW_W/2, 90, '⏱️ CINEMATIC TIME', {fontFamily:'Bebas Neue,Impact,sans-serif', fontSize:32, color:'#ffd76e', stroke:'#000', strokeThickness:8}).setOrigin(0.5,0).setScrollFactor(0).setDepth(DEPTH.HUD_FIXED);
       scene.tweens.add({ targets:banner, alpha:0, y:banner.y - 30, duration:2400, onComplete:()=>banner.destroy() });
     } catch(e){}
