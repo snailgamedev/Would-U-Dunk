@@ -3460,6 +3460,10 @@ function renderBattlePassScreen(){
         </div>
       </div>
       <div style="margin:10px 0;text-align:center">${b.premium ? '⭐ PREMIUM ACTIVE' : `<button class="btn hot" id="bpUpgrade" style="font-size:13px;background:linear-gradient(135deg,#ff66cc,#ffd76e);color:#000;font-weight:900;padding:10px 18px">⭐ UPGRADE TO PREMIUM · 50 💎 GEMS</button>`}</div>
+      <!-- 🆕 v3.6.0 — TIER SKIP shop -->
+      <div style="margin:8px 0;padding:8px;background:#0008;border:1px dashed #4f9eff;border-radius:6px;text-align:center;color:#4f9eff;font-size:11px;letter-spacing:2px">
+        💎 ${loadGems()} GEMS · <button class="btn" id="bpTierSkip" style="font-size:10px;padding:5px 10px;margin-left:6px;background:#4f9eff;color:#000;font-weight:900">⏩ TIER SKIP · 5 💎</button>
+      </div>
       <div style="margin:14px 0;max-height:50vh;overflow-y:auto">${rows}</div>
       <button class="btn" id="bpBack" style="width:100%">← BACK</button>
     </div>`;
