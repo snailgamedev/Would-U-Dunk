@@ -10072,9 +10072,24 @@ function renderGambleScreen(){
         </div>
       </div>
       <div id="payoutPreview" style="margin:10px 0;padding:10px;background:linear-gradient(135deg,#1a3d2c44,#4cf07a22);border-radius:8px;text-align:center;color:#aab;font-size:13px;letter-spacing:2px;min-height:32px">↑ pick a bet to see payout</div>
+      <!-- 🆕 v3.1.0 — pick PLAY (you control P1) vs WATCH (CPU vs CPU) before betting -->
+      <div style="margin:10px 0;padding:10px;background:#0008;border:2px solid #ffd76e44;border-radius:8px">
+        <div style="color:#ffd76e;font-size:11px;letter-spacing:3px;margin-bottom:6px">🎮 MATCH MODE FOR THIS BET</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn modeChoice" data-mode="play"  style="flex:1;font-size:13px;padding:10px;background:linear-gradient(135deg,#1a3d2c,#4cf07a);color:#000;font-weight:900;border:3px solid #4cf07a">🕹 PLAY YOURSELF (you = P1)</button>
+          <button class="btn modeChoice" data-mode="watch" style="flex:1;font-size:13px;padding:10px;background:#0008;color:#fff;font-weight:900;border:3px solid #ffd76e44">🎬 WATCH CPU vs CPU</button>
+        </div>
+        <div id="modeChoiceLbl" style="margin-top:6px;color:#aab;font-size:10px;letter-spacing:2px;text-align:center">selected: 🕹 PLAY · you control P1 · CPU plays P2</div>
+      </div>
+      <!-- 🆕 v3.1.0 — confidence multiplier (lock pre-info) -->
+      <div style="margin:10px 0;padding:8px;background:#0006;border:1px dashed #ffd76e44;border-radius:6px;text-align:center">
+        <label style="color:#ffd76e;font-size:11px;letter-spacing:2px;cursor:pointer">
+          <input type="checkbox" id="confidenceLock" style="vertical-align:middle"> 🔒 CONFIDENCE LOCK (+30% mult · locks before chaos rolls)
+        </label>
+      </div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn" id="gambleBack" style="flex:1">← BACK</button>
-        <button class="btn hot" id="gamblePlace" style="flex:2;font-size:16px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900" disabled>🎲 PLACE BET &amp; PLAY →</button>
+        <button class="btn hot" id="gamblePlace" style="flex:2;font-size:16px;background:linear-gradient(135deg,#1a3d2c,#4cf07a,#ffd76e);color:#000;font-weight:900" disabled>🎲 PLACE BET &amp; GO →</button>
       </div>
       <div style="margin-top:18px;padding:10px;background:#0006;border:1px solid #ffd76e33;border-radius:8px">
         <div style="color:#ffd76e;font-size:10px;letter-spacing:3px;margin-bottom:6px">📜 LAST 5 BETS</div>
