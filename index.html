@@ -14449,6 +14449,8 @@ async function startRound(){
   State.rolls = rolls; State.cfg = cfg;
   // 🆕 v3.4.0 — show rival intro card if matched up against declared rival
   if (typeof maybeShowRivalIntro === 'function') setTimeout(() => maybeShowRivalIntro(), 100);
+  // 🎬 v3.10.0 — pre-game cinematic intro card (CPU mode only)
+  if (State.mode === 'CPU' && typeof showPreGameIntro === 'function') setTimeout(showPreGameIntro, 200);
   // 🆕 v3.5.0 — play custom walkout clip if user recorded one
   // 🆕 v3.6.0 — uses random slot (A/B/C) if any recorded, fallback to single v3.5 clip
   if (typeof playRandomWalkoutSlot === 'function') setTimeout(() => playRandomWalkoutSlot(), 600);
