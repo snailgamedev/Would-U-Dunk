@@ -4948,7 +4948,8 @@ function renderHubEconomy(){
   document.getElementById('hubBack').onclick = showSplash;
   const actions = {
     shop: renderShopScreen,
-    gamble: renderGambleScreen,
+    // 🔄 v3.17.0 — Economy gamble routes to Casino Lounge (single source)
+    gamble: renderCasinoLoungeScreen,
     myteam: renderMyTeamScreen,
     packs: renderPackOpeningScreen,
     cardtrade: renderCardTradingScreen,
