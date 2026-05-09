@@ -14972,6 +14972,14 @@ function showEndCard(){
         if (typeof showToast === 'function') showToast('⚔ RIVAL DEFEATED · 2× cash bonus', 'level');
       }
     }
+    // 🏆 v3.13.0 — record all leaderboards on match end
+    if (typeof recordAllLeaderboards === 'function') recordAllLeaderboards();
+    // 🏅 v3.13.0 — millionaire/bet achievements
+    if (typeof loadCash === 'function' && loadCash() >= 1000000) unlockAchievement('mil_lifetime');
+    if ((Career.wins || 0) >= 100) unlockAchievement('wins_100');
+    if ((State.matchStats?.[0]?.dunks || 0) >= 50) unlockAchievement('dunks_50_match');
+    // 🤖 v3.13.0 — auto-bet next match
+    if (typeof maybeAutoPlaceBet === 'function') setTimeout(maybeAutoPlaceBet, 2000);
     // 🆕 v3.9.0 — OPPOSITES tracking · cpu form · mentor (anti-rival) · rep
     const npcId = State.rolls?.cpuTiers?.[0]?._npc?.id;
     if (npcId && typeof tickCpuForm === 'function') tickCpuForm(npcId, won);
