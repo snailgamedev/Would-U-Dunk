@@ -2418,7 +2418,7 @@ const STADIUM_TIERS = [
 ];
 function loadCash(){ try { return parseInt(localStorage.getItem(`wud:cash:${currentProfileName()}`)||'0', 10); } catch(e){ return 0; } }
 function saveCash(n){ try { localStorage.setItem(`wud:cash:${currentProfileName()}`, String(Math.max(0, n|0))); } catch(e){} }
-function awardCash(n){ const cur = loadCash(); saveCash(cur + n); return cur + n; }
+function awardCash(n){ const cur = loadCash(); saveCash(cur + n); try { if (typeof checkWealthTierPromotion === 'function') checkWealthTierPromotion(); } catch(e){} return cur + n; }
 
 // 🆕 v3.0.0 — ASCENSION · COMBO NAME ENGINE — escalating popups w/ scriptural finishers
 const COMBO_NAMES = [
