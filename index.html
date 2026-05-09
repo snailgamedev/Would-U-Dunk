@@ -13074,6 +13074,10 @@ function showEndCard(){
     // 🆕 v3.4.0 — log spectated CPU vs CPU match
     if (State.cfg?.cpuVsCpu && typeof logSpectatedMatch === 'function'){
       logSpectatedMatch(State.looks[0]?.username || 'CPU1', State.looks[1]?.username || 'CPU2', myPts, oppPts);
+      // 🆕 v3.5.0 — MVP vote prompt after CPU vs CPU
+      if (typeof showMvpVotePrompt === 'function'){
+        setTimeout(() => showMvpVotePrompt(State.looks[0]?.username || 'CPU1', State.looks[1]?.username || 'CPU2', myPts, oppPts), 1200);
+      }
     }
     // 🆕 v3.4.0 — championship cinematic on franchise/tournament title
     if (won && (State._franchiseActive || State._tourneyActive) && typeof fireChampionshipCinematic === 'function'){
