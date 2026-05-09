@@ -7049,15 +7049,15 @@ function renderAddFriendScreen(){
     const v = (document.getElementById('afInput').value || '').trim();
     if (!v) return;
     if (v.length === 6){
-      // 6-char code mode (old)
-      if (typeof addFriend === 'function' && addFriend(v.toUpperCase())){
-        if (typeof showToast === 'function') showToast(`👥 FRIEND ${v.toUpperCase()} ADDED`, 'level');
-        renderFriendsHubScreen();
-      } else {
-        if (typeof showToast === 'function') showToast('already friends or invalid', 'allpro');
+      // ✉ v3.20.0 — 6-char code now triggers REQUEST (not direct add)
+      const code = v.toUpperCase();
+      if (!validateFriendCode(code)){
+        if (typeof showToast === 'function') showToast('❌ INVALID CODE · checksum failed', 'allpro');
+        return;
       }
+      if (sendFriendRequest(code)) renderFriendsHubScreen();
     } else {
-      // Full payload paste
+      // Full payload paste · still direct add (already verified payload)
       const snap = importFriendPayload(v);
       if (snap){
         if (typeof showToast === 'function') showToast(`👥 ${snap.name || snap.code} ADDED · synced fully`, 'level');
