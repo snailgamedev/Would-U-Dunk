@@ -5896,6 +5896,13 @@ class MatchScene extends Phaser.Scene {
     else if (shotDist >= 600){  zoneVal = 3; zoneLabel = '🎯 3-PT!'; }
     else                      { zoneVal = 2; zoneLabel = '2 PTS'; }
     let points = zoneVal * scoreMul;
+    // 🆕 v3.0.0 — PERFECT RELEASE bonus +1 + GREEN BUCKET popup
+    if (ball.getData('perfectRelease')){
+      points += 1;
+      const t = this.add.text(hoop.x, hoop.y - 60, '+1 GREEN', {fontFamily:'monospace', fontSize:16, color:'#4cf07a', stroke:'#000', strokeThickness:5, fontStyle:'bold'}).setOrigin(0.5).setDepth(DEPTH.CELEBRATION);
+      this.tweens.add({ targets:t, y:t.y - 40, alpha:0, duration:1100, onComplete:()=>t.destroy() });
+      ball.setData('perfectRelease', false);
+    }
     // FAST BREAK — bonus +1 if you scored within 2s of pickup
     const pickupAt = ball.getData('pickupAt') || 0;
     if (State.cfg.fastBreak && pickupAt && (this.time.now - pickupAt) < 2000){
