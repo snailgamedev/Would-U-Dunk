@@ -18337,6 +18337,7 @@ function showSplash(){
   const pb = document.getElementById('profileBadge');
   if (pb) pb.textContent = profileBadge();
   document.getElementById('hud').style.display = 'none';
+  document.body.classList.remove('playing');   // 🆕 back to menu → hide mobile controls
   document.getElementById('gameSettings').classList.remove('on');
   const m = document.getElementById('moves'); if (m) m.classList.remove('on');
   // animate the bar fill from 0
