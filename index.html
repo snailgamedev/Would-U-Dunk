@@ -19893,7 +19893,7 @@ function showEndCard(){
     if ((loadFaith().streak||0) >= 30 && typeof unlockAchievement === 'function') unlockAchievement('mercies_new');
     if (won && State._activeBet && State._activeBet.wager >= 1000 && typeof unlockAchievement === 'function') unlockAchievement('faith_over_fear');
     // Refiner's Fire — won 5 in a row after losing 5 in a row
-    if (won && (Career.currentStreak||0) >= 5 && State._postLossStreakStart) unlockAchievement('refiners_fire');
+    if (won && (Career.currentStreak||0) >= 5 && State._postLossStreakStart) unlockAchievement('refiners_fire_comeback');
     if ((Career.currentLossStreak||0) >= 5) State._postLossStreakStart = true;
   }
   // 🆕 v2.26.0 — GAMBLE bet resolution. Runs ONCE per match-done. Toast + persisted history.
