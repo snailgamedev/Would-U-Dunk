@@ -13566,6 +13566,7 @@ class MatchScene extends Phaser.Scene {
     if (this.cameras && this.cameras.main){ this.cameras.main.setZoom(1); }
     // hide HUD chrome
     const hud = document.getElementById('hud'); if (hud) hud.style.display = 'none';
+    document.body.classList.remove('playing');   // 🆕 leaving the match → hide mobile controls
     const ls = document.getElementById('liveStats'); if (ls) ls.style.display = 'none';
     const pause = document.getElementById('pause'); if (pause) pause.classList.remove('on');
     const moves = document.getElementById('moves'); if (moves) moves.classList.remove('on');
