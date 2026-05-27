@@ -13793,6 +13793,49 @@ function renderSaveExportModal(){
   }, 80);
 }
 
+/* ====================== 👑 ADMIN THRONE (OME = Eli · Coda = me) ======================
+   Access (SC-style, no prompt): just name your profile OME or Coda → the throne appears
+   at the top of SETTINGS. God-mode over this profile's cash/gems/stadium/shop/achievements. */
+const WUD_ADMINS = ['OME','CODA'];
+function isWudAdmin(){ try { return WUD_ADMINS.includes((currentProfileName()||'').trim().toUpperCase()); } catch(e){ return false; } }
+function openWudAdmin(){
+  if(!isWudAdmin()){ showToast('🚫 Admins only — name your profile OME or Coda', 'allpro'); return; }
+  const html = `
+    <div style="font-size:11px;color:#aaa;letter-spacing:1px;margin-bottom:10px">signed in as <b style="color:var(--gold)">${currentProfileName()}</b> · 💰 ${loadCash().toLocaleString()} · 💎 ${loadGems()} · 🏟 tier ${loadStadiumTier()}/${STADIUM_TIERS.length}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn" onclick="wudAdm('cash10k')">💰 +10K cash</button>
+      <button class="btn" onclick="wudAdm('cash100k')">💰 +100K cash</button>
+      <button class="btn" onclick="wudAdm('gems')">💎 +50 gems</button>
+      <button class="btn" onclick="wudAdm('xp')">📈 +1000 XP</button>
+      <button class="btn" onclick="wudAdm('stadium')">🏟 Max stadium</button>
+      <button class="btn" onclick="wudAdm('shop')">🛍 Unlock all items</button>
+      <button class="btn" onclick="wudAdm('ach')">🏆 All achievements</button>
+      <button class="btn hot" onclick="wudAdm('all')" style="background:linear-gradient(135deg,#ffd76e,#ff8a3c);color:#1a0e02;font-weight:900">✨ UNLOCK ALL</button>
+    </div>
+    <div style="margin-top:12px;font-size:10px;color:#888;text-align:center;font-style:italic;line-height:1.5">"To whom much is given, much will be required." — Luke 12:48 🙏<br>even kings answer to the King.</div>`;
+  openModal('👑 ADMIN THRONE', html);
+}
+function wudAdm(what){
+  if(!isWudAdmin()) return;
+  switch(what){
+    case 'cash10k':  awardCash(10000);  showToast('💰 +$10,000', 'level'); break;
+    case 'cash100k': awardCash(100000); showToast('💰 +$100,000', 'level'); break;
+    case 'gems':     awardGems(50);     showToast('💎 +50 gems', 'level'); break;
+    case 'xp':       awardXp(1000);     showToast('📈 +1000 XP', 'level'); break;
+    case 'stadium':  saveStadiumTier(STADIUM_TIERS.length); showToast('🏟 TEMPLE OF HOOPS unlocked', 'level'); break;
+    case 'shop':     saveOwned(SHOP_ITEMS.map(i=>i.id)); showToast('🛍 All '+SHOP_ITEMS.length+' items owned', 'level'); break;
+    case 'ach':      ACH_LIST.forEach(a=>{ if(!Career.achievements[a.id]) Career.achievements[a.id]={at:Date.now()}; }); saveCareer(); showToast('🏆 All '+ACH_LIST.length+' achievements', 'ach'); break;
+    case 'all':
+      awardCash(1000000); awardGems(100); awardXp(3000);
+      saveStadiumTier(STADIUM_TIERS.length);
+      saveOwned(SHOP_ITEMS.map(i=>i.id));
+      ACH_LIST.forEach(a=>{ if(!Career.achievements[a.id]) Career.achievements[a.id]={at:Date.now()}; }); saveCareer();
+      showToast('✨ The whole kingdom is yours, '+currentProfileName()+'!', 'level');
+      break;
+  }
+  openWudAdmin(); // refresh the panel header with new totals
+}
+
 function renderSettingsScreen(){
   musicForScreen('rules'); // 🆕 v2.21.0 settings = workshop
   // 🆕 v2.16.2 — defensively pause the active match while settings is open
