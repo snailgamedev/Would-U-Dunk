@@ -13870,6 +13870,10 @@ function renderSettingsScreen(){
       ${body}
     </div>`;
   const html = `
+    ${isWudAdmin() ? `<div style="margin-bottom:14px;background:linear-gradient(135deg,#3a2d0a,#1a1402);border:1px solid var(--gold);border-radius:10px;padding:10px">
+      <div style="color:var(--gold);font-size:10px;letter-spacing:3px;font-weight:900;margin-bottom:6px">👑 ADMIN · ${currentProfileName()}</div>
+      <button class="btn hot" onclick="openWudAdmin()" style="width:100%;background:linear-gradient(135deg,#ffd76e,#ff8a3c);color:#1a0e02;font-weight:900">👑 OPEN ADMIN THRONE</button>
+    </div>` : ''}
     ${section('🔊 AUDIO', `
       <label class="setrow" style="flex-direction:column;align-items:stretch;gap:6px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
