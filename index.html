@@ -19883,7 +19883,7 @@ function showEndCard(){
       saveRecords(r);
     }
     // 🙏 Faith achievement triggers
-    if (won && (Career.currentStreak||0) >= 10 && typeof unlockAchievement === 'function') unlockAchievement('anointed');
+    if (won && (Career.currentStreak||0) >= 10 && typeof unlockAchievement === 'function') unlockAchievement('anointed_streak');
     if (won && State._maxDeficit >= 20 && typeof unlockAchievement === 'function') unlockAchievement('more_than_conqueror');
     if (won && State.modeId === 'allchaos' && typeof unlockAchievement === 'function') unlockAchievement('walking_on_water');
     if (State.modeId === 'practice' && typeof unlockAchievement === 'function') unlockAchievement('peace_passes');
