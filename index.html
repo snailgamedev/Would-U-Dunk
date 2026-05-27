@@ -10997,6 +10997,7 @@ class MatchScene extends Phaser.Scene {
 
     // Show HUD
     document.getElementById('hud').style.display = 'flex';
+    document.body.classList.add('playing');   // 🆕 mobile: controls only show in a real match (not on menus)
     document.getElementById('gameSettings').classList.add('on');
     // 🆕 v2.16.2 — auto-show controls only for first 3 matches per profile, then auto-hide after 6s
     try {
