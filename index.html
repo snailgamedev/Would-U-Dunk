@@ -128,8 +128,11 @@
   /* Touch controls ONLY during a match (when #hud is visible) — never on splash */
   body.ui-mobile #hud{display:flex !important}
   body.ui-mobile #touch{display:none}
-  body.ui-mobile #hud[style*="flex"] ~ #touch,
-  body.ui-mobile #touch.on{display:block !important}
+  /* controls show ONLY in an active match (body.playing) — not on menus, so they never overlap menu screens */
+  body.ui-mobile.playing #touch,
+  body.ui-mobile.playing #touch.on{display:block !important}
+  body.ui-mobile:not(.playing) #touch{display:none !important}
+  body.ui-mobile:not(.playing) #joystick{display:none !important}
   body.ui-mobile #moves{display:none !important}
   body.ui-mobile #movesHelp{display:none !important}
   body.ui-mobile #liveStats{font-size:9px;min-width:160px;max-width:60vw;padding:6px 8px;top:60px;right:8px}
