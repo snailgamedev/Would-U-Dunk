@@ -20391,5 +20391,14 @@ window.addEventListener('keydown', e => {
 <a href="https://snailgamedev.github.io/PeakArcade/word.html" style="background:rgba(7,7,15,.85);color:#ffe8a3;padding:8px 13px;border-radius:99px;border:1px solid #f5c542;text-decoration:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)">✝ The Word</a>
 </div>
 <script>try{if(window.top===window.self){document.getElementById('pa-links').style.display='flex';}}catch(e){}</script>
+<script>
+/* 🔥 LAG-KILL (2026-05-28): pause non-gameplay CSS anims when tab hidden · offscreen-skip on heavy stat lists & shop */
+(function(){try{
+  const s=document.createElement('style');
+  s.textContent='html.pgHidden .menu *,html.pgHidden .stats *,html.pgHidden .shop *,html.pgHidden .roster *{animation-play-state:paused!important}.lag-grid>*,.shop-grid>*,.upg-grid>*,.cpu-grid>*,.feed-row{content-visibility:auto;contain-intrinsic-size:auto 220px}';
+  document.head.appendChild(s);
+  document.addEventListener('visibilitychange',()=>document.documentElement.classList.toggle('pgHidden',document.hidden));
+}catch(e){}})();
+</script>
 </body>
 </html>
