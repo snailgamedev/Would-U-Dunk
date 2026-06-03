@@ -4542,7 +4542,7 @@ function registerServiceWorker(){
   if (!('serviceWorker' in navigator)) return;
   // Inline SW via blob URL · no separate sw.js file needed
   const swCode = `
-    const CACHE = 'wud-v3.7.0';
+    const CACHE = 'wud-v3.7.1';
     self.addEventListener('install', e => {
       e.waitUntil(caches.open(CACHE).then(c => c.add('./')));
       self.skipWaiting();
