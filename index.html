@@ -10425,9 +10425,11 @@ function pickSeasonMvp(f){
 function rollFreeAgentPool(){
   const pool = [];
   const seen = new Set();
-  while (pool.length < 16){
+  let tries = 0;
+  while (pool.length < 16 && tries < 400){   // attempt cap → can't infinite-loop if <16 unique NPCs exist (was a freeze)
+    tries++;
     const npc = pickRandomNpc();
-    if (seen.has(npc.id)) continue;
+    if (!npc || seen.has(npc.id)) continue;
     seen.add(npc.id);
     pool.push(npc);
   }
