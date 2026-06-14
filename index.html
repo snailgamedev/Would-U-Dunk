@@ -4542,7 +4542,7 @@ function registerServiceWorker(){
   if (!('serviceWorker' in navigator)) return;
   // Inline SW via blob URL · no separate sw.js file needed
   const swCode = `
-    const CACHE = 'wud-v3.7.2';
+    const CACHE = 'wud-v3.7.3';
     self.addEventListener('install', e => {
       e.waitUntil(caches.open(CACHE).then(c => c.add('./')));
       self.skipWaiting();
@@ -6982,7 +6982,7 @@ function renderFriendsHubScreen(){
     qr: renderFriendQrScreen,
     export: () => {
       const payload = buildFriendPayload();
-      try { navigator.clipboard.writeText(payload); if (typeof showToast === 'function') showToast(`📋 PAYLOAD COPIED · ${payload.length} chars`, 'level'); } catch(e){}
+      try { navigator.clipboard.writeText(payload).catch(()=>{}); if (typeof showToast === 'function') showToast(`📋 PAYLOAD COPIED · ${payload.length} chars`, 'level'); } catch(e){}
       if (typeof inGameAlert === 'function') inGameAlert(`Your friend payload (paste this to share):\n\n${payload.slice(0, 80)}...\n\n(copied to clipboard)`);
     },
   };
@@ -15339,7 +15339,7 @@ function renderShareGameScreen(){
   openModal('🔗 SHARE WOULD U DUNK', html);
   const cb = document.getElementById('shCopyURL');
   if (cb) cb.onclick = () => {
-    try { navigator.clipboard.writeText(SHARE_BASE); showToast('🔗 LINK COPIED!', 'level'); }
+    try { navigator.clipboard.writeText(SHARE_BASE).catch(()=>{}); showToast('🔗 LINK COPIED!', 'level'); }
     catch(e){ prompt('Copy this link:', SHARE_BASE); }
   };
 }
@@ -17686,7 +17686,7 @@ const QrSync = {
         <div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;margin:0 auto"><img src="${qrUrl}" style="display:block;width:240px;height:240px" alt="profile QR"/></div>
         <div style="font-size:13px;opacity:.85">📲 SCAN ON OTHER DEVICE → import this profile</div>
         <div style="font-size:10px;font-family:monospace;background:#0008;padding:6px;border-radius:6px;word-break:break-all">${short}</div>
-        <button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${payload}');showToast&&showToast('📋 copied to clipboard','level');">📋 COPY PAYLOAD</button>
+        <button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${payload}').catch(()=>{});showToast&&showToast('📋 copied to clipboard','level');">📋 COPY PAYLOAD</button>
         <button class="btn" onclick="QrSync.openImport();">📥 IMPORT FROM OTHER DEVICE</button>
         <div style="font-size:11px;opacity:.7">"From the rising of the sun to its setting, the name of the LORD is to be praised" — Ps 113:3</div>
       </div>`;
@@ -19060,7 +19060,7 @@ function showOnlineLobby(mode, joinCode){
     // Always use the live GH Pages URL so links work cross-device
     const url = `${SHARE_BASE}#join=${Online.code}`;
     try {
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(url).catch(()=>{});
       showToast('🔗 LINK COPIED — share with friend!', 'level');
     } catch(e){
       prompt('Copy this link and share:', url);
